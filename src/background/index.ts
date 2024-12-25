@@ -1,3 +1,6 @@
+/* eslint-disable no-undef */
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { EVENTS, MANIFEST_VERSION } from '@/shared/constant';
 import eventBus from '@/shared/eventBus';
 import { Message } from '@/shared/utils';
@@ -132,7 +135,8 @@ if (MANIFEST_VERSION === 'mv3') {
     if (alivePort == null) {
       alivePort = chrome.runtime.connect({ name: INTERNAL_STAYALIVE_PORT });
 
-      alivePort.onDisconnect.addListener((p) => {
+      // eslint-disable-next-line no-unused-vars
+      alivePort.onDisconnect.addListener((_p) => {
         if (chrome.runtime.lastError) {
           // console.log('(DEBUG Highlander) Expected disconnect (on error). SW should be still running.');
         } else {

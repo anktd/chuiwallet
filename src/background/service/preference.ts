@@ -4,22 +4,11 @@ import cloneDeep from 'lodash/cloneDeep';
 import { createPersistStore } from '@/background/utils';
 import { AddressFlagType, CHAINS, ChainType, DEFAULT_LOCKTIME_ID, EVENTS } from '@/shared/constant';
 import eventBus from '@/shared/eventBus';
-import {
-  Account,
-  AddressTokenSummary,
-  AddressType,
-  AppSummary,
-  BitcoinBalance,
-  Inscription,
-  NetworkType,
-  TokenBalance,
-  TokenTransfer,
-  TxHistoryItem
-} from '@/shared/types';
+import { Account, AddressType, AppSummary, BitcoinBalance, NetworkType, TxHistoryItem } from '@/shared/types';
 
-import browser from '../webapi/browser';
-import { i18n, sessionService } from './index';
+import { sessionService } from './index';
 
+// eslint-disable-next-line no-undef
 const version = process.env.release || '0';
 
 export interface PreferenceStore {
@@ -32,7 +21,6 @@ export interface PreferenceStore {
   historyMap: {
     [address: string]: TxHistoryItem[];
   };
-  locale: string;
   watchAddressPreference: Record<string, number>;
   walletSavedList: [];
   alianNames?: Record<string, string>;
@@ -51,33 +39,6 @@ export interface PreferenceStore {
   };
   editingKeyringIndex: number;
   editingAccount: Account | undefined | null;
-  uiCachedData: {
-    [address: string]: {
-      allInscriptionList: {
-        currentPage: number;
-        pageSize: number;
-        total: number;
-        list: Inscription[];
-      }[];
-      brc20List: {
-        currentPage: number;
-        pageSize: number;
-        total: number;
-        list: TokenBalance[];
-      }[];
-      brc20Summary: {
-        [ticker: string]: AddressTokenSummary;
-      };
-      brc20TransferableList: {
-        [ticker: string]: {
-          currentPage: number;
-          pageSize: number;
-          total: number;
-          list: TokenTransfer[];
-        }[];
-      };
-    };
-  };
   skippedVersion: string;
   appTab: {
     summary: AppSummary;
@@ -90,15 +51,12 @@ export interface PreferenceStore {
   autoLockTimeId: number;
 }
 
-const SUPPORT_LOCALES = ['en'];
-
 class PreferenceService {
   store!: PreferenceStore;
   popupOpen = false;
   hasOtherProvider = false;
 
   init = async () => {
-    const defaultLang = 'en';
     this.store = await createPersistStore<PreferenceStore>({
       name: 'preference',
       template: {
@@ -109,7 +67,6 @@ class PreferenceService {
         externalLinkAck: false,
         balanceMap: {},
         historyMap: {},
-        locale: defaultLang,
         watchAddressPreference: {},
         walletSavedList: [],
         alianNames: {},
@@ -122,7 +79,6 @@ class PreferenceService {
         chainType: ChainType.BITCOIN_MAINNET,
         keyringAlianNames: {},
         accountAlianNames: {},
-        uiCachedData: {},
         skippedVersion: '',
         appTab: {
           summary: { apps: [] },
@@ -135,10 +91,6 @@ class PreferenceService {
         autoLockTimeId: DEFAULT_LOCKTIME_ID
       }
     });
-    if (!this.store.locale || this.store.locale !== defaultLang) {
-      this.store.locale = defaultLang;
-    }
-    i18n.changeLanguage(this.store.locale);
 
     if (!this.store.currency) {
       this.store.currency = 'USD';
@@ -186,10 +138,6 @@ class PreferenceService {
       this.store.accountAlianNames = {};
     }
 
-    if (!this.store.uiCachedData) {
-      this.store.uiCachedData = {};
-    }
-
     if (!this.store.skippedVersion) {
       this.store.skippedVersion = '';
     }
@@ -224,12 +172,6 @@ class PreferenceService {
     if (typeof this.store.autoLockTimeId !== 'number') {
       this.store.autoLockTimeId = DEFAULT_LOCKTIME_ID;
     }
-  };
-
-  getAcceptLanguages = async () => {
-    let langs = await browser.i18n.getAcceptLanguages();
-    if (!langs) langs = [];
-    return langs.map((lang) => lang.replace(/-/g, '_')).filter((lang) => SUPPORT_LOCALES.includes(lang));
   };
 
   getCurrentAccount = () => {
@@ -311,16 +253,6 @@ class PreferenceService {
     this.store.externalLinkAck = ack;
   };
 
-  // locale
-  getLocale = () => {
-    return this.store.locale;
-  };
-
-  setLocale = (locale: string) => {
-    this.store.locale = locale;
-    i18n.changeLanguage(locale);
-  };
-
   // currency
   getCurrency = () => {
     return this.store.currency;
@@ -365,15 +297,6 @@ class PreferenceService {
   getAddressType = () => {
     return this.store.addressType;
   };
-
-  // // network type
-  // getNetworkType = () => {
-  //   return this.store.networkType;
-  // };
-
-  // setNetworkType = (networkType: NetworkType) => {
-  //   this.store.networkType = networkType;
-  // };
 
   // chain type
   getChainType = () => {
@@ -460,34 +383,6 @@ class PreferenceService {
 
   setEditingAccount = (account?: Account | null) => {
     this.store.editingAccount = account;
-  };
-
-  getUICachedData = (address: string) => {
-    this.store.uiCachedData[address] = {
-      allInscriptionList: [],
-      brc20List: [],
-      brc20Summary: {},
-      brc20TransferableList: {}
-    };
-
-    // if (!this.store.uiCachedData[address]) {
-    //   this.store.uiCachedData[address] = {
-    //     allInscriptionList: [],
-    //     brc20List: [],
-    //     brc20Summary: {},
-    //     brc20TransferableList: {}
-    //   };
-    // }
-    return this.store.uiCachedData[address];
-  };
-
-  expireUICachedData = (address: string) => {
-    this.store.uiCachedData[address] = {
-      allInscriptionList: [],
-      brc20List: [],
-      brc20Summary: {},
-      brc20TransferableList: {}
-    };
   };
 
   getSkippedVersion = () => {

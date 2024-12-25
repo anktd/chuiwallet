@@ -1,20 +1,14 @@
 import bitcore from 'bitcore-lib';
 import { isNull } from 'lodash';
 import React, { CSSProperties, useEffect, useState } from 'react';
-
-import { SAFE_DOMAIN_CONFIRMATION } from '@/shared/constant';
 import { getSatsName } from '@/shared/lib/satsname-utils';
-import { Button } from '@/ui/components';
 import { getAddressTips, useChain } from '@/ui/state/settings/hooks';
 import { colors } from '@/ui/theme/colors';
 import { spacing } from '@/ui/theme/spacing';
 import { useWallet } from '@/ui/utils';
 import { ArrowRightOutlined, SearchOutlined } from '@ant-design/icons';
-
-import { AccordingInscription } from '../AccordingInscription';
 import { useTools } from '../ActionComponent';
 import { Column } from '../Column';
-import { CopyableAddress } from '../CopyableAddress';
 import { Icon } from '../Icon';
 import { Row } from '../Row';
 import { $textPresets, Text } from '../Text';
@@ -39,7 +33,6 @@ export interface InputProps {
   onAmountInputChange?: (amount: string) => void;
   disabled?: boolean;
   disableDecimal?: boolean;
-  enableBrc20Decimal?: boolean;
   enableMax?: boolean;
   onMaxClick?: () => void;
   onSearch?: () => void;
@@ -103,7 +96,6 @@ function AmountInput(props: InputProps) {
     disabled,
     style: $inputStyleOverride,
     disableDecimal,
-    enableBrc20Decimal,
     containerStyle,
     enableMax,
     onMaxClick,

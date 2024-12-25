@@ -5,7 +5,6 @@ import { createSlice } from '@reduxjs/toolkit';
 import { updateVersion } from '../global/actions';
 
 export interface SettingsState {
-  locale: string;
   networkType: NetworkType;
   chainType: ChainType;
   walletConfig: WalletConfig;
@@ -14,7 +13,6 @@ export interface SettingsState {
 }
 
 export const initialState: SettingsState = {
-  locale: 'English',
   networkType: NetworkType.MAINNET,
   chainType: ChainType.BITCOIN_MAINNET,
   walletConfig: {
@@ -32,7 +30,8 @@ const slice = createSlice({
   name: 'settings',
   initialState,
   reducers: {
-    reset(state) {
+    // eslint-disable-next-line no-unused-vars
+    reset(_state) {
       return initialState;
     },
     updateSettings(

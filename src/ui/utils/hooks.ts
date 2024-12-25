@@ -1,3 +1,10 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+
+/* eslint-disable no-unused-vars */
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/* eslint-disable no-undef */
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 

@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 
 import { ADDRESS_TYPES } from '@/shared/constant';
 import { WalletKeyring } from '@/shared/types';
 import { Button, Input, Layout, Content, Icon, Header, Text, Column, Row, Card, Grid } from '@/ui/components';
 import { useTools } from '@/ui/components/ActionComponent';
-import { useCurrentKeyring } from '@/ui/state/keyrings/hooks';
 import { copyToClipboard, useLocationState, useWallet } from '@/ui/utils';
 
 type Status = '' | 'error' | 'warning' | undefined;
@@ -13,12 +11,11 @@ type Status = '' | 'error' | 'warning' | undefined;
 export default function ExportMnemonicsScreen() {
   const { keyring } = useLocationState<{ keyring: WalletKeyring }>();
 
-  const { t } = useTranslation();
-
   const [password, setPassword] = useState('');
   const [disabled, setDisabled] = useState(true);
 
   const [mnemonic, setMnemonic] = useState('');
+  // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
   const [status, setStatus] = useState<Status>('');
   const [error, setError] = useState('');
   const wallet = useWallet();
@@ -28,15 +25,18 @@ export default function ExportMnemonicsScreen() {
 
   const btnClick = async () => {
     try {
+      // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
       const { mnemonic, hdPath, passphrase } = await wallet.getMnemonics(password, keyring);
       setMnemonic(mnemonic);
       setPassphrase(passphrase);
     } catch (e) {
       setStatus('error');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setError((e as any).message);
     }
   };
 
+  // eslint-disable-next-line no-undef
   const handleOnKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if ('Enter' == e.key) {
       btnClick();
@@ -124,7 +124,8 @@ export default function ExportMnemonicsScreen() {
 
             <Row
               justifyCenter
-              onClick={(e) => {
+              // eslint-disable-next-line no-unused-vars
+              onClick={(_e) => {
                 copy(mnemonic);
               }}>
               <Icon icon="copy" color="textDim" />

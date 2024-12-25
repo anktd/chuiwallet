@@ -1,4 +1,4 @@
-import { Inscription } from '@/shared/types';
+/* eslint-disable no-unused-vars */
 import { createSlice } from '@reduxjs/toolkit';
 import { UnspentOutput } from '@unisat/wallet-sdk';
 
@@ -45,7 +45,7 @@ export const initialState: TransactionsState = {
     enableRBF: false
   },
   utxos: [],
-  spendUnavailableUtxos: [],
+  spendUnavailableUtxos: []
 };
 
 const slice = createSlice({
@@ -82,7 +82,7 @@ const slice = createSlice({
     setSpendUnavailableUtxos(state, action: { payload: UnspentOutput[] }) {
       state.spendUnavailableUtxos = action.payload;
     },
-    reset(state) {
+    reset(_state) {
       return initialState;
     }
   },

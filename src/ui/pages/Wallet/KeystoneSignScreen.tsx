@@ -1,4 +1,3 @@
-import Base, { generateURString } from '@keystonehq/hw-app-base';
 import { useCallback, useEffect, useState } from 'react';
 
 import { Button, Column, Content, Footer, Header, Layout, Row, Text } from '@/ui/components';
@@ -13,6 +12,7 @@ import { colors } from '@/ui/theme/colors';
 import { fontSizes } from '@/ui/theme/font';
 import { useWallet } from '@/ui/utils';
 import { LoadingOutlined } from '@ant-design/icons';
+import Base, { generateURString } from '@keystonehq/hw-app-base';
 
 interface Props {
   type: 'msg' | 'psbt' | 'bip322-simple';
@@ -20,6 +20,7 @@ interface Props {
   isFinalize?: boolean;
   signatureText?: string;
   id?: number;
+  // eslint-disable-next-line no-unused-vars
   onSuccess?: (data: { psbtHex?: string; rawtx?: string; signature?: string }) => void;
   onBack: () => void;
 }
@@ -89,7 +90,6 @@ function Step2(props: Props) {
   );
 }
 
-
 function USBStep(props: Props) {
   const wallet = useWallet();
   const [loading, setLoading] = useState(false);
@@ -100,27 +100,31 @@ function USBStep(props: Props) {
     setIsError(false);
     setError('');
     props.onBack();
-  }, [])
+  }, []);
 
   useEffect(() => {
     async function usbSign() {
       try {
-        setLoading(true)
-        const p = props.type === 'psbt' ? wallet.genSignPsbtUr(props.data) : wallet.genSignMsgUr(props.data, props.type);
+        setLoading(true);
+        const p =
+          props.type === 'psbt' ? wallet.genSignPsbtUr(props.data) : wallet.genSignMsgUr(props.data, props.type);
         const ur = await p;
         const transport = await createKeystoneTransport();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const base = new Base(transport as any);
-        const urString = generateURString(ur.cbor, ur.type)
+        const urString = generateURString(ur.cbor, ur.type);
         const res = await base.sendURRequest(urString);
         const type = res.type;
         const cborhex = res.cbor.toString('hex');
-        const result = props.type === 'psbt' ? await wallet.parseSignPsbtUr(type, cborhex, props.isFinalize === false ? false : true) : await wallet.parseSignMsgUr(type, cborhex, props.type);
+        const result =
+          props.type === 'psbt'
+            ? await wallet.parseSignPsbtUr(type, cborhex, props.isFinalize === false ? false : true)
+            : await wallet.parseSignMsgUr(type, cborhex, props.type);
         if (props.onSuccess) {
           props.onSuccess(result);
         } else {
           throw new Error('onSuccess Not implemented');
         }
-
       } catch (error) {
         setIsError(true);
         setError(handleKeystoneUSBError(error));
@@ -137,24 +141,19 @@ function USBStep(props: Props) {
       <KeystoneLogoWithText width={160} height={38} />
       <Text text="Approve on your Keystone Device" preset="title" textCenter />
       <Column style={{ minHeight: 240 }} itemsCenter justifyCenter>
-        {loading && <LoadingOutlined style={{
-          fontSize: fontSizes.xxxl,
-          color: colors.blue
-        }} />}
+        {loading && (
+          <LoadingOutlined
+            style={{
+              fontSize: fontSizes.xxxl,
+              color: colors.blue
+            }}
+          />
+        )}
       </Column>
-      {isError && <KeystonePopover
-        msg={error}
-        onClose={onCloseError}
-        onConfirm={onCloseError}
-      />}
-      <Text
-        text="Ensure your Keystone 3 Pro is on the homepage"
-        textCenter
-        preset="sub"
-      />
+      {isError && <KeystonePopover msg={error} onClose={onCloseError} onConfirm={onCloseError} />}
+      <Text text="Ensure your Keystone 3 Pro is on the homepage" textCenter preset="sub" />
     </Column>
   );
-
 }
 
 export default function KeystoneSignScreen(props: Props) {
@@ -198,18 +197,20 @@ export default function KeystoneSignScreen(props: Props) {
   } else if (connectionType === 'USB') {
     return (
       <Layout>
-        <Header onBack={() => {
+        <Header
+          onBack={() => {
             if (step === 1) {
               window.history.go(-1);
             } else {
               setStep(1);
             }
-          }}/>
+          }}
+        />
         <Content itemsCenter>
           <USBStep {...props} />
         </Content>
       </Layout>
-    )
+    );
   } else {
     return <></>;
   }

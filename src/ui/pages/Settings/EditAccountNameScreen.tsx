@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 
 import { Account } from '@/shared/types';
@@ -10,8 +9,6 @@ import { keyringsActions } from '@/ui/state/keyrings/reducer';
 import { useWallet } from '@/ui/utils';
 
 export default function EditAccountNameScreen() {
-  const { t } = useTranslation();
-
   const { state } = useLocation();
   const { account } = state as {
     account: Account;
@@ -27,6 +24,7 @@ export default function EditAccountNameScreen() {
     window.history.go(-1);
   };
 
+  // eslint-disable-next-line no-undef
   const handleOnKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if ('Enter' == e.key) {
       handleOnClick();
@@ -61,7 +59,8 @@ export default function EditAccountNameScreen() {
           disabled={!validName}
           text="Change Account Name"
           preset="primary"
-          onClick={(e) => {
+          // eslint-disable-next-line no-unused-vars
+          onClick={(_e) => {
             handleOnClick();
           }}
         />

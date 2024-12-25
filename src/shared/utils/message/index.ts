@@ -1,3 +1,9 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+
+/* eslint-disable no-unused-vars */
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 /**
  * this script is live in content-script / dapp's page
  */

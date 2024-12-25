@@ -1,12 +1,11 @@
-import { CHAINS_ENUM, PaymentChannelType } from './constant';
+/* eslint-disable no-unused-vars */
+import { CHAINS_ENUM } from './constant';
 
 export enum AddressType {
   P2PKH,
   P2WPKH,
   P2TR,
-  P2SH_P2WPKH,
-  M44_P2WPKH,
-  M44_P2TR
+  P2SH_P2WPKH
 }
 
 export enum NetworkType {
@@ -15,10 +14,7 @@ export enum NetworkType {
 }
 
 export enum RestoreWalletType {
-  UNISAT,
-  SPARROW,
-  XVERSE,
-  OW,
+  CHUI,
   OTHERS
 }
 
@@ -186,15 +182,12 @@ export interface TokenInfo {
   totalMinted: string;
   decimal: number;
   holder: string;
-  inscriptionId: string;
   selfMint?: boolean;
 }
 
 export interface TokenTransfer {
   ticker: string;
   amount: string;
-  inscriptionId: string;
-  inscriptionNumber: number;
   timestamp: number;
   confirmations: number;
   satoshi: number;
@@ -213,7 +206,7 @@ export enum RiskType {
   UNCONFIRMED_UTXO,
   MULTIPLE_ASSETS,
   LOW_FEE_RATE,
-  HIGH_FEE_RATE,
+  HIGH_FEE_RATE
 }
 
 export interface Risk {
@@ -287,7 +280,6 @@ export interface VersionDetail {
 }
 
 export interface BtcChannelItem {
-  channel: PaymentChannelType;
   quote: number;
   payType: string[];
 }

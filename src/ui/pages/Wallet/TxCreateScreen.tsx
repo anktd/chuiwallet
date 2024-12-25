@@ -1,9 +1,8 @@
-import { Tooltip } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 
 import { COIN_DUST } from '@/shared/constant';
 import { RawTxInfo } from '@/shared/types';
-import { Button, Column, Content, Header, Icon, Image, Input, Layout, Row, Text } from '@/ui/components';
+import { Button, Column, Content, Header, Image, Input, Layout, Row, Text } from '@/ui/components';
 import { useTools } from '@/ui/components/ActionComponent';
 import { BtcUsd } from '@/ui/components/BtcUsd';
 import { FeeRateBar } from '@/ui/components/FeeRateBar';
@@ -19,7 +18,6 @@ import {
   useSpendUnavailableUtxos
 } from '@/ui/state/transactions/hooks';
 import { useUiTxCreateScreen, useUpdateUiTxCreateScreen } from '@/ui/state/ui/hooks';
-import { fontSizes } from '@/ui/theme/font';
 import { amountToSatoshis, isValidAddress, satoshisToAmount } from '@/ui/utils';
 
 export default function TxCreateScreen() {
@@ -191,7 +189,7 @@ export default function TxCreateScreen() {
               <Row>
                 <Text text={`${spendUnavailableAmount}`} size="sm" style={{ color: '#65D5F0' }} />
                 <Text text={btcUnit} size="sm" color="textDim" />
-                <Text text={`+`} size="sm" color="textDim" />
+                <Text text={'+'} size="sm" color="textDim" />
               </Row>
             )}
 
@@ -202,27 +200,6 @@ export default function TxCreateScreen() {
           </Row>
 
           <Row justifyBetween>
-            <Tooltip
-              title={`Includes Inscriptions, ARC20, Runes, and unconfirmed UTXO assets. Future versions will support spending these assets.`}
-              overlayStyle={{
-                fontSize: fontSizes.xs
-              }}>
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <Row itemsCenter>
-                  <Text
-                    text="Unavailable"
-                    // text="Unavailable >"
-                    color="textDim"
-                    // onClick={() => {
-                    //   navigate('UnavailableUtxoScreen');
-                    // }}
-                  />
-
-                  <Icon icon="circle-question" color="textDim" />
-                </Row>
-              </div>
-            </Tooltip>
-
             {spendUnavailableSatoshis > 0 ? (
               <Row>
                 <Text text={`${unspendUnavailableAmount}`} size="sm" color="textDim" />
@@ -270,7 +247,8 @@ export default function TxCreateScreen() {
           disabled={disabled}
           preset="primary"
           text="Next"
-          onClick={(e) => {
+          // eslint-disable-next-line no-unused-vars
+          onClick={(_e) => {
             navigate('TxConfirmScreen', { rawTxInfo });
           }}></Button>
       </Content>

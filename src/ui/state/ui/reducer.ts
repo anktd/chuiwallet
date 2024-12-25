@@ -1,17 +1,15 @@
-import { Inscription } from '@/shared/types';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
+/* eslint-disable no-unused-vars */
 import { createSlice } from '@reduxjs/toolkit';
 
 import { updateVersion } from '../global/actions';
 
 export interface UIState {
-  assetTabKey: AssetTabKey;
-  ordinalsAssetTabKey: OrdinalsAssetTabKey;
-  atomicalsAssetTabKey: AtomicalsAssetTabKey;
   uiTxCreateScreen: {
     toInfo: {
       address: string;
       domain: string;
-      inscription?: Inscription;
     };
     inputAmount: string;
     enableRBF: boolean;
@@ -19,34 +17,11 @@ export interface UIState {
   };
 }
 
-export enum AssetTabKey {
-  ORDINALS,
-  ATOMICALS,
-  RUNES,
-  CAT20
-}
-
-export enum OrdinalsAssetTabKey {
-  ALL,
-  BRC20,
-  BRC20_5BYTE
-}
-
-export enum AtomicalsAssetTabKey {
-  ALL,
-  ARC20,
-  OTHERS
-}
-
 export const initialState: UIState = {
-  assetTabKey: AssetTabKey.ORDINALS,
-  ordinalsAssetTabKey: OrdinalsAssetTabKey.ALL,
-  atomicalsAssetTabKey: AtomicalsAssetTabKey.ARC20,
   uiTxCreateScreen: {
     toInfo: {
       address: '',
-      domain: '',
-      inscription: undefined
+      domain: ''
     },
     inputAmount: '',
     enableRBF: false,
@@ -61,28 +36,6 @@ const slice = createSlice({
     reset(state) {
       return initialState;
     },
-    updateAssetTabScreen(
-      state,
-      action: {
-        payload: {
-          assetTabKey?: AssetTabKey;
-          ordinalsAssetTabKey?: OrdinalsAssetTabKey;
-          atomicalsAssetTabKey?: AtomicalsAssetTabKey;
-        };
-      }
-    ) {
-      const { payload } = action;
-      if (payload.assetTabKey !== undefined) {
-        state.assetTabKey = payload.assetTabKey;
-      }
-      if (payload.ordinalsAssetTabKey !== undefined) {
-        state.ordinalsAssetTabKey = payload.ordinalsAssetTabKey;
-      }
-      if (payload.atomicalsAssetTabKey !== undefined) {
-        state.atomicalsAssetTabKey = payload.atomicalsAssetTabKey;
-      }
-      return state;
-    },
     updateTxCreateScreen(
       state,
       action: {
@@ -90,7 +43,6 @@ const slice = createSlice({
           toInfo?: {
             address: string;
             domain: string;
-            inscription?: Inscription;
           };
           inputAmount?: string;
           enableRBF?: boolean;
@@ -118,15 +70,6 @@ const slice = createSlice({
   extraReducers: (builder) => {
     builder.addCase(updateVersion, (state) => {
       // todo
-      if (!state.assetTabKey) {
-        state.assetTabKey = AssetTabKey.ORDINALS;
-      }
-      if (!state.ordinalsAssetTabKey) {
-        state.ordinalsAssetTabKey = OrdinalsAssetTabKey.ALL;
-      }
-      if (!state.atomicalsAssetTabKey) {
-        state.atomicalsAssetTabKey = AtomicalsAssetTabKey.ARC20;
-      }
       if (!state.uiTxCreateScreen) {
         state.uiTxCreateScreen = initialState.uiTxCreateScreen;
       }

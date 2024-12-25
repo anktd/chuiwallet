@@ -1,23 +1,28 @@
 import { ethErrors } from 'eth-rpc-errors';
 
-import { UnisatProvider } from './index';
 import ReadyPromise from '@/content-script/pageProvider/readyPromise';
 import BroadcastChannelMessage from '@/shared/utils/message/broadcastChannelMessage';
 
+import { UnisatProvider } from './index';
+
 class PushEventHandlers {
   provider: UnisatProvider;
-  _unisatProviderPrivate:any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  _unisatProviderPrivate: any;
 
-  constructor(provider, _unisatProviderPrivate: {
-    _selectedAddress: string | null;
-    _network: string | null;
-    _isConnected: boolean;
-    _initialized: boolean;
-    _isUnlocked: boolean;
-    _pushEventHandlers: PushEventHandlers | null;
-    _requestPromise: ReadyPromise;
-    _bcm: BroadcastChannelMessage
-  }) {
+  constructor(
+    provider,
+    _unisatProviderPrivate: {
+      _selectedAddress: string | null;
+      _network: string | null;
+      _isConnected: boolean;
+      _initialized: boolean;
+      _isUnlocked: boolean;
+      _pushEventHandlers: PushEventHandlers | null;
+      _requestPromise: ReadyPromise;
+      _bcm: BroadcastChannelMessage;
+    }
+  ) {
     this.provider = provider;
     this._unisatProviderPrivate = _unisatProviderPrivate;
   }

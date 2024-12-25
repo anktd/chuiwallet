@@ -2,43 +2,15 @@ import compareVersions from 'compare-versions';
 import { useCallback } from 'react';
 
 import { CHAINS_MAP, ChainType, VERSION } from '@/shared/constant';
-import { AddressType, NetworkType } from '@/shared/types';
+import { NetworkType } from '@/shared/types';
 import { useWallet } from '@/ui/utils';
-import i18n, { addResourceBundle } from '@/ui/utils/i18n';
-import { getAddressType } from '@unisat/wallet-sdk/lib/address';
 
 import { AppState } from '..';
-import { useCurrentAccount } from '../accounts/hooks';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { settingsActions } from './reducer';
 
 export function useSettingsState(): AppState['settings'] {
   return useAppSelector((state) => state.settings);
-}
-
-export function useLocale() {
-  const settings = useSettingsState();
-  return settings.locale;
-}
-
-export function useChangeLocaleCallback() {
-  const dispatch = useAppDispatch();
-  const wallet = useWallet();
-  return useCallback(
-    async (locale: string) => {
-      await wallet.setLocale(locale);
-      await addResourceBundle(locale);
-      i18n.changeLanguage(locale);
-      dispatch(
-        settingsActions.updateSettings({
-          locale
-        })
-      );
-
-      window.location.reload();
-    },
-    [dispatch, wallet]
-  );
 }
 
 export function useNetworkType() {
@@ -109,35 +81,12 @@ export function useBTCUnit() {
 
 export function useTxExplorerUrl(txid: string) {
   const chain = useChain();
-  if (chain.defaultExplorer === 'mempool-space') {
-    return `${chain.mempoolSpaceUrl}/tx/${txid}`;
-  } else {
-    return `${chain.unisatExplorerUrl}/tx/${txid}`;
-  }
+  return `${chain.mempoolSpaceUrl}/tx/${txid}`;
 }
 
 export function useAddressExplorerUrl(address: string) {
   const chain = useChain();
-  if (chain.defaultExplorer === 'mempool-space') {
-    return `${chain.mempoolSpaceUrl}/address/${address}`;
-  } else {
-    return `${chain.unisatExplorerUrl}/address/${address}`;
-  }
-}
-
-export function useCAT20TokenInfoExplorerUrl(tokenId: string) {
-  const chain = useChain();
-  return `${chain.unisatExplorerUrl}/cat20/${tokenId}`;
-}
-
-export function useUnisatWebsite() {
-  const chainType = useChainType();
-  return CHAINS_MAP[chainType].unisatUrl;
-}
-
-export function useOrdinalsWebsite() {
-  const chainType = useChainType();
-  return CHAINS_MAP[chainType].ordinalsUrl;
+  return `${chain.mempoolSpaceUrl}/address/${address}`;
 }
 
 export function useWalletConfig() {
@@ -188,7 +137,8 @@ export function useSkipVersionCallback() {
   const wallet = useWallet();
   const dispatch = useAppDispatch();
   return useCallback((version: string) => {
-    wallet.setSkippedVersion(version).then((v) => {
+    // eslint-disable-next-line no-unused-vars
+    wallet.setSkippedVersion(version).then((_v) => {
       dispatch(settingsActions.updateSettings({ skippedVersion: version }));
     });
   }, []);
@@ -197,33 +147,4 @@ export function useSkipVersionCallback() {
 export function useAutoLockTimeId() {
   const state = useSettingsState();
   return state.autoLockTimeId;
-}
-
-export function getAddressTips(address: string, chanEnum: ChainType) {
-  let ret = {
-    homeTip: '',
-    sendTip: ''
-  };
-  try {
-    const chain = CHAINS_MAP[chanEnum];
-    const addressType = getAddressType(address, chain.networkType);
-    if (chain.isFractal && addressType === AddressType.P2PKH) {
-      ret = {
-        homeTip:
-          '⚠️  It is not recommended to use legacy addresses, as they may lead to higher transaction fees or the unintended lock-up of CAT20 balances.',
-        sendTip:
-          '⚠️  It is not recommended to send transactions to legacy addresses, as this may result in the unintended spending of CAT20 balances.'
-      };
-    }
-  } catch (e) {
-    console.log(e);
-  }
-
-  return ret;
-}
-
-export function useAddressTips() {
-  const chain = useChain();
-  const account = useCurrentAccount();
-  return getAddressTips(account.address, chain.enum);
 }

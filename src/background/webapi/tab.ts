@@ -32,6 +32,7 @@ const openIndexPage = (route = ''): Promise<number | undefined> => {
 
 const queryCurrentActiveTab = async function () {
   return new Promise((resolve) => {
+    // eslint-disable-next-line no-undef
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (!tabs) return resolve({});
       const [activeTab] = tabs;

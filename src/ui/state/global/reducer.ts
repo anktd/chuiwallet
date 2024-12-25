@@ -22,7 +22,8 @@ const slice = createSlice({
   name: 'global',
   initialState,
   reducers: {
-    reset(state) {
+    // eslint-disable-next-line no-unused-vars
+    reset(_state) {
       return initialState;
     },
     update(
@@ -42,7 +43,8 @@ const slice = createSlice({
     }
   },
   extraReducers: (builder) => {
-    builder.addCase(updateVersion, (state) => {
+    // eslint-disable-next-line no-unused-vars
+    builder.addCase(updateVersion, (_state) => {
       // todo
     });
   }

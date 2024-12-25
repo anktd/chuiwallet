@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 
 import { Button, Column, Content, Header, Input, Layout, Row, Text } from '@/ui/components';
 import { useTools } from '@/ui/components/ActionComponent';
@@ -8,10 +7,7 @@ import { getPasswordStrengthWord, MIN_PASSWORD_LENGTH } from '@/ui/utils/passwor
 
 import { useNavigate } from '../MainRoute';
 
-type Status = '' | 'error' | 'warning' | undefined;
-
 export default function ChangePasswordScreen() {
-  const { t } = useTranslation();
   const navigate = useNavigate();
   const [originPassword, setOriginPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -45,7 +41,7 @@ export default function ChangePasswordScreen() {
     if (newPassword !== confirmPassword) {
       return (
         <Row>
-          <Text size="xs" text={`Passwords don't match`} color="red" />
+          <Text size="xs" text={'Passwords don\'t match'} color="red" />
         </Row>
       );
     } else {
@@ -67,6 +63,7 @@ export default function ChangePasswordScreen() {
       tools.toastSuccess('Success');
       navigate('MainScreen');
     } catch (err) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       tools.toastError((err as any).message);
     }
   };

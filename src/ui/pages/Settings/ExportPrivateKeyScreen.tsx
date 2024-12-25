@@ -1,5 +1,5 @@
+/* eslint-disable no-undef */
 import { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 
 import { Account } from '@/shared/types';
@@ -10,8 +10,6 @@ import { copyToClipboard, useWallet } from '@/ui/utils';
 type Status = '' | 'error' | 'warning' | undefined;
 
 export default function ExportPrivateKeyScreen() {
-  const { t } = useTranslation();
-
   const { state } = useLocation();
   const { account } = state as {
     account: Account;
@@ -21,6 +19,7 @@ export default function ExportPrivateKeyScreen() {
   const [disabled, setDisabled] = useState(true);
 
   const [privateKey, setPrivateKey] = useState({ hex: '', wif: '' });
+  // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
   const [status, setStatus] = useState<Status>('');
   const [error, setError] = useState('');
   const wallet = useWallet();
@@ -32,6 +31,7 @@ export default function ExportPrivateKeyScreen() {
       setPrivateKey(_res);
     } catch (e) {
       setStatus('error');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setError((e as any).message);
     }
   };
@@ -116,7 +116,8 @@ export default function ExportPrivateKeyScreen() {
             <Text text="WIF Private Key:" preset="sub" size="sm" textCenter mt="lg" />
 
             <Card
-              onClick={(e) => {
+              // eslint-disable-next-line no-unused-vars
+              onClick={(_e) => {
                 copy(privateKey.wif);
               }}>
               <Row>
@@ -134,7 +135,8 @@ export default function ExportPrivateKeyScreen() {
             <Text text="Hex Private Key:" preset="sub" size="sm" textCenter mt="lg" />
 
             <Card
-              onClick={(e) => {
+              // eslint-disable-next-line no-unused-vars
+              onClick={(_e) => {
                 copy(privateKey.hex);
               }}>
               <Row>

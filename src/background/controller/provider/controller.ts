@@ -1,7 +1,6 @@
 
 import { permissionService, sessionService } from '@/background/service';
 import { CHAINS, CHAINS_MAP, NETWORK_TYPES, VERSION } from '@/shared/constant';
-
 import { NetworkType } from '@/shared/types';
 import { getChainInfo } from '@/shared/utils';
 import { amountToSatoshis } from '@/ui/utils';
@@ -9,7 +8,6 @@ import { bitcoin } from '@unisat/wallet-sdk/lib/bitcoin-core';
 import { verifyMessageOfBIP322Simple } from '@unisat/wallet-sdk/lib/message';
 import { toPsbtNetwork } from '@unisat/wallet-sdk/lib/network';
 import { ethErrors } from 'eth-rpc-errors';
-import BaseController from '../base';
 import wallet from '../wallet';
 
 function formatPsbtHex(psbtHex: string) {
@@ -28,7 +26,7 @@ function formatPsbtHex(psbtHex: string) {
 }
 
 
-class ProviderController extends BaseController {
+class ProviderController {
 
   requestAccounts = async ({ session: { origin } }) => {
     if (!permissionService.hasPermission(origin)) {
@@ -142,7 +140,8 @@ class ProviderController extends BaseController {
     return verifyMessageOfBIP322Simple(params.address, params.message, params.signature, params.network) ? 1 : 0;
   }
 
-  @Reflect.metadata('APPROVAL', ['SignPsbt', (req) => {
+  // eslint-disable-next-line no-unused-vars
+  @Reflect.metadata('APPROVAL', ['SignPsbt', (_req) => {
     // todo check
   }])
   sendBitcoin = async ({ approvalRes: { psbtHex } }) => {
@@ -203,7 +202,7 @@ class ProviderController extends BaseController {
   }
 
   @Reflect.metadata('APPROVAL', ['MultiSignPsbt', (req) => {
-    const { data: { params: { psbtHexs, options } } } = req;
+    const { data: { params: { psbtHexs } } } = req;
     req.data.params.psbtHexs = psbtHexs.map(psbtHex => formatPsbtHex(psbtHex));
   }])
   multiSignPsbt = async ({ data: { params: { psbtHexs, options } } }) => {
@@ -232,22 +231,9 @@ class ProviderController extends BaseController {
     return await wallet.pushTx(rawtx)
   }
 
-  @Reflect.metadata('APPROVAL', ['InscribeTransfer', (req) => {
-    const { data: { params: { ticker } } } = req;
-    // todo
-  }])
-  inscribeTransfer = async ({ approvalRes }) => {
-    return approvalRes
-  }
-
   @Reflect.metadata('SAFE', true)
   getVersion = async () => {
     return VERSION
-  };
-
-  @Reflect.metadata('SAFE', true)
-  isAtomicalsEnabled = async () => {
-    return await wallet.isAtomicalsEnabled()
   };
 
   @Reflect.metadata('SAFE', true)

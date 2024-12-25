@@ -1,3 +1,10 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/* eslint-disable no-undef */
+
+/* eslint-disable no-unused-vars */
 import { ethErrors } from 'eth-rpc-errors';
 import { EthereumProviderError } from 'eth-rpc-errors/dist/classes';
 import Events from 'events';

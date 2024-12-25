@@ -73,6 +73,7 @@ function ChainGroup(props: { group: TypeChainGroup; onClose: () => void }) {
   }, [currentChain]);
 
   if (group.type === 'single') {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return <ChainItem chainType={group.chain!.enum} onClose={props.onClose} />;
   } else {
     return (

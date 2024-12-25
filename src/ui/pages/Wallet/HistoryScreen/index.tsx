@@ -1,4 +1,3 @@
-import { Tooltip } from 'antd';
 import BigNumber from 'bignumber.js';
 import { useEffect, useState } from 'react';
 
@@ -8,7 +7,6 @@ import AssetTag from '@/ui/components/AssetTag';
 import { Pagination } from '@/ui/components/Pagination';
 import { HistoryDetail } from '@/ui/pages/Wallet/HistoryScreen/HistoryDetail';
 import { useAccountAddress } from '@/ui/state/accounts/hooks';
-import { fontSizes } from '@/ui/theme/font';
 import { satoshisToBTC, shortAddress, useWallet } from '@/ui/utils';
 import { ClockCircleFilled } from '@ant-design/icons';
 
@@ -42,6 +40,7 @@ interface GroupItem {
 interface MyItemProps {
   group: GroupItem;
   index: number;
+  // eslint-disable-next-line no-unused-vars
   onItemClick: (value: HistoryItem) => void;
 }
 

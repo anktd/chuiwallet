@@ -53,7 +53,8 @@ export default function UnavailableUtxoScreen() {
         ) : (
           <Column>
             {utxos.length > 0 ? (
-              utxos.map((item, index) => {
+              // eslint-disable-next-line no-unused-vars
+              utxos.map((item, _index) => {
                 const selected = selectedUtxoIds[item.txid + '' + item.vout];
                 return (
                   <Card
@@ -73,9 +74,7 @@ export default function UnavailableUtxoScreen() {
                         />
                       </Row>
 
-                      <Row>
-                        {item.height === UNCONFIRMED_HEIGHT ? <AssetTag type="Unconfirmed" /> : null}
-                      </Row>
+                      <Row>{item.height === UNCONFIRMED_HEIGHT ? <AssetTag type="Unconfirmed" /> : null}</Row>
                     </Row>
                     <Row full style={{ borderBottomWidth: 1, borderColor: colors.border }}></Row>
 

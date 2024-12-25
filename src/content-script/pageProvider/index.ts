@@ -1,3 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
+/* eslint-disable no-undef */
+
+/* eslint-disable no-unused-vars */
 // this script is injected into webpage's context
 import { ethErrors, serializeError } from 'eth-rpc-errors';
 import { EventEmitter } from 'events';
@@ -9,6 +16,7 @@ import PushEventHandlers from './pushEventHandlers';
 import ReadyPromise from './readyPromise';
 import { $, domReadyCall } from './utils';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const log = (event, ...args) => {
   if (process.env.NODE_ENV !== 'production') {
     // console.log(
@@ -309,20 +317,6 @@ export class UnisatProvider extends EventEmitter {
     });
   };
 
-  sendInscription = async (toAddress: string, inscriptionId: string, options?: { feeRate: number }) => {
-    return this._request({
-      method: 'sendInscription',
-      params: {
-        sendInscriptionParams: {
-          toAddress,
-          inscriptionId,
-          feeRate: options?.feeRate
-        },
-        type: TxType.SEND_ORDINALS_INSCRIPTION
-      }
-    });
-  };
-
   // signTx = async (rawtx: string) => {
   //   return this._request({
   //     method: 'signTx',
@@ -387,12 +381,6 @@ export class UnisatProvider extends EventEmitter {
   getVersion = async () => {
     return this._request({
       method: 'getVersion'
-    });
-  };
-
-  isAtomicalsEnabled = async () => {
-    return this._request({
-      method: 'isAtomicalsEnabled'
     });
   };
 

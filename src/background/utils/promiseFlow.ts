@@ -1,8 +1,9 @@
 import compose from 'koa-compose';
 
 export default class PromiseFlow {
+  // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-explicit-any
   private _tasks: ((args: any) => void)[] = [];
-  _context: any = {};
+  _context: unknown = {};
   requestedApproval = false;
 
   use(fn): PromiseFlow {

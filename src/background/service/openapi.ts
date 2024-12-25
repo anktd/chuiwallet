@@ -22,10 +22,11 @@ interface OpenApiStore {
   config?: WalletConfig;
 }
 
-const maxRPS = 100;
-
+// eslint-disable-next-line no-unused-vars
 enum API_STATUS {
+  // eslint-disable-next-line no-unused-vars
   FAILED = -1,
+  // eslint-disable-next-line no-unused-vars
   SUCCESS = 0
 }
 
@@ -74,7 +75,9 @@ export class OpenApiService {
     this.addressFlag = flag;
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getRespData = async (res: any) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let jsonRes: { code: number; msg: string; data: any };
 
     if (!res) throw new Error('Network error, no response');
@@ -91,6 +94,7 @@ export class OpenApiService {
     return jsonRes.data;
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   httpGet = async (route: string, params: any) => {
     let url = this.endpoint + route;
     let c = 0;
@@ -113,6 +117,7 @@ export class OpenApiService {
     let res: Response;
     try {
       res = await fetch(new Request(url), { method: 'GET', headers, mode: 'cors', cache: 'default' });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       throw new Error('Network error: ' + e && e.message);
     }
@@ -120,6 +125,7 @@ export class OpenApiService {
     return this.getRespData(res);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   httpPost = async (route: string, params: any) => {
     const url = this.endpoint + route;
     const headers = new Headers();
@@ -139,6 +145,7 @@ export class OpenApiService {
         cache: 'default',
         body: JSON.stringify(params)
       });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       throw new Error('Network error: ' + e && e.message);
     }

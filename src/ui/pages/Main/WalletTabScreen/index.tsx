@@ -1,8 +1,7 @@
-import { Tabs, Tooltip } from 'antd';
+import { Tooltip } from 'antd';
 import { CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
 
-import { AddressFlagType, ChainType } from '@/shared/constant';
-import { checkAddressFlag } from '@/shared/utils';
+import { ChainType } from '@/shared/constant';
 import { Card, Column, Content, Footer, Header, Layout, Row, Text } from '@/ui/components';
 import AccountSelect from '@/ui/components/AccountSelect';
 import { BtcUsd } from '@/ui/components/BtcUsd';
@@ -10,14 +9,11 @@ import { Button } from '@/ui/components/Button';
 import { DisableUnconfirmedsPopover } from '@/ui/components/DisableUnconfirmedPopover';
 import { FeeRateIcon } from '@/ui/components/FeeRateIcon';
 import { NavTabBar } from '@/ui/components/NavTabBar';
-import { NoticePopover } from '@/ui/components/NoticePopover';
 import { SwitchNetworkBar } from '@/ui/components/SwitchNetworkBar';
 import { UpgradePopover } from '@/ui/components/UpgradePopover';
 import { getCurrentTab } from '@/ui/features/browser/tabs';
 import { BtcDisplay } from '@/ui/pages/Main/WalletTabScreen/components/BtcDisplay';
-import { useAccountBalance, useAddressSummary, useCurrentAccount } from '@/ui/state/accounts/hooks';
-import { accountActions } from '@/ui/state/accounts/reducer';
-import { useAppDispatch } from '@/ui/state/hooks';
+import { useAccountBalance, useCurrentAccount } from '@/ui/state/accounts/hooks';
 import { useCurrentKeyring } from '@/ui/state/keyrings/hooks';
 import {
   useAddressExplorerUrl,
@@ -30,8 +26,7 @@ import {
   useWalletConfig
 } from '@/ui/state/settings/hooks';
 import { useFetchUtxosCallback, useSafeBalance } from '@/ui/state/transactions/hooks';
-import { useAssetTabKey, useResetUiTxCreateScreen, useSupportedAssets } from '@/ui/state/ui/hooks';
-import { AssetTabKey, uiActions } from '@/ui/state/ui/reducer';
+import { useResetUiTxCreateScreen } from '@/ui/state/ui/hooks';
 import { fontSizes } from '@/ui/theme/font';
 import { amountToSatoshis, satoshisToAmount, useWallet } from '@/ui/utils';
 
@@ -46,12 +41,10 @@ const $noBreakStyle: CSSProperties = {
 
 export default function WalletTabScreen() {
   const navigate = useNavigate();
-
   const accountBalance = useAccountBalance();
   const chain = useChain();
   const chainType = useChainType();
   const addressTips = useAddressTips();
-
   const currentKeyring = useCurrentKeyring();
   const currentAccount = useCurrentAccount();
   const balanceValue = useMemo(() => {
@@ -61,32 +54,22 @@ export default function WalletTabScreen() {
       return accountBalance.amount;
     }
   }, [accountBalance.amount]);
-
   const wallet = useWallet();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [connected, setConnected] = useState(false);
-
-  const dispatch = useAppDispatch();
-  const assetTabKey = useAssetTabKey();
-
   const skipVersion = useSkipVersionCallback();
-
   const walletConfig = useWalletConfig();
   const versionInfo = useVersionInfo();
-
-  const [showSafeNotice, setShowSafeNotice] = useState(false);
   const [showDisableUnconfirmedUtxoNotice, setShowDisableUnconfirmedUtxoNotice] = useState(false);
-
   const fetchUtxos = useFetchUtxosCallback();
   const ref = useRef<{ fetchedUtxo: { [key: string]: { loading: boolean } } }>({
     fetchedUtxo: {}
   });
   const [loadingFetch, setLoadingFetch] = useState(false);
-
   const safeBalance = useSafeBalance();
   const avaiableSatoshis = useMemo(() => {
     return amountToSatoshis(safeBalance);
   }, [safeBalance]);
-
   const totalSatoshis = amountToSatoshis(accountBalance.amount);
   const unavailableSatoshis = totalSatoshis - avaiableSatoshis;
   const avaiableAmount = safeBalance;
@@ -95,9 +78,6 @@ export default function WalletTabScreen() {
 
   useEffect(() => {
     const run = async () => {
-      const show = await wallet.getShowSafeNotice();
-      setShowSafeNotice(show);
-
       const activeTab = await getCurrentTab();
       if (!activeTab) return;
       const site = await wallet.getCurrentConnectedSite(activeTab.id);
@@ -107,25 +87,6 @@ export default function WalletTabScreen() {
     };
     run();
   }, []);
-
-  const supportedAssets = useSupportedAssets();
-
-  const tabItems = useMemo(() => {
-    const items: {
-      key: AssetTabKey;
-      label: string;
-      children: JSX.Element;
-    }[] = [];
-    
-    return items;
-  }, [supportedAssets.key]);
-
-  const finalAssetTabKey = useMemo(() => {
-    if (!supportedAssets.tabKeys.includes(assetTabKey)) {
-      return AssetTabKey.ORDINALS;
-    }
-    return assetTabKey;
-  }, [assetTabKey, supportedAssets.key]);
 
   const addressExplorerUrl = useAddressExplorerUrl(currentAccount.address);
   const resetUiTxCreateScreen = useResetUiTxCreateScreen();
@@ -212,6 +173,7 @@ export default function WalletTabScreen() {
                 </>
               )
             }
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             onOpenChange={(v) => {
               if (!ref.current.fetchedUtxo[currentAccount.address]) {
                 ref.current.fetchedUtxo[currentAccount.address] = { loading: true };
@@ -245,6 +207,7 @@ export default function WalletTabScreen() {
               text="Receive"
               preset="home"
               icon="receive"
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
               onClick={(e) => {
                 navigate('ReceiveScreen');
               }}
@@ -254,6 +217,7 @@ export default function WalletTabScreen() {
               text="Send"
               preset="home"
               icon="send"
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
               onClick={(e) => {
                 resetUiTxCreateScreen();
                 navigate('TxCreateScreen');
@@ -263,6 +227,7 @@ export default function WalletTabScreen() {
               text="History"
               preset="home"
               icon="history"
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
               onClick={(e) => {
                 if (chain.isViewTxHistoryInternally) {
                   navigate('HistoryScreen');
@@ -275,6 +240,7 @@ export default function WalletTabScreen() {
               text="Buy"
               preset="home"
               icon="bitcoin"
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
               onClick={(e) => {
                 setBuyBtcModalVisible(true);
               }}
@@ -282,26 +248,8 @@ export default function WalletTabScreen() {
             />
           </Row>
 
-          <Tabs
-            size={'small'}
-            defaultActiveKey={finalAssetTabKey as unknown as string}
-            activeKey={finalAssetTabKey as unknown as string}
-            items={tabItems as unknown as any[]}
-            onTabClick={(key) => {
-              dispatch(uiActions.updateAssetTabScreen({ assetTabKey: key as unknown as AssetTabKey }));
-            }}
-          />
-
           {/*{tabItems[assetTabKey].children}*/}
         </Column>
-        {showSafeNotice && (
-          <NoticePopover
-            onClose={() => {
-              wallet.setShowSafeNotice(false);
-              setShowSafeNotice(false);
-            }}
-          />
-        )}
         {!versionInfo.skipped && (
           <UpgradePopover
             onClose={() => {

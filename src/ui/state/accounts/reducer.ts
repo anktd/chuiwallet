@@ -1,4 +1,4 @@
-import { Account, AddressSummary, AppSummary, Inscription, InscriptionSummary, TxHistoryItem } from '@/shared/types';
+import { Account, AddressSummary, AppSummary, TxHistoryItem } from '@/shared/types';
 import { createSlice } from '@reduxjs/toolkit';
 
 import { updateVersion } from '../global/actions';
@@ -53,7 +53,7 @@ export const initialState: AccountsState = {
     btcSatoshis: 0,
     assetSatoshis: 0,
     loading: true,
-    address: '',
+    address: ''
   }
 };
 
@@ -101,6 +101,7 @@ const slice = createSlice({
       state.balanceMap[address].pending_btc_amount = pending_btc_amount;
       state.balanceMap[address].expired = false;
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     setAddressSummary(state, action: { payload: any }) {
       state.addressSummary = action.payload;
     },
@@ -150,7 +151,8 @@ const slice = createSlice({
     rejectLogin(state) {
       state.loading = false;
     },
-    reset(state) {
+    // eslint-disable-next-line no-unused-vars
+    reset(_state) {
       return initialState;
     },
     updateAccountName(
@@ -178,7 +180,7 @@ const slice = createSlice({
           totalSatoshis: 0,
           btcSatoshis: 0,
           assetSatoshis: 0,
-          address: '',
+          address: ''
         };
       }
     });

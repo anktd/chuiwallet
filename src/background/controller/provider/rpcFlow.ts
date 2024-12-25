@@ -1,11 +1,9 @@
 import { ethErrors } from 'eth-rpc-errors';
 import 'reflect-metadata';
-
 import { keyringService, notificationService, permissionService } from '@/background/service';
 import { PromiseFlow, underline2Camelcase } from '@/background/utils';
 import { CHAINS_ENUM, EVENTS } from '@/shared/constant';
 import eventBus from '@/shared/eventBus';
-
 import providerController from './controller';
 
 const isSignApproval = (type: string) => {
@@ -54,7 +52,7 @@ const flowContext = flow
       mapMethod
     } = ctx;
     // if (!Reflect.getMetadata('SAFE', providerController, mapMethod)) {
-    if(!['getNetwork','switchNetwork','getChain','switchChain'].includes(mapMethod)){
+    if (!['getNetwork', 'switchNetwork', 'getChain', 'switchChain'].includes(mapMethod)) {
       if (!permissionService.hasPermission(origin)) {
         if (['getAccounts'].includes(mapMethod)) {
           return [];
@@ -86,8 +84,7 @@ const flowContext = flow
       },
       mapMethod
     } = ctx;
-    const [approvalType, condition, options = {}] =
-    Reflect.getMetadata('APPROVAL', providerController, mapMethod) || [];
+    const [approvalType, condition = {}] = Reflect.getMetadata('APPROVAL', providerController, mapMethod) || [];
 
     if (approvalType && (!condition || !condition(ctx.request))) {
       ctx.request.requestedApproval = true;
@@ -141,6 +138,7 @@ const flowContext = flow
         }
         return result;
       })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .catch((e: any) => {
         if (isSignApproval(approvalType)) {
           eventBus.emit(EVENTS.broadcastToUI, {
@@ -178,6 +176,7 @@ const flowContext = flow
   .callback();
 
 export default (request) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const ctx: any = { request: { ...request, requestedApproval: false } };
   return flowContext(ctx).finally(() => {
     if (ctx.request.requestedApproval) {

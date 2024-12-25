@@ -1,4 +1,8 @@
-/// fork from https://github.com/MetaMask/KeyringController/blob/master/index.js
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/* eslint-disable no-unused-vars */
 import * as bip39 from 'bip39';
 import encryptor from 'browser-passworder';
 import { EventEmitter } from 'events';
@@ -10,7 +14,6 @@ import { ObservableStore } from '@metamask/obs-store';
 import { keyring } from '@unisat/wallet-sdk';
 import { bitcoin } from '@unisat/wallet-sdk/lib/bitcoin-core';
 
-import i18n from '../i18n';
 import preference from '../preference';
 import DisplayKeyring from './display';
 
@@ -213,7 +216,7 @@ class KeyringService extends EventEmitter {
 
   generatePreMnemonic = async (): Promise<string> => {
     if (!this.password) {
-      throw new Error(i18n.t('you need to unlock wallet first'));
+      throw new Error('You need to unlock wallet first');
     }
     const mnemonic = this.generateMnemonic();
     const preMnemonics = await this.encryptor.encrypt(this.password, mnemonic);
@@ -238,7 +241,7 @@ class KeyringService extends EventEmitter {
     }
 
     if (!this.password) {
-      throw new Error(i18n.t('you need to unlock wallet first'));
+      throw new Error('You need to unlock wallet first');
     }
 
     return await this.encryptor.decrypt(this.password, this.memStore.getState().preMnemonics);
@@ -262,10 +265,10 @@ class KeyringService extends EventEmitter {
     accountCount: number
   ) => {
     if (accountCount < 1) {
-      throw new Error(i18n.t('account count must be greater than 0'));
+      throw new Error('Account count must be greater than 0');
     }
     if (!bip39.validateMnemonic(seed)) {
-      return Promise.reject(new Error(i18n.t('mnemonic phrase is invalid')));
+      return Promise.reject(new Error('Mnemonic phrase is invalid'));
     }
 
     await this.persistAllKeyrings();
@@ -302,7 +305,7 @@ class KeyringService extends EventEmitter {
     connectionType: 'USB' | 'QR' = 'USB'
   ) => {
     if (accountCount < 1) {
-      throw new Error(i18n.t('account count must be greater than 0'));
+      throw new Error('Account count must be greater than 0');
     }
     await this.persistAllKeyrings();
     const tmpKeyring = new KeystoneKeyring();
@@ -428,7 +431,7 @@ class KeyringService extends EventEmitter {
   verifyPassword = async (password: string): Promise<void> => {
     const encryptedBooted = this.store.getState().booted;
     if (!encryptedBooted) {
-      throw new Error(i18n.t('Cannot unlock without a previous vault'));
+      throw new Error('Cannot unlock without a previous vault');
     }
     await this.encryptor.decrypt(password, encryptedBooted);
   };
@@ -478,7 +481,7 @@ class KeyringService extends EventEmitter {
       return accounts.find((key) => key === account);
     });
 
-    return isIncluded ? Promise.reject(new Error(i18n.t('Wallet existed.'))) : Promise.resolve(newAccountArray);
+    return isIncluded ? Promise.reject(new Error('Wallet exists')) : Promise.resolve(newAccountArray);
   };
 
   /**
@@ -653,7 +656,7 @@ class KeyringService extends EventEmitter {
   unlockKeyrings = async (password: string): Promise<any[]> => {
     const encryptedVault = this.store.getState().vault;
     if (!encryptedVault) {
-      throw new Error(i18n.t('Cannot unlock without a previous vault'));
+      throw new Error('Cannot unlock without a previous vault');
     }
 
     await this.clearKeyrings();

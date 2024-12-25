@@ -20,7 +20,8 @@ const slice = createSlice({
   name: 'discovery',
   initialState,
   reducers: {
-    reset(state) {
+    // eslint-disable-next-line no-unused-vars
+    reset(_state) {
       return initialState;
     },
     setBannerList(

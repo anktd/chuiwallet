@@ -1,3 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/* eslint-disable no-unused-vars */
+
+/* eslint-disable no-undef */
+
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { MANIFEST_VERSION } from '@/shared/constant';
 
 function getBrowser() {

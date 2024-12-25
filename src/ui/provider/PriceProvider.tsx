@@ -52,7 +52,8 @@ export function PriceProvider({ children }: { children: ReactNode }) {
     wallet
       .getCoinPrice()
       .then(setCoinPrice)
-      .catch((e) => {
+      // eslint-disable-next-line no-unused-vars
+      .catch((_e) => {
         setCoinPrice({
           btc: 0,
           fb: 0
