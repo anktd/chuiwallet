@@ -7,6 +7,7 @@ import { Icon } from '../Icon';
 import { Row } from '../Row';
 import { Text } from '../Text';
 
+// eslint-disable-next-line no-unused-vars
 export function RBFBar({ defaultValue, onChange }: { defaultValue?: boolean; onChange: (val: boolean) => void }) {
   const [enableRBF, setEnableRBF] = useState(defaultValue || false);
 
@@ -16,7 +17,7 @@ export function RBFBar({ defaultValue, onChange }: { defaultValue?: boolean; onC
   return (
     <Row justifyBetween>
       <Tooltip
-        title={`A feature allows the transaction to be replaced.`}
+        title={'A feature allows the transaction to be replaced.'}
         overlayStyle={{
           fontSize: fontSizes.xs
         }}>

@@ -22,6 +22,7 @@ interface Props {
   };
 }
 export default function SignText({ params: { data, session } }: Props) {
+  // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
   const [getApproval, resolveApproval, rejectApproval] = useApproval();
   const account = useCurrentAccount();
   const [isKeystoneSigning, setIsKeystoneSigning] = useState(false);

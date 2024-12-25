@@ -32,9 +32,13 @@ interface Props {
   handleConfirm?: () => void;
 }
 
+// eslint-disable-next-line no-unused-vars
 enum SignState {
+  // eslint-disable-next-line no-unused-vars
   PENDING,
+  // eslint-disable-next-line no-unused-vars
   SUCCESS,
+  // eslint-disable-next-line no-unused-vars
   FAILED
 }
 
@@ -60,6 +64,7 @@ export default function MultiSignPsbt({
   handleCancel,
   handleConfirm
 }: Props) {
+  // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
   const [getApproval, resolveApproval, rejectApproval] = useApproval();
   const [txInfo, setTxInfo] = useState<TxInfo>(initTxInfo);
   const [loading, setLoading] = useState(true);
@@ -266,6 +271,7 @@ export default function MultiSignPsbt({
                   </Column>
                   <Column>
                     <Button
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
                       preset={preset as any}
                       textStyle={{ fontSize: fontSizes.sm }}
                       text={text}

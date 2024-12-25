@@ -4,14 +4,16 @@ import { colors } from '@/ui/theme/colors';
 import { fontSizes } from '@/ui/theme/font';
 import { CloseOutlined } from '@ant-design/icons';
 
-const disclaimStr = `You have the option to sign all transactions at once, but please note that UniSat Wallet will not verify each transaction individually. We strongly recommend using it only on trusted and familiar websites to minimize the risk of potential losses.`;
+const disclaimStr = 'You have the option to sign all transactions at once, but please note that UniSat Wallet will not verify each transaction individually. We strongly recommend using it only on trusted and familiar websites to minimize the risk of potential losses.';
 export default function MultiSignDisclaimerModal({
   txCount,
   onClose,
   onContinue
 }: {
   txCount: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onClose: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onContinue: any;
 }) {
   return (
@@ -36,7 +38,7 @@ export default function MultiSignDisclaimerModal({
           <Text
             mt="lg"
             style={{ fontSize: fontSizes.sm, lineHeight: 2 }}
-            text={`By proceeding, you confirm that you’ve read and accepted this disclaimer.`}></Text>
+            text={'By proceeding, you confirm that you\'ve read and accepted this disclaimer.'}></Text>
         </Column>
 
         <Button

@@ -25,7 +25,7 @@ function TabButton({ tabName, icon, isActive }: { tabName: TabOption; icon: Icon
     <Column
       justifyCenter
       itemsCenter
-      onClick={(e) => {
+      onClick={() => {
         if (tabName === 'home') {
           navigate('MainScreen');
         } else if (tabName === 'discover') {

@@ -34,7 +34,7 @@ export const DisableUnconfirmedsPopover = ({ onClose }: { onClose: () => void })
             text="I understand"
             full
             preset="defaultV2"
-            onClick={(e) => {
+            onClick={() => {
               if (onClose) {
                 onClose();
               }

@@ -1,18 +1,16 @@
 import { Carousel, Tooltip } from 'antd';
 import { useEffect, useState } from 'react';
 
-import { ChainType } from '@/shared/constant';
 import { AppInfo } from '@/shared/types';
 import { Card, Column, Content, Footer, Header, Image, Layout, Row, Text } from '@/ui/components';
 import { NavTabBar } from '@/ui/components/NavTabBar';
 import { SwitchNetworkBar } from '@/ui/components/SwitchNetworkBar';
 import { TabBar } from '@/ui/components/TabBar';
-import { SearchBar } from '@/ui/pages/Main/DiscoverTabComponents/SearchBar';
 import { useReadApp } from '@/ui/state/accounts/hooks';
 import { useAppList, useBannerList, useLastFetchInfo } from '@/ui/state/discovery/hooks';
 import { discoveryActions } from '@/ui/state/discovery/reducer';
 import { useAppDispatch } from '@/ui/state/hooks';
-import { useChain, useChainType } from '@/ui/state/settings/hooks';
+import { useChainType } from '@/ui/state/settings/hooks';
 import { useWallet } from '@/ui/utils';
 
 import { SwitchChainModal } from '../Settings/SwitchChainModal';
@@ -78,7 +76,6 @@ function AppItem({ info }: { info: AppInfo }) {
 
 export default function DiscoverTabScreen() {
   const chainType = useChainType();
-  const chain = useChain();
 
   const [tabKey, setTabKey] = useState(0);
 
@@ -106,7 +103,7 @@ export default function DiscoverTabScreen() {
           })
         );
       })
-      .catch((e) => {
+      .catch(() => {
         dispatch(
           discoveryActions.setBannerList({
             bannerList: [],
@@ -127,7 +124,7 @@ export default function DiscoverTabScreen() {
           })
         );
       })
-      .catch((e) => {
+      .catch(() => {
         dispatch(
           discoveryActions.setAppList({
             appList: [],
@@ -173,12 +170,6 @@ export default function DiscoverTabScreen() {
       />
       <Content>
         <Column justifyCenter>
-          {chainType === ChainType.FRACTAL_BITCOIN_MAINNET && (
-            <>
-              <SearchBar />
-              <Row mt="md" />
-            </>
-          )}
           {hasBanner ? (
             <Carousel autoplay>
               {bannerList.map((v) => (

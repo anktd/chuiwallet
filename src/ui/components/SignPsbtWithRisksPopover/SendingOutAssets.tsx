@@ -1,7 +1,4 @@
-import BigNumber from 'bignumber.js';
-
 import { DecodedPsbt } from '@/shared/types';
-import { useCurrentAccount } from '@/ui/state/accounts/hooks';
 import { colors } from '@/ui/theme/colors';
 
 import { Column } from '../Column';
@@ -10,9 +7,7 @@ import { Popover } from '../Popover';
 import { Row } from '../Row';
 import { Text } from '../Text';
 
-export const SendingOutAssets = ({ decodedPsbt, onClose }: { decodedPsbt: DecodedPsbt; onClose: () => void }) => {
-  const currentAccount = useCurrentAccount();
-
+export const SendingOutAssets = ({ onClose }: { decodedPsbt: DecodedPsbt; onClose: () => void }) => {
   return (
     <Popover>
       <Column justifyCenter itemsCenter>

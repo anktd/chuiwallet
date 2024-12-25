@@ -6,13 +6,13 @@ import { useTools } from '@/ui/components/ActionComponent';
 import { AddressTypeCard } from '@/ui/components/AddressTypeCard';
 import { useExtensionIsInTab } from '@/ui/features/browser/tabs';
 import { useCurrentAccount, useReloadAccounts } from '@/ui/state/accounts/hooks';
-import { useAppDispatch } from '@/ui/state/hooks';
 import { useCurrentKeyring } from '@/ui/state/keyrings/hooks';
 import { satoshisToAmount, useWallet } from '@/ui/utils';
 
 import { useNavigate } from '../MainRoute';
 
 export default function AddressTypeScreen() {
+  // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
   const isInTab = useExtensionIsInTab();
 
   const wallet = useWallet();
@@ -20,15 +20,14 @@ export default function AddressTypeScreen() {
   const account = useCurrentAccount();
 
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
   const reloadAccounts = useReloadAccounts();
   const [addresses, setAddresses] = useState<string[]>([]);
   const [addressAssets, setAddressAssets] = useState<{
-    [key: string]: { total_btc: string; satoshis: number; total_inscription: number };
+    [key: string]: { total_btc: string; satoshis: number };
   }>({});
 
   const selfRef = useRef<{
-    addressAssets: { [key: string]: { total_btc: string; satoshis: number; total_inscription: number } };
+    addressAssets: { [key: string]: { total_btc: string; satoshis: number } };
   }>({
     addressAssets: {}
   });
@@ -47,8 +46,7 @@ export default function AddressTypeScreen() {
       const satoshis = balance.totalSatoshis;
       self.addressAssets[address] = {
         total_btc: satoshisToAmount(balance.totalSatoshis),
-        satoshis,
-        total_inscription: balance.inscriptionCount
+        satoshis
       };
     }
     setAddressAssets(self.addressAssets);

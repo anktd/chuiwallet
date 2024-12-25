@@ -60,7 +60,7 @@ export const RemoveWalletPopover = ({ keyring, onClose }: { keyring: WalletKeyri
           <Button
             text="Cancel"
             full
-            onClick={(e) => {
+            onClick={() => {
               if (onClose) {
                 onClose();
               }

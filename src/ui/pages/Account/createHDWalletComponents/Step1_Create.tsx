@@ -1,18 +1,20 @@
-import { useEffect, useState } from 'react';
-import { copyToClipboard, useWallet } from '@/ui/utils';
-import { useTools } from '@/ui/components/ActionComponent';
-import { CheckboxChangeEvent } from 'antd/lib/checkbox';
-import { Button, Card, Column, Grid, Icon, Row, Text } from '@/ui/components';
 import { Checkbox } from 'antd';
-import { fontSizes } from '@/ui/theme/font';
+import { CheckboxChangeEvent } from 'antd/lib/checkbox';
+import { useEffect, useState } from 'react';
+
+import { Button, Card, Column, Grid, Icon, Row, Text } from '@/ui/components';
+import { useTools } from '@/ui/components/ActionComponent';
 import { FooterButtonContainer } from '@/ui/components/FooterButtonContainer';
 import { ContextData, TabType, UpdateContextDataParams } from '@/ui/pages/Account/createHDWalletComponents/types';
+import { fontSizes } from '@/ui/theme/font';
+import { copyToClipboard, useWallet } from '@/ui/utils';
 
 export function Step1_Create({
-                        contextData,
-                        updateContextData
-                      }: {
+  contextData,
+  updateContextData
+}: {
   contextData: ContextData;
+  // eslint-disable-next-line no-unused-vars
   updateContextData: (params: UpdateContextDataParams) => void;
 }) {
   const [checked, setChecked] = useState(false);
@@ -61,7 +63,7 @@ export function Step1_Create({
 
       <Row
         justifyCenter
-        onClick={(e) => {
+        onClick={() => {
           copy(contextData.mnemonics);
         }}>
         <Icon icon="copy" color="textDim" />

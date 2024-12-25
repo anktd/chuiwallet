@@ -18,7 +18,7 @@ export const AddressDetailPopover = ({ address, onClose }: { address: string; on
         <Text text={shortAddress(address)} textCenter />
         <Card
           preset="style2"
-          onClick={(e) => {
+          onClick={() => {
             copyToClipboard(address).then(() => {
               tools.toastSuccess('Copied');
             });

@@ -9,7 +9,6 @@ import { useCurrentAccount } from '@/ui/state/accounts/hooks';
 import { accountActions } from '@/ui/state/accounts/reducer';
 import { useAppDispatch } from '@/ui/state/hooks';
 import { colors } from '@/ui/theme/colors';
-import { fontSizes } from '@/ui/theme/font';
 import { shortAddress, useWallet } from '@/ui/utils';
 
 export function UnconfirmedBalanceCard() {
@@ -39,7 +38,9 @@ export function UnconfirmedBalanceCard() {
           <Text
             preset="sub"
             size="sm"
-            text={`To protect your assets, only confirmed balances are spendable when holding Runes (or ARC-20) assets. This is to prevent accidental asset burning.`}
+            text={
+              'To protect your assets, only confirmed balances are spendable when holding Runes (or ARC-20) assets. This is to prevent accidental asset burning.'
+            }
           />
         </Row>
         <Row style={{ borderTopWidth: 1, borderColor: colors.border }} my="md" />
@@ -47,9 +48,9 @@ export function UnconfirmedBalanceCard() {
         <Row justifyBetween>
           <Column fullX gap="zero">
             {enableUnconfirmed ? (
-              <Text text={`Mandatory use of unconfirmed balance `} size="xs" />
+              <Text text={'Mandatory use of unconfirmed balance '} size="xs" />
             ) : (
-              <Text text={`Mandatory use of unconfirmed balance`} size="xs" />
+              <Text text={'Mandatory use of unconfirmed balance'} size="xs" />
             )}
             <Text text={`Only applies to current address (${shortAddress(currentAccount.address)})`} preset="sub" />
           </Column>
@@ -102,7 +103,8 @@ function EnableUnconfirmedPopover({ onClose, onConfirm }: { onClose: () => void;
             text="Allow using Unconfirmed Balance"
             preset="primaryV2"
             full
-            onClick={(e) => {
+            // eslint-disable-next-line no-unused-vars
+            onClick={(_e) => {
               if (onConfirm) {
                 onConfirm();
               }
@@ -112,7 +114,8 @@ function EnableUnconfirmedPopover({ onClose, onConfirm }: { onClose: () => void;
             text="Cancel"
             full
             preset="defaultV2"
-            onClick={(e) => {
+            // eslint-disable-next-line no-unused-vars
+            onClick={(_e) => {
               if (onClose) {
                 onClose();
               }

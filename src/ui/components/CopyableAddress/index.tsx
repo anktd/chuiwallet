@@ -11,7 +11,7 @@ export function CopyableAddress({ address }: { address: string }) {
     <Row
       itemsCenter
       gap="sm"
-      onClick={(e) => {
+      onClick={() => {
         copyToClipboard(address).then(() => {
           tools.toastSuccess('Copied');
         });

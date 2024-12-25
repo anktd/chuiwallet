@@ -1,21 +1,16 @@
+import { Radio } from 'antd';
+import * as bip39 from 'bip39';
+import { useEffect, useMemo, useState } from 'react';
+
+import { Button, Card, Column, Grid, Input, Row, Text } from '@/ui/components';
+import { useTools } from '@/ui/components/ActionComponent';
+import { FooterButtonContainer } from '@/ui/components/FooterButtonContainer';
 import {
   ContextData,
   TabType,
   UpdateContextDataParams,
   WordsType
 } from '@/ui/pages/Account/createHDWalletComponents/types';
-import { useEffect, useMemo, useState } from 'react';
-import { AddressType, RestoreWalletType } from '@/shared/types';
-import * as bip39 from 'bip39';
-import { useCreateAccountCallback } from '@/ui/state/global/hooks';
-import { useNavigate } from '@/ui/pages/MainRoute';
-import { useTools } from '@/ui/components/ActionComponent';
-import { OW_HD_PATH } from '@/shared/constant';
-import { Button, Card, Column, Grid, Input, Row, Text } from '@/ui/components';
-import { Radio } from 'antd';
-import { FooterButtonContainer } from '@/ui/components/FooterButtonContainer';
-
-
 
 const WORDS_12_ITEM = {
   key: WordsType.WORDS_12,
@@ -29,26 +24,19 @@ const WORDS_24_ITEM = {
   count: 24
 };
 
-
 export function Step1_Import({
-                        contextData,
-                        updateContextData
-                      }: {
+  contextData,
+  updateContextData
+}: {
   contextData: ContextData;
+  // eslint-disable-next-line no-unused-vars
   updateContextData: (params: UpdateContextDataParams) => void;
 }) {
   const [curInputIndex, setCurInputIndex] = useState(0);
-  const [hover, setHover] = useState(999);
   const [disabled, setDisabled] = useState(true);
 
   const wordsItems = useMemo(() => {
-    if (contextData.restoreWalletType === RestoreWalletType.OW) {
-      return [WORDS_12_ITEM];
-    } else if (contextData.restoreWalletType === RestoreWalletType.XVERSE) {
-      return [WORDS_12_ITEM];
-    } else {
-      return [WORDS_12_ITEM, WORDS_24_ITEM];
-    }
+    return [WORDS_12_ITEM, WORDS_24_ITEM];
   }, [contextData]);
 
   const [keys, setKeys] = useState<Array<string>>(new Array(wordsItems[contextData.wordsType].count).fill(''));
@@ -70,6 +58,7 @@ export function Step1_Import({
     event.preventDefault();
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const onChange = (e: any, index: any) => {
     const newKeys = [...keys];
     newKeys.splice(index, 1, e.target.value);
@@ -95,26 +84,17 @@ export function Step1_Import({
     setDisabled(false);
   }, [keys]);
 
-  useEffect(() => {
-    //todo
-  }, [hover]);
-
-  const createAccount = useCreateAccountCallback();
-  const navigate = useNavigate();
   const tools = useTools();
   const onNext = async () => {
     try {
       const mnemonics = keys.join(' ');
-      if (contextData.restoreWalletType === RestoreWalletType.OW) {
-        await createAccount(mnemonics, OW_HD_PATH, '', AddressType.P2TR, 1);
-        navigate('MainScreen');
-      } else {
-        updateContextData({ mnemonics, tabType: TabType.STEP3 });
-      }
+      updateContextData({ mnemonics, tabType: TabType.STEP3 });
     } catch (e) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       tools.toastError((e as any).message);
     }
   };
+  // eslint-disable-next-line no-undef
   const handleOnKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!disabled && 'Enter' == e.key) {
       onNext();
@@ -161,16 +141,10 @@ export function Step1_Import({
                     onChange={(e) => {
                       onChange(e, index);
                     }}
-                    // onMouseOverCapture={(e) => {
-                    //   setHover(index);
-                    // }}
-                    // onMouseLeave={(e) => {
-                    //   setHover(999);
-                    // }}
-                    onFocus={(e) => {
+                    onFocus={() => {
                       setCurInputIndex(index);
                     }}
-                    onBlur={(e) => {
+                    onBlur={() => {
                       setCurInputIndex(999);
                     }}
                     onKeyUp={(e) => handleOnKeyUp(e)}

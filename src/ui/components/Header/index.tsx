@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import { useMemo } from 'react';
 
 import { spacing } from '@/ui/theme/spacing';
@@ -79,7 +80,7 @@ export function Header(props: HeaderProps) {
           {LeftComponent}
           {onBack && (
             <Row
-              onClick={(e) => {
+              onClick={() => {
                 onBack();
               }}>
               <Icon>

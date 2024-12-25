@@ -3,9 +3,8 @@ import { useEffect, useState } from 'react';
 import { Account, WebsiteState } from '@/shared/types';
 import { Button, Card, Column, Content, Footer, Header, Icon, Layout, Row, Text } from '@/ui/components';
 import WebsiteBar from '@/ui/components/WebsiteBar';
-import { useAccountBalance, useCurrentAccount } from '@/ui/state/accounts/hooks';
-import { useAppDispatch } from '@/ui/state/hooks';
-import { useCurrentKeyring, useKeyrings } from '@/ui/state/keyrings/hooks';
+import { useCurrentAccount } from '@/ui/state/accounts/hooks';
+import { useCurrentKeyring } from '@/ui/state/keyrings/hooks';
 import { fontSizes } from '@/ui/theme/font';
 import { shortAddress, useApproval, useWallet } from '@/ui/utils';
 import { CheckCircleFilled, LoadingOutlined } from '@ant-design/icons';
@@ -21,7 +20,8 @@ export interface ItemData {
   account?: Account;
 }
 
-export function MyItem({ account, selected, onClick }: MyItemProps, ref) {
+// eslint-disable-next-line no-unused-vars
+export function MyItem({ account, selected, onClick }: MyItemProps, _ref) {
   if (!account) {
     return <div />;
   }
@@ -57,6 +57,7 @@ interface Props {
 }
 
 export default function Connect({ params: { session } }: Props) {
+  // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
   const [getApproval, resolveApproval, rejectApproval] = useApproval();
 
   const handleCancel = () => {
@@ -67,18 +68,13 @@ export default function Connect({ params: { session } }: Props) {
     resolveApproval();
   };
 
-  const keyrings = useKeyrings();
   const wallet = useWallet();
 
   const currentKeyring = useCurrentKeyring();
   const currentAccount = useCurrentAccount();
 
-  const dispatch = useAppDispatch();
-
   const [checkState, setCheckState] = useState(WebsiteState.CHECKING);
   const [warning, setWarning] = useState('');
-
-  const balance = useAccountBalance();
 
   useEffect(() => {
     wallet.checkWebsite(session.origin).then((v) => {

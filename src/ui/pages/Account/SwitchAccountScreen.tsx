@@ -26,7 +26,7 @@ interface MyItemProps {
 }
 const ITEM_HEIGHT = 64;
 
-export function MyItem({ account, autoNav }: MyItemProps, ref) {
+export function MyItem({ account, autoNav }: MyItemProps) {
   const navigate = useNavigate();
   const currentAccount = useCurrentAccount();
   const selected = currentAccount.pubkey == account?.pubkey;
@@ -61,7 +61,7 @@ export function MyItem({ account, autoNav }: MyItemProps, ref) {
           {selected ? <Icon icon="circle-check" color="gold" /> : <Icon icon="circle-check" color="white_muted2" />}
         </Column>
         <Column
-          onClick={async (e) => {
+          onClick={async () => {
             if (currentAccount.pubkey !== account.pubkey) {
               await wallet.changeKeyring(keyring, account.index);
               const _currentAccount = await wallet.getCurrentAccount();
@@ -84,16 +84,16 @@ export function MyItem({ account, autoNav }: MyItemProps, ref) {
               top: 0,
               bottom: 0
             }}
-            onTouchStart={(e) => {
+            onTouchStart={() => {
               setOptionsVisible(false);
             }}
-            onMouseDown={(e) => {
+            onMouseDown={() => {
               setOptionsVisible(false);
             }}></div>
         )}
 
         <Icon
-          onClick={async (e) => {
+          onClick={async () => {
             setOptionsVisible(!optionsVisible);
           }}>
           <EllipsisOutlined />
@@ -205,7 +205,7 @@ export default function SwitchAccountScreen() {
           itemHeight={ITEM_HEIGHT}
           itemKey={(item) => item.key}
           ref={refList}>
-          {(item, index) => <ForwardMyItem account={item.account} autoNav={true} />}
+          {(item) => <ForwardMyItem account={item.account} autoNav={true} />}
         </VirtualList>
       </Content>
     </Layout>

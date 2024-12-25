@@ -23,6 +23,7 @@ export default function SwitchNetwork({ params: { data, session } }: Props) {
   const from = NETWORK_TYPES[networkType];
   const to = NETWORK_TYPES[data.networkType];
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
   const [getApproval, resolveApproval, rejectApproval] = useApproval();
 
   const handleCancel = () => {

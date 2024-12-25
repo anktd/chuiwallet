@@ -1,12 +1,11 @@
 import { useMemo } from 'react';
 
-import { Row, Text } from '@/ui/components';
-import { useBTCUnit, useChainType } from '@/ui/state/settings/hooks';
+import { Text } from '@/ui/components';
+import { useBTCUnit } from '@/ui/state/settings/hooks';
 
 export function BtcDisplay({ balance }: { balance: string }) {
-  const chainType = useChainType();
   const btcUnit = useBTCUnit();
-  const { intPart, decPart } = useMemo(() => {
+  useMemo(() => {
     //   split balance into integer and decimal parts
     const [intPart, decPart] = balance.split('.');
 

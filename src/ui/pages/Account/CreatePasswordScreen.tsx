@@ -8,8 +8,6 @@ import { getPasswordStrengthWord, MIN_PASSWORD_LENGTH } from '@/ui/utils/passwor
 
 import { useNavigate } from '../MainRoute';
 
-type Status = '' | 'error' | 'warning' | undefined;
-
 export default function CreatePasswordScreen() {
   const navigate = useNavigate();
   const wallet = useWallet();
@@ -24,6 +22,7 @@ export default function CreatePasswordScreen() {
       state[key] = value;
     });
   }
+  // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
   const { isNewAccount, isKeystone } = state as { isNewAccount: boolean; isKeystone: boolean };
   const [newPassword, setNewPassword] = useState('');
 
@@ -32,14 +31,11 @@ export default function CreatePasswordScreen() {
   const [disabled, setDisabled] = useState(true);
 
   const tools = useTools();
+  // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
   const [run, loading] = useWalletRequest(wallet.boot, {
     onSuccess() {
       if (isKeystone) {
         navigate('CreateKeystoneWalletScreen', { fromUnlock: true });
-      } else if (isNewAccount) {
-        navigate('CreateHDWalletScreen', { isImport: false, fromUnlock: true });
-      } else {
-        navigate('CreateHDWalletScreen', { isImport: true, fromUnlock: true });
       }
     },
     onError(err) {
@@ -85,7 +81,7 @@ export default function CreatePasswordScreen() {
     if (newPassword !== confirmPassword) {
       return (
         <Row>
-          <Text size="xs" text={`Passwords don't match`} color="red" />
+          <Text size="xs" text={'Passwords don\'t match'} color="red" />
         </Row>
       );
     } else {
@@ -93,6 +89,7 @@ export default function CreatePasswordScreen() {
     }
   }, [newPassword, confirmPassword]);
 
+  // eslint-disable-next-line no-undef
   const handleOnKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!disabled && 'Enter' == e.key) {
       btnClick();

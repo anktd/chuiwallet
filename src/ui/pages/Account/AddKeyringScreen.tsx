@@ -17,33 +17,9 @@ export default function AddKeyringScreen() {
       />
       <Content>
         <Column>
-          <Text text="Create Wallet" preset="regular-bold" />
-
           <Card
             justifyCenter
-            onClick={(e) => {
-              navigate('CreateHDWalletScreen', { isImport: false });
-            }}>
-            <Column full justifyCenter>
-              <Text text="Create with mnemonics (12-words)" size="sm" />
-            </Column>
-          </Card>
-
-          <Text text="Restore Wallet" preset="regular-bold" mt="lg" />
-
-          <Card
-            justifyCenter
-            onClick={(e) => {
-              navigate('CreateHDWalletScreen', { isImport: true });
-            }}>
-            <Column full justifyCenter>
-              <Text text="Restore from mnemonics (12-words、24-words)" size="sm" />
-            </Column>
-          </Card>
-
-          <Card
-            justifyCenter
-            onClick={(e) => {
+            onClick={() => {
               navigate('CreateSimpleWalletScreen');
             }}>
             <Column full justifyCenter>

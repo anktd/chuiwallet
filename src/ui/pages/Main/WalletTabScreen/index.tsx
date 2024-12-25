@@ -1,7 +1,5 @@
 import { Tooltip } from 'antd';
 import { CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
-
-import { ChainType } from '@/shared/constant';
 import { Card, Column, Content, Footer, Header, Layout, Row, Text } from '@/ui/components';
 import AccountSelect from '@/ui/components/AccountSelect';
 import { BtcUsd } from '@/ui/components/BtcUsd';
@@ -17,10 +15,8 @@ import { useAccountBalance, useCurrentAccount } from '@/ui/state/accounts/hooks'
 import { useCurrentKeyring } from '@/ui/state/keyrings/hooks';
 import {
   useAddressExplorerUrl,
-  useAddressTips,
   useBTCUnit,
   useChain,
-  useChainType,
   useSkipVersionCallback,
   useVersionInfo,
   useWalletConfig
@@ -29,8 +25,6 @@ import { useFetchUtxosCallback, useSafeBalance } from '@/ui/state/transactions/h
 import { useResetUiTxCreateScreen } from '@/ui/state/ui/hooks';
 import { fontSizes } from '@/ui/theme/font';
 import { amountToSatoshis, satoshisToAmount, useWallet } from '@/ui/utils';
-
-import { BuyBTCModal } from '../../BuyBTC/BuyBTCModal';
 import { useNavigate } from '../../MainRoute';
 import { SwitchChainModal } from '../../Settings/SwitchChainModal';
 
@@ -43,8 +37,6 @@ export default function WalletTabScreen() {
   const navigate = useNavigate();
   const accountBalance = useAccountBalance();
   const chain = useChain();
-  const chainType = useChainType();
-  const addressTips = useAddressTips();
   const currentKeyring = useCurrentKeyring();
   const currentAccount = useCurrentAccount();
   const balanceValue = useMemo(() => {
@@ -55,7 +47,7 @@ export default function WalletTabScreen() {
     }
   }, [accountBalance.amount]);
   const wallet = useWallet();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
   const [connected, setConnected] = useState(false);
   const skipVersion = useSkipVersionCallback();
   const walletConfig = useWalletConfig();
@@ -91,9 +83,6 @@ export default function WalletTabScreen() {
   const addressExplorerUrl = useAddressExplorerUrl(currentAccount.address);
   const resetUiTxCreateScreen = useResetUiTxCreateScreen();
   const btcUnit = useBTCUnit();
-
-  const [buyBtcModalVisible, setBuyBtcModalVisible] = useState(false);
-
   const [switchChainModalVisible, setSwitchChainModalVisible] = useState(false);
 
   return (
@@ -122,7 +111,7 @@ export default function WalletTabScreen() {
         <AccountSelect />
 
         <Column gap="lg2" mt="md">
-          {(walletConfig.chainTip || walletConfig.statusMessage || addressTips.homeTip) && (
+          {(walletConfig.chainTip || walletConfig.statusMessage) && (
             <Column
               py={'lg'}
               px={'md'}
@@ -134,7 +123,6 @@ export default function WalletTabScreen() {
               }}>
               {walletConfig.chainTip && <Text text={walletConfig.chainTip} color="text" textCenter />}
               {walletConfig.statusMessage && <Text text={walletConfig.statusMessage} color="danger" textCenter />}
-              {addressTips.homeTip && <Text text={addressTips.homeTip} color="warning" textCenter />}
             </Column>
           )}
 
@@ -173,8 +161,7 @@ export default function WalletTabScreen() {
                 </>
               )
             }
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            onOpenChange={(v) => {
+            onOpenChange={() => {
               if (!ref.current.fetchedUtxo[currentAccount.address]) {
                 ref.current.fetchedUtxo[currentAccount.address] = { loading: true };
                 setLoadingFetch(true);
@@ -207,8 +194,7 @@ export default function WalletTabScreen() {
               text="Receive"
               preset="home"
               icon="receive"
-              // eslint-disable-next-line @typescript-eslint/no-unused-vars
-              onClick={(e) => {
+              onClick={() => {
                 navigate('ReceiveScreen');
               }}
             />
@@ -217,8 +203,7 @@ export default function WalletTabScreen() {
               text="Send"
               preset="home"
               icon="send"
-              // eslint-disable-next-line @typescript-eslint/no-unused-vars
-              onClick={(e) => {
+              onClick={() => {
                 resetUiTxCreateScreen();
                 navigate('TxCreateScreen');
               }}
@@ -227,24 +212,13 @@ export default function WalletTabScreen() {
               text="History"
               preset="home"
               icon="history"
-              // eslint-disable-next-line @typescript-eslint/no-unused-vars
-              onClick={(e) => {
+              onClick={() => {
                 if (chain.isViewTxHistoryInternally) {
                   navigate('HistoryScreen');
                 } else {
                   window.open(addressExplorerUrl);
                 }
               }}
-            />
-            <Button
-              text="Buy"
-              preset="home"
-              icon="bitcoin"
-              // eslint-disable-next-line @typescript-eslint/no-unused-vars
-              onClick={(e) => {
-                setBuyBtcModalVisible(true);
-              }}
-              disabled={chainType !== ChainType.BITCOIN_MAINNET}
             />
           </Row>
 
@@ -260,13 +234,6 @@ export default function WalletTabScreen() {
 
         {showDisableUnconfirmedUtxoNotice && (
           <DisableUnconfirmedsPopover onClose={() => setShowDisableUnconfirmedUtxoNotice(false)} />
-        )}
-        {buyBtcModalVisible && (
-          <BuyBTCModal
-            onClose={() => {
-              setBuyBtcModalVisible(false);
-            }}
-          />
         )}
         {switchChainModalVisible && (
           <SwitchChainModal

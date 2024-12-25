@@ -13,7 +13,6 @@ import KeystoneScan from '@/ui/components/Keystone/Scan';
 import KeystoneProductImg from '@/ui/components/Keystone/imgs/keystone-product.png';
 import KeystoneFetchKey from '@/ui/components/Keystone/usb/FetchKey';
 import { useImportAccountsFromKeystoneCallback } from '@/ui/state/global/hooks';
-
 import { colors } from '@/ui/theme/colors';
 import { useWallet } from '@/ui/utils';
 import { ScanOutlined, UsbOutlined } from '@ant-design/icons';
@@ -51,8 +50,7 @@ function Step1({ onNext, setIsUSB }) {
             background: 'linear-gradient(270deg, rgba(4, 5, 7, 0.00) 0.06%, #040507 8.94%)',
             position: 'relative',
             overflow: 'hidden'
-          }}
-        >
+          }}>
           <img
             src={KeystoneProductImg}
             style={{
@@ -73,8 +71,7 @@ function Step1({ onNext, setIsUSB }) {
               position: 'relative',
               zIndex: 2,
               width: '50%'
-            }}
-          >
+            }}>
             <KeystoneLogo width={64} height={64} />
             <Text text="Keystone hardware wallet" preset="title" />
             <Text
@@ -100,8 +97,7 @@ function Step1({ onNext, setIsUSB }) {
           onClick={() => {
             setIsUSB(true);
             onNext();
-          }}
-        >
+          }}>
           <UsbOutlined style={{ marginRight: '8px' }} />
           <Text text="Connect via USB" color="black" />
         </Button>
@@ -111,8 +107,7 @@ function Step1({ onNext, setIsUSB }) {
           onClick={() => {
             setIsUSB(false);
             onNext();
-          }}
-        >
+          }}>
           <ScanOutlined style={{ marginRight: '8px' }} />
           <Text text="Scan to connect" color="white" />
         </Button>
@@ -157,10 +152,13 @@ function StepTwoUSB({ onBack, onNext }) {
   );
   return (
     <Layout>
-      <Header title="Connect Keystone via USB" onBack={() => {
-        setIsCancelled(true);
-        onBack();
-      }} />
+      <Header
+        title="Connect Keystone via USB"
+        onBack={() => {
+          setIsCancelled(true);
+          onBack();
+        }}
+      />
       <Content>
         <Column justifyCenter itemsCenter>
           <KeystoneLogoWithText width={160} />
@@ -178,6 +176,7 @@ function Step3({
   updateContextData
 }: {
   contextData: ContextData;
+  // eslint-disable-next-line no-unused-vars
   updateContextData: (data: ContextData) => void;
   onBack: () => void;
 }) {
@@ -220,9 +219,18 @@ function Step3({
         );
       } else {
         await wallet.getKeyrings();
-        await importAccounts(contextData.ur.type, contextData.ur.cbor, addressType, 1, contextData.customHdPath, undefined, contextData.connectionType);
+        await importAccounts(
+          contextData.ur.type,
+          contextData.ur.cbor,
+          addressType,
+          1,
+          contextData.customHdPath,
+          undefined,
+          contextData.connectionType
+        );
       }
     } catch (e) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setError((e as any).message);
       return;
     }
@@ -488,18 +496,23 @@ export default function CreateKeystoneWalletScreen() {
   }
   if (step === 2) {
     if (isUSB) {
-      return <StepTwoUSB onBack={() => setStep(1)} onNext={({ type, cbor }) => {
-        setStep(3);
-        updateContextData({
-          ur: {
-            type,
-            cbor
-          },
-          passphrase: '',
-          customHdPath: '',
-          connectionType: 'USB'
-        });
-      }} />;
+      return (
+        <StepTwoUSB
+          onBack={() => setStep(1)}
+          onNext={({ type, cbor }) => {
+            setStep(3);
+            updateContextData({
+              ur: {
+                type,
+                cbor
+              },
+              passphrase: '',
+              customHdPath: '',
+              connectionType: 'USB'
+            });
+          }}
+        />
+      );
     }
     return (
       <Step2

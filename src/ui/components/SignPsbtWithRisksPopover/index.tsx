@@ -109,7 +109,7 @@ export const SignPsbtWithRisksPopover = ({
             text={'Cancel'}
             preset="default"
             full
-            onClick={(e) => {
+            onClick={() => {
               if (onClose) {
                 onClose();
               }
@@ -122,7 +122,7 @@ export const SignPsbtWithRisksPopover = ({
               preset="danger"
               disabled={!understand}
               full
-              onClick={(e) => {
+              onClick={() => {
                 if (onConfirm) {
                   onConfirm();
                 }

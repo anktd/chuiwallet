@@ -28,7 +28,7 @@ interface MyItemProps {
 
 const ITEM_HEIGHT = 64;
 
-export function MyItem({ keyring, autoNav }: MyItemProps, ref) {
+export function MyItem({ keyring, autoNav }: MyItemProps) {
   const navigate = useNavigate();
   const currentKeyring = useCurrentKeyring();
   const selected = currentKeyring.index === keyring?.index;
@@ -69,7 +69,7 @@ export function MyItem({ keyring, autoNav }: MyItemProps, ref) {
       }}>
       <Row
         full
-        onClick={async (e) => {
+        onClick={async () => {
           if (!keyring.accounts[0]) {
             tools.toastError('Invalid wallet, please remove it and add new one');
             return;
@@ -103,16 +103,16 @@ export function MyItem({ keyring, autoNav }: MyItemProps, ref) {
               top: 0,
               bottom: 0
             }}
-            onTouchStart={(e) => {
+            onTouchStart={() => {
               setOptionsVisible(false);
             }}
-            onMouseDown={(e) => {
+            onMouseDown={() => {
               setOptionsVisible(false);
             }}></div>
         )}
 
         <Icon
-          onClick={async (e) => {
+          onClick={async () => {
             setOptionsVisible(!optionsVisible);
           }}>
           <SettingOutlined />
@@ -254,7 +254,7 @@ export default function SwitchKeyringScreen() {
           style={{
             boxSizing: 'border-box'
           }}>
-          {(item, index) => <ForwardMyItem keyring={item.keyring} autoNav={true} />}
+          {(item) => <ForwardMyItem keyring={item.keyring} autoNav={true} />}
         </VirtualList>
       </Content>
     </Layout>

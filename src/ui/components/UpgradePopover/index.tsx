@@ -46,7 +46,7 @@ export const UpgradePopover = ({ onClose }: { onClose: () => void }) => {
           <Button
             text="Skip"
             full
-            onClick={(e) => {
+            onClick={() => {
               if (onClose) {
                 onClose();
               }
@@ -57,7 +57,7 @@ export const UpgradePopover = ({ onClose }: { onClose: () => void }) => {
             text="Go to update"
             full
             preset="primary"
-            onClick={(e) => {
+            onClick={() => {
               window.open('https://unisat.io/extension/update');
             }}
           />

@@ -13,6 +13,7 @@ interface ImageProps {
 }
 
 export function Image(props: ImageProps) {
+  // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
   const { src, size, width, height, style: $imageStyleOverride, onClick } = props;
 
   return (

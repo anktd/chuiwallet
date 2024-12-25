@@ -21,6 +21,7 @@ interface Props {
 
 const AGREEMENT_TEXT = 'I only sign what I understand';
 export default function SignData({ params: { data, session } }: Props) {
+  // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
   const [getApproval, resolveApproval, rejectApproval] = useApproval();
 
   const handleCancel = () => {
@@ -130,7 +131,7 @@ export default function SignData({ params: { data, session } }: Props) {
           <Row
             itemsCenter
             gap="sm"
-            onClick={(e) => {
+            onClick={() => {
               copyToClipboard(AGREEMENT_TEXT).then(() => {
                 tools.toastSuccess('Copied');
               });

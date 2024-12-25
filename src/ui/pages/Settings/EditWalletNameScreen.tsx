@@ -22,6 +22,7 @@ export default function EditWalletNameScreen() {
     window.history.go(-1);
   };
 
+  // eslint-disable-next-line no-undef
   const handleOnKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if ('Enter' == e.key) {
       handleOnClick();
@@ -58,7 +59,8 @@ export default function EditWalletNameScreen() {
             disabled={!isValidName}
             text="Change Wallet Name"
             preset="primary"
-            onClick={(e) => {
+            // eslint-disable-next-line no-unused-vars
+            onClick={(_e) => {
               handleOnClick();
             }}
           />

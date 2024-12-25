@@ -22,6 +22,7 @@ export default function SwitchChain({ params: { data, session } }: Props) {
   const from = CHAINS_MAP[chainType];
   const to = CHAINS_MAP[data.chain];
 
+  // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
   const [getApproval, resolveApproval, rejectApproval] = useApproval();
 
   const handleCancel = () => {

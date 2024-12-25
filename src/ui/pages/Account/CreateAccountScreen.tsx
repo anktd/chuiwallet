@@ -24,6 +24,7 @@ export default function CreateAccountScreen() {
     navigate('MainScreen');
   };
 
+  // eslint-disable-next-line no-undef
   const handleOnKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if ('Enter' == e.key) {
       handleOnClick();
@@ -59,7 +60,7 @@ export default function CreateAccountScreen() {
           <Button
             text="Create an Account"
             preset="primary"
-            onClick={(e) => {
+            onClick={() => {
               handleOnClick();
             }}
           />

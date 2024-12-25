@@ -7,8 +7,10 @@ import * as ApprovalComponent from './components';
 
 export default function ApprovalScreen() {
   const wallet = useWallet();
+  // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
   const [getApproval, resolveApproval, rejectApproval] = useApproval();
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [approval, setApproval] = useState<any>(null);
 
   const navigate = useNavigate();

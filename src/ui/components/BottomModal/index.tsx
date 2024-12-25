@@ -1,5 +1,6 @@
 import React from 'react';
 
+// eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
 export const BottomModal = ({ children, onClose }: { children: React.ReactNode; onClose?: () => void }) => {
   return (
     <div

@@ -36,7 +36,7 @@ const AccountSelect = () => {
         style={{
           flex: 1
         }}
-        onClick={(e) => {
+        onClick={() => {
           copyToClipboard(address).then(() => {
             tools.toastSuccess('Copied');
           });
@@ -54,7 +54,7 @@ const AccountSelect = () => {
         py="md"
         justifyEnd
         itemsCenter
-        onClick={(e) => {
+        onClick={() => {
           navigate('SwitchAccountScreen');
         }}>
         <Icon size={15} icon="right" style={{ marginRight: 10 }} />

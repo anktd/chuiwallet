@@ -12,10 +12,12 @@ import { satoshisToAmount, useWallet } from '@/ui/utils';
 import { useNavigate } from '../MainRoute';
 
 function Step1({
+  // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
   contextData,
   updateContextData
 }: {
   contextData: ContextData;
+  // eslint-disable-next-line no-unused-vars
   updateContextData: (params: UpdateContextDataParams) => void;
 }) {
   const [wif, setWif] = useState('');
@@ -61,6 +63,7 @@ function Step1({
 
       <Input
         placeholder={'WIF Private Key or Hex Private Key'}
+        // eslint-disable-next-line no-undef
         onKeyUp={(e: React.KeyboardEvent<HTMLInputElement>) => {
           if ('Enter' == e.key) {
             btnClick();
@@ -81,6 +84,7 @@ function Step2({
   updateContextData
 }: {
   contextData: ContextData;
+  // eslint-disable-next-line no-unused-vars
   updateContextData: (params: UpdateContextDataParams) => void;
 }) {
   const wallet = useWallet();
@@ -107,7 +111,7 @@ function Step2({
       });
   }, [contextData]);
 
-  const [previewAddresses, setPreviewAddresses] = useState<string[]>(hdPathOptions.map((v) => ''));
+  const [previewAddresses, setPreviewAddresses] = useState<string[]>(hdPathOptions.map(() => ''));
 
   const [addressAssets, setAddressAssets] = useState<{
     [key: string]: { total_btc: string; satoshis: number; total_inscription: number };
@@ -136,8 +140,7 @@ function Step2({
       const satoshis = balance.totalSatoshis;
       self.addressBalances[address] = {
         total_btc: satoshisToAmount(balance.totalSatoshis),
-        satoshis,
-        total_inscription: balance.inscriptionCount
+        satoshis
       };
       if (satoshis > self.maxSatoshis) {
         self.maxSatoshis = satoshis;
@@ -164,6 +167,7 @@ function Step2({
       await wallet.createKeyringWithPrivateKey(contextData.wif, contextData.addressType);
       navigate('MainScreen');
     } catch (e) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       tools.toastError((e as any).message);
     }
   };
@@ -201,9 +205,14 @@ function Step2({
     </Column>
   );
 }
+
+// eslint-disable-next-line no-unused-vars
 enum TabType {
+  // eslint-disable-next-line no-unused-vars
   STEP1 = 'STEP1',
+  // eslint-disable-next-line no-unused-vars
   STEP2 = 'STEP2',
+  // eslint-disable-next-line no-unused-vars
   STEP3 = 'STEP3'
 }
 

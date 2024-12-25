@@ -1,15 +1,13 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
+/* eslint-disable no-unused-vars */
 import { Tooltip } from 'antd';
 import React, { useEffect, useMemo, useState } from 'react';
 
 import { KEYRING_TYPE } from '@/shared/constant';
-import {
-  DecodedPsbt,
-  RawTxInfo,
-  SignPsbtOptions,
-  TickPriceItem,
-  ToSignInput,
-  TxType
-} from '@/shared/types';
+import { DecodedPsbt, RawTxInfo, SignPsbtOptions, ToSignInput, TxType } from '@/shared/types';
 import { Button, Card, Column, Content, Footer, Header, Icon, Image, Layout, Row, Text } from '@/ui/components';
 import { useTools } from '@/ui/components/ActionComponent';
 import { AddressText } from '@/ui/components/AddressText';
@@ -77,15 +75,7 @@ interface InscriptioinInfo {
   isSent: boolean;
 }
 
-function SignTxDetails({
-  txInfo,
-  type,
-  rawTxInfo,
-}: {
-  txInfo: TxInfo;
-  rawTxInfo?: RawTxInfo;
-  type: TxType;
-}) {
+function SignTxDetails({ txInfo, type, rawTxInfo }: { txInfo: TxInfo; rawTxInfo?: RawTxInfo; type: TxType }) {
   const address = useAccountAddress();
   const chain = useChain();
   const btcUnit = useBTCUnit();
@@ -400,13 +390,7 @@ export default function SignPsbt({
   const networkFee = useMemo(() => satoshisToAmount(txInfo.decodedPsbt.fee), [txInfo.decodedPsbt]);
 
   const detailsComponent = useMemo(() => {
-    return (
-      <SignTxDetails
-        txInfo={txInfo}
-        rawTxInfo={rawTxInfo}
-        type={type}
-      />
-    );
+    return <SignTxDetails txInfo={txInfo} rawTxInfo={rawTxInfo} type={type} />;
   }, [txInfo]);
 
   const isValidData = useMemo(() => {
@@ -540,7 +524,6 @@ export default function SignPsbt({
                   <Column full justifyCenter>
                     {txInfo.decodedPsbt.inputInfos.map((v, index) => {
                       const isToSign = txInfo.toSignInputs.find((v) => v.index === index) ? true : false;
-                      
                       return (
                         <Row
                           key={'output_' + index}

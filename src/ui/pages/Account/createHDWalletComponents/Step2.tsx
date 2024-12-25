@@ -18,6 +18,7 @@ export function Step2({
                  updateContextData
                }: {
   contextData: ContextData;
+  // eslint-disable-next-line no-unused-vars
   updateContextData: (params: UpdateContextDataParams) => void;
 }) {
   const wallet = useWallet();
@@ -67,14 +68,14 @@ export function Step2({
       });
   }, []);
 
-  const [previewAddresses, setPreviewAddresses] = useState<string[]>(hdPathOptions.map((v) => ''));
+  const [previewAddresses, setPreviewAddresses] = useState<string[]>(hdPathOptions.map(() => ''));
 
   const [scannedGroups, setScannedGroups] = useState<
     { type: AddressType; address_arr: string[]; satoshis_arr: number[] }[]
   >([]);
 
   const [addressAssets, setAddressAssets] = useState<{
-    [key: string]: { total_btc: string; satoshis: number; total_inscription: number };
+    [key: string]: { total_btc: string; satoshis: number; };
   }>({});
 
   const [error, setError] = useState('');
@@ -117,6 +118,7 @@ export function Step2({
         });
       } catch (e) {
         console.log(e);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         setError((e as any).message);
         return;
       }
@@ -143,7 +145,7 @@ export function Step2({
     const balances = await wallet.getMultiAddressAssets(addresses.join(','));
     setLoading(false);
 
-    const addressAssets: { [key: string]: { total_btc: string; satoshis: number; total_inscription: number } } = {};
+    const addressAssets: { [key: string]: { total_btc: string; satoshis: number; } } = {};
     let maxSatoshis = 0;
     let recommended = 0;
     for (let i = 0; i < addresses.length; i++) {
@@ -153,7 +155,6 @@ export function Step2({
       addressAssets[address] = {
         total_btc: satoshisToAmount(balance.totalSatoshis),
         satoshis,
-        total_inscription: balance.inscriptionCount
       };
       if (satoshis > maxSatoshis) {
         maxSatoshis = satoshis;
@@ -219,6 +220,7 @@ export function Step2({
       }
       navigate('MainScreen');
     } catch (e) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       tools.toastError((e as any).message);
     }
   };
@@ -240,11 +242,12 @@ export function Step2({
             options.addressType,
             10
           );
-          keyring.accounts.forEach((v, j) => {
+          keyring.accounts.forEach((v) => {
             address_arr.push(v.address);
           });
         } catch (e) {
           console.log(e);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           setError((e as any).message);
           return;
         }
@@ -264,6 +267,7 @@ export function Step2({
         tools.showTip('Unable to find any addresses with assets');
       }
     } catch (e) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setError((e as any).message);
     } finally {
       tools.showLoading(false);

@@ -1,19 +1,11 @@
-/* eslint-disable quotes */
-import { useState } from 'react';
-
 import { Button, Column, Content, Layout, Logo, Row, Text } from '@/ui/components';
-import { useExtensionIsInTab } from '@/ui/features/browser/tabs';
 import { useWallet } from '@/ui/utils';
 
 import { useNavigate } from '../MainRoute';
-import { ConnectHardwareModal } from './ConnectHardwareModal';
 
 export default function WelcomeScreen() {
   const navigate = useNavigate();
   const wallet = useWallet();
-  const isInTab = useExtensionIsInTab();
-
-  const [connectHardwareModalVisible, setConnectHardwareModalVisible] = useState(false);
 
   return (
     <Layout>
@@ -24,7 +16,7 @@ export default function WelcomeScreen() {
           </Row>
           <Column gap="xl" mt="xxl">
             <Text
-              text={"Inscribe and store your inscriptions in the world's first Open Source Chrome wallet for Ordinals!"}
+              text={'Inscribe and store your inscriptions in the world\'s first Open Source Chrome wallet for Ordinals!'}
               preset="sub"
               textCenter
             />
@@ -53,21 +45,6 @@ export default function WelcomeScreen() {
                 }
               }}
             />
-            <Button
-              text="Connect to Hardware Wallet"
-              preset="default"
-              onClick={async () => {
-                setConnectHardwareModalVisible(true);
-              }}
-            />
-
-            {connectHardwareModalVisible && (
-              <ConnectHardwareModal
-                onClose={() => {
-                  setConnectHardwareModalVisible(false);
-                }}
-              />
-            )}
           </Column>
         </Column>
       </Content>

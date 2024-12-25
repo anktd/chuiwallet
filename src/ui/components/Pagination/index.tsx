@@ -11,6 +11,7 @@ interface Pagination {
 interface PaginationProps {
   pagination: Pagination;
   total: number;
+  // eslint-disable-next-line no-unused-vars
   onChange: (pagination: Pagination) => void;
 }
 export const Pagination = (props: PaginationProps) => {

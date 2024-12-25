@@ -18,6 +18,7 @@ interface TabBarProps {
   defaultActiveKey?: string | number;
   activeKey?: string | number;
   items: TabProps[];
+  // eslint-disable-next-line no-unused-vars
   onTabClick: (string) => void;
   progressEnabled?: boolean;
   preset?: 'number-page' | 'default' | 'style1' | 'style2';
@@ -47,7 +48,7 @@ export function TabBar(props: TabBarProps) {
   if (preset == 'number-page') {
     return (
       <Row>
-        {items.map((v, index) => {
+        {items.map((v) => {
           const isSelected = v.key === tabKey;
           const reach = isSelected; //index <= (tabKey as number);
           return (

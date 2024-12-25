@@ -31,7 +31,9 @@ export function EnableSignDataCard() {
           <Text
             preset="sub"
             size="sm"
-            text={`If you enable this setting, you might get signature requests that aren't readable. By signing a message you don't understand, you could be agreeing to give away your funds and NFTs.You're at risk for phishing attacks. Protect yourself by turning off signData.`}
+            text={
+              'If you enable this setting, you might get signature requests that aren\'t readable. By signing a message you don\'t understand, you could be agreeing to give away your funds and NFTs.You\'re at risk for phishing attacks. Protect yourself by turning off signData.'
+            }
           />
         </Row>
 
@@ -91,7 +93,7 @@ function EnableSignDataPopover({ onNext, onCancel }: { onNext: () => void; onCan
             <Row style={{ backgroundColor: 'darkred', padding: 5, borderRadius: 5 }}>
               <Row>
                 <Icon icon="info" size={40} color="white" />
-                <Text text={"If you've been asked to turn this setting on, you might be getting scammed"} />
+                <Text text={'If you\'ve been asked to turn this setting on, you might be getting scammed'} />
               </Row>
             </Row>
 
@@ -113,7 +115,7 @@ function EnableSignDataPopover({ onNext, onCancel }: { onNext: () => void; onCan
             text="Cancel"
             full
             preset="default"
-            onClick={(e) => {
+            onClick={() => {
               if (onCancel) {
                 onCancel();
               }
@@ -124,7 +126,7 @@ function EnableSignDataPopover({ onNext, onCancel }: { onNext: () => void; onCan
             full
             disabled={!understand}
             preset="primary"
-            onClick={(e) => {
+            onClick={() => {
               if (onNext) {
                 onNext();
               }

@@ -53,6 +53,7 @@ export function LockTimeCard() {
   );
 }
 function LockTimePopover({ onNext, onCancel }: { onNext: () => void; onCancel: () => void }) {
+  // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
   const [loading, setLoading] = useState(false);
 
   const autoLockTimeId = useAutoLockTimeId();

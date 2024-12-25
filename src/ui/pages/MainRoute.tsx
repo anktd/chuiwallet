@@ -12,7 +12,6 @@ import { settingsActions } from '../state/settings/reducer';
 import { useWallet } from '../utils';
 import AddKeyringScreen from './Account/AddKeyringScreen';
 import CreateAccountScreen from './Account/CreateAccountScreen';
-import CreateHDWalletScreen from './Account/CreateHDWalletScreen';
 import CreateKeystoneWalletScreen from './Account/CreateKeystoneWalletScreen';
 import CreatePasswordScreen from './Account/CreatePasswordScreen';
 import CreateSimpleWalletScreen from './Account/CreateSimpleWalletScreen';
@@ -69,10 +68,6 @@ export const routes = {
   SettingsTabScreen: {
     path: '/settings',
     element: <SettingsTabScreen />
-  },
-  CreateHDWalletScreen: {
-    path: '/account/create-hd-wallet',
-    element: <CreateHDWalletScreen />
   },
   CreateAccountScreen: {
     path: '/account/create',
