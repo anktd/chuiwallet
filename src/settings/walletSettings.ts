@@ -1,8 +1,4 @@
-/**
- * Store user settings (network, addressType, gapLimit, etc.) in Dexie for persistance
- */
-
-import { db, DBSettingsRecord } from "../db/indexedDB";
+import { db } from "../db/indexedDB";
 import { DEFAULT_GAP_LIMIT, MAX_ADDRESSES } from "../config";
 
 export interface WalletSettings {

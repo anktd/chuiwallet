@@ -1,3 +1,7 @@
+if (typeof indexedDB === "undefined") {
+  require("fake-indexeddb/auto");
+}
+
 import Dexie from "dexie";
 
 export interface DBWalletRecord {
@@ -6,11 +10,10 @@ export interface DBWalletRecord {
   encryptedMnemonic: string;
 }
 
-// For user settings
 export interface DBSettingsRecord {
   id?: number;
   key: string;
-  value: string; // JSON string of user settings
+  value: string; // JSON string
 }
 
 class ChuiDB extends Dexie {

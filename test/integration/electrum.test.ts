@@ -14,7 +14,6 @@ describe("Electrum Client (Real Usage)", () => {
 
   // Option A) Put a known funded mnemonic in an env var, or directly in test for convenience
   const FUNDED_MNEMONIC = process.env.FUNDED_MNEMONIC || "";
-  let fundedWalletId: string;
 
   beforeAll(async () => {
     // set to testnet
@@ -44,7 +43,6 @@ describe("Electrum Client (Real Usage)", () => {
     }
     // recover funded wallet
     const { walletId } = await recoverWalletFromMnemonic(FUNDED_MNEMONIC, PW);
-    fundedWalletId = walletId;
 
     const balance = await getFullWalletBalance(walletId, PW);
     console.log(`Funded wallet balance: ${balance} satoshis`);

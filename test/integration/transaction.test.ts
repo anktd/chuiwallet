@@ -23,7 +23,7 @@ describe("Transactions (Send) - Real Tests", () => {
       sendBitcoin(
         wId,
         PW,
-        "2N3oefVeg6stiTb5Kh3ozCSkaqmx91FDbsm",
+        "tb1qe2plk0ymkynhqlgar8c646d8j3stfjmdwlnfaq",
         5000,
         fees.mediumFeeRate
       )
@@ -41,7 +41,7 @@ describe("Transactions (Send) - Real Tests", () => {
     const fees = await getFeeEstimates();
 
     // 3) choose a random testnet receiving address (or your other test wallet)
-    const RECIPIENT_ADDR = "2N3oefVeg6stiTb5Kh3ozCSkaqmx91FDbsm.";
+    const RECIPIENT_ADDR = "tb1qe2plk0ymkynhqlgar8c646d8j3stfjmdwlnfaq.";
 
     // 4) attempt to send
     const txId = await sendBitcoin(
