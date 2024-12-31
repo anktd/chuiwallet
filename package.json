@@ -18,12 +18,15 @@
     "author": "Your Team",
     "license": "MIT",
     "dependencies": {
+        "bip32": "^2.0.6",
         "bip39": "^3.0.4",
         "bitcoinjs-lib": "^6.1.0",
         "cross-fetch": "^3.1.8",
         "crypto-browserify": "^3.12.0",
         "dexie": "^3.2.3",
-        "electrum-client": "^0.0.6"
+        "ecpair": "^2.0.1",
+        "electrum-client": "^0.0.6",
+        "tiny-secp256k1": "^2.2.3"
     },
     "devDependencies": {
         "@types/jest": "^29.5.0",

@@ -6,10 +6,40 @@ import { toXOnly } from "../../taprootUtils";
 import { scanAddressesUntilGapReached, UTXO } from "../../utils/scanning";
 import { broadcastTransaction } from "../../electrum/electrumClient";
 
+import BIP32Factory, { BIP32Interface } from "bip32";
+import * as ecc from "tiny-secp256k1";
+
+// ECPair (for non-Taproot signing)
+import ECPairFactory, { ECPairInterface } from "ecpair";
+
+const ECPair = ECPairFactory(ecc);
+
+function toBuffer(u8: Uint8Array): Buffer {
+  // Safely convert a Uint8Array to a Node Buffer
+  return Buffer.from(u8.buffer, u8.byteOffset, u8.byteLength);
+}
+
 /**
- * sendBitcoin - Gathers UTXOs from scanning, picks enough to cover amount & fee,
- * builds and signs a PSBT, and broadcasts.
+ * A tiny helper to create a Schnorr Signer for single-sig Taproot
+ * that implements the `Signer` interface required by `psbt.signInput()`.
  */
+function createTaprootSigner(child: BIP32Interface): bitcoin.Signer {
+  if (!child.privateKey) {
+    throw new Error("No privateKey in child for taproot signer");
+  }
+  const privKeyBuf = toBuffer(child.privateKey);
+  const pubKeyBuf = toBuffer(child.publicKey!);
+
+  return {
+    publicKey: pubKeyBuf,
+    // The sign function for schnorr
+    sign: (hash: Buffer): Buffer => {
+      // tiny-secp256k1 provides signSchnorr
+      return ecc.signSchnorr(hash, privKeyBuf);
+    },
+  };
+}
+
 export async function sendBitcoin(
   walletId: string,
   password: string,
@@ -17,6 +47,7 @@ export async function sendBitcoin(
   amountSats: number,
   feeRate: number
 ): Promise<string> {
+  // 1) Decrypt mnemonic
   const mnemonic = await getMnemonic(walletId, password);
   const settings = await getWalletSettings();
   const netObj =
@@ -24,99 +55,121 @@ export async function sendBitcoin(
       ? bitcoin.networks.bitcoin
       : bitcoin.networks.testnet;
 
-  // 1) Re-scan to get all addresses & UTXOs
+  // 2) Re-scan for addresses & UTXOs
   const scanRes = await scanAddressesUntilGapReached(walletId, password);
   const utxos = scanRes.allUTXOs;
 
-  // 2) Sort UTXOs by largest first (or smallest first, up to you)
+  // 3) Sort largest -> smallest
   utxos.sort((a, b) => b.value - a.value);
 
-  // 3) Build PSBT
+  // 4) Build PSBT
   const psbt = new bitcoin.Psbt({ network: netObj });
   let totalInput = 0;
   const usedUtxos: UTXO[] = [];
 
-  // Add inputs until we have enough to cover the amount
-  for (const u of utxos) {
+  // 5) Add enough inputs
+  for (const utxo of utxos) {
     if (totalInput >= amountSats) break;
+    totalInput += utxo.value;
+
     psbt.addInput({
-      hash: u.txId,
-      index: u.vout,
+      hash: utxo.txId,
+      index: utxo.vout,
       witnessUtxo: {
-        script: Buffer.from(u.scriptPubKey, "hex"),
-        value: u.value,
+        script: Buffer.from(utxo.scriptPubKey, "hex"),
+        value: utxo.value,
       },
     });
-    totalInput += u.value;
-    usedUtxos.push(u);
+    usedUtxos.push(utxo);
   }
-
   if (totalInput < amountSats) {
-    throw new Error("Not enough funds to cover the requested amount.");
+    throw new Error("Not enough funds to cover requested amount.");
   }
 
-  // 4) Add output
+  // 6) Add recipient output
   psbt.addOutput({ address: toAddress, value: amountSats });
 
-  // 5) Estimate fee
+  // 7) Fee + change
   const numInputs = psbt.data.inputs.length;
-  const numOutputs = 2; // 1 user output + 1 change
-  const estimatedSize = numInputs * 180 + numOutputs * 34 + 10; // naive
-  const fee = Math.ceil(estimatedSize * feeRate);
+  const numOutputs = 2; // 1 user + 1 change
+  const estSize = numInputs * 180 + numOutputs * 34 + 10;
+  const fee = Math.ceil(estSize * feeRate);
   const change = totalInput - amountSats - fee;
-
   if (change < 0) {
     throw new Error("Insufficient funds after fee.");
   }
+
   if (change > 0) {
-    // We pick a single "change address" from usedUtxos or the first address.
-    // For a real wallet, you'd have a separate "change" branch (isChange = true).
-    // For simplicity, let's pick the first derived address as change:
-    if (scanRes.addresses.length === 0) {
-      throw new Error("No addresses found for change output");
+    if (!scanRes.addresses[0]) {
+      throw new Error("No scanned addresses for change output");
     }
-    const changeAddress = scanRes.addresses[0];
-    psbt.addOutput({ address: changeAddress, value: change });
+    const changeAddr = scanRes.addresses[0].address;
+    psbt.addOutput({ address: changeAddr, value: change });
   }
 
-  // 6) Sign inputs
-  //   We must sign each input with the private key of the address that provided that UTXO.
-  //   We'll do a basic approach: for each usedUtxo, derive the address's key & sign.
-
+  // 8) Derive + sign each input
   const seed = await bip39.mnemonicToSeed(mnemonic);
-  const root = bitcoin.bip32.fromSeed(seed, netObj);
+  const root = BIP32Factory.fromSeed(seed, netObj);
+  const { addressType } = settings;
 
   for (let i = 0; i < usedUtxos.length; i++) {
-    const inputIndex = i; // same order we added them
     const utxo = usedUtxos[i];
-
-    // find derivation path from scanning.
-    // we can store path in UTXO or recalculate it. We'll store an extra field in scanning.
-
     if (!utxo.derivationPath) {
       throw new Error(
-        `UTXO missing derivationPath for address=${utxo.address}`
+        `Missing derivationPath for UTXO at address=${utxo.address}`
       );
     }
     const child = root.derivePath(utxo.derivationPath);
 
-    let keyPair: bitcoin.ECPairInterface;
-    if (settings.addressType === "p2tr") {
-      // Taproot
-      keyPair = child;
+    // 8.1) Build the correct payment if we need to attach redeemScript or tapInternalKey
+    if (addressType === "p2pkh") {
+      // No redeemScript needed
+      const ecpair = ECPair.fromPrivateKey(toBuffer(child.privateKey!), {
+        network: netObj,
+      });
+      psbt.signInput(i, ecpair);
+    } else if (addressType === "p2sh-p2wpkh") {
+      // We build the redeem script for p2sh-wrapped segwit
+      const ecpair = ECPair.fromPrivateKey(toBuffer(child.privateKey!), {
+        network: netObj,
+      });
+      const pubkey = ecpair.publicKey;
+      const p2wpkh = bitcoin.payments.p2wpkh({ pubkey, network: netObj });
+      const p2sh = bitcoin.payments.p2sh({ redeem: p2wpkh, network: netObj });
+      // Attach redeemScript
+      psbt.updateInput(i, {
+        redeemScript: p2sh.redeem?.output,
+      });
+      // sign
+      psbt.signInput(i, ecpair);
+    } else if (addressType === "p2tr") {
+      // Single-sig Taproot, we do keypath spend
+      // We must set tapInternalKey:
+      psbt.updateInput(i, {
+        tapInternalKey: toXOnly(child.publicKey!),
+      });
+      // Then sign with our schnorr signer
+      const taprootSigner = createTaprootSigner(child);
+      psbt.signInput(i, taprootSigner);
     } else {
-      keyPair = child;
+      // p2wpkh as default
+      // no redeemScript needed
+      const ecpair = ECPair.fromPrivateKey(toBuffer(child.privateKey!), {
+        network: netObj,
+      });
+      psbt.signInput(i, ecpair);
     }
 
-    // Now figure out the payment type to do signInput.
-    // For p2sh-p2wpkh, we need a redeem script. For p2tr, we might do taproot style.
-
-    psbt.signInput(inputIndex, keyPair);
-    psbt.validateSignaturesOfInput(inputIndex);
+    // optionally:
+    // psbt.validateSignaturesOfInput(i, (pubkey, sighashType, sighash, signature) => {
+    //   return ecc.verifySchnorr?(sighash, pubkey, signature) : someCheck;
+    // });
   }
+
+  // 9) Finalize
   psbt.finalizeAllInputs();
 
-  // 7) Broadcast
+  // 10) Broadcast
   const txHex = psbt.extractTransaction().toHex();
   const txId = await broadcastTransaction(txHex);
   return txId;
