@@ -1,29 +1,14 @@
 {
   "compilerOptions": {
-    "target": "es2015",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "baseUrl": "./",
-    "paths": {
-      "@/*": ["./src/*"]
-    },
-    "noImplicitAny": false,
-    "downlevelIteration": true,
-    "types": ["chrome", "node", "react", "react-dom"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
+    "target": "es2020",
+    "module": "commonjs",
+    "outDir": "dist",
+    "rootDir": "src",
     "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true,
-    "module": "esnext",
-    "moduleResolution": "node",
+    "esModuleInterop": true,
     "resolveJsonModule": true,
-    "isolatedModules": false,
-    "jsx": "react-jsx",
-    "plugins": [{ "transform": "typescript-transform-paths", "afterDeclarations": true }],
-    "experimentalDecorators": true
+    "skipLibCheck": true
   },
-  "exclude": ["./node_modules"],
-  "include": ["src"]
+  "include": ["src/**/*.ts", "test/**/*.ts"],
+  "exclude": ["node_modules"]
 }
