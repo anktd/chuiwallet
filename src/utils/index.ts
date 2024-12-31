@@ -1,7 +1,8 @@
 import * as bip39 from "bip39";
 import * as bitcoin from "bitcoinjs-lib";
-import { WalletSettings, getWalletSettings } from "../settings/walletSettings";
+import { WalletSettings } from "../settings/walletSettings";
 import { toXOnly } from "../taprootUtils";
+import BIP32Factory from "bip32";
 
 export function deriveAddress(
   mnemonic: string,
@@ -25,7 +26,7 @@ export function deriveAddress(
   const path = `m/${purpose}'/${coinType}'/${accountIndex}'/${changeVal}/${addressIndex}`;
 
   const seed = bip39.mnemonicToSeedSync(mnemonic);
-  const root = bitcoin.bip32.fromSeed(seed, netObj);
+  const root = BIP32Factory.fromSeed(seed, netObj);
   const child = root.derivePath(path);
 
   let payment: bitcoin.payments.Payment;

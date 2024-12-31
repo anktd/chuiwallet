@@ -5,37 +5,41 @@ import { getWalletSettings } from "../../settings/walletSettings";
 import { toXOnly } from "../../taprootUtils";
 import { scanAddressesUntilGapReached, UTXO } from "../../utils/scanning";
 import { broadcastTransaction } from "../../electrum/electrumClient";
-
 import BIP32Factory, { BIP32Interface } from "bip32";
 import * as ecc from "tiny-secp256k1";
-
-// ECPair (for non-Taproot signing)
-import ECPairFactory, { ECPairInterface } from "ecpair";
+import ECPairFactory from "ecpair";
+import { Signer } from "bitcoinjs-lib";
 
 const ECPair = ECPairFactory(ecc);
 
-function toBuffer(u8: Uint8Array): Buffer {
-  // Safely convert a Uint8Array to a Node Buffer
+function u8ToBuffer(u8: Uint8Array): Buffer {
   return Buffer.from(u8.buffer, u8.byteOffset, u8.byteLength);
 }
 
+function bufferToU8(buf: Buffer): Uint8Array {
+  return new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
+}
+
 /**
- * A tiny helper to create a Schnorr Signer for single-sig Taproot
- * that implements the `Signer` interface required by `psbt.signInput()`.
+ * Creates a custom Signer for Taproot key-spend using `signSchnorr`.
+ * `privKey` and `pubKey` should both be `Uint8Array`.
  */
-function createTaprootSigner(child: BIP32Interface): bitcoin.Signer {
-  if (!child.privateKey) {
-    throw new Error("No privateKey in child for taproot signer");
-  }
-  const privKeyBuf = toBuffer(child.privateKey);
-  const pubKeyBuf = toBuffer(child.publicKey!);
+export function createTaprootSigner(
+  privKey: Uint8Array,
+  pubKey: Uint8Array
+): Signer {
+  // For PSBT's interface, we need `publicKey` as a Node Buffer:
+  const pubKeyBuf = u8ToBuffer(pubKey);
 
   return {
     publicKey: pubKeyBuf,
-    // The sign function for schnorr
     sign: (hash: Buffer): Buffer => {
-      // tiny-secp256k1 provides signSchnorr
-      return ecc.signSchnorr(hash, privKeyBuf);
+      // 1) Convert the `hash` (Buffer) -> Uint8Array
+      const hashU8 = bufferToU8(hash);
+      // 2) Perform Schnorr signing
+      const signatureU8 = ecc.signSchnorr(hashU8, privKey);
+      // 3) Convert the result back to Buffer for PSBT
+      return u8ToBuffer(signatureU8);
     },
   };
 }
@@ -124,13 +128,13 @@ export async function sendBitcoin(
     // 8.1) Build the correct payment if we need to attach redeemScript or tapInternalKey
     if (addressType === "p2pkh") {
       // No redeemScript needed
-      const ecpair = ECPair.fromPrivateKey(toBuffer(child.privateKey!), {
+      const ecpair = ECPair.fromPrivateKey(u8ToBuffer(child.privateKey!), {
         network: netObj,
       });
       psbt.signInput(i, ecpair);
     } else if (addressType === "p2sh-p2wpkh") {
       // We build the redeem script for p2sh-wrapped segwit
-      const ecpair = ECPair.fromPrivateKey(toBuffer(child.privateKey!), {
+      const ecpair = ECPair.fromPrivateKey(u8ToBuffer(child.privateKey!), {
         network: netObj,
       });
       const pubkey = ecpair.publicKey;
@@ -149,21 +153,19 @@ export async function sendBitcoin(
         tapInternalKey: toXOnly(child.publicKey!),
       });
       // Then sign with our schnorr signer
-      const taprootSigner = createTaprootSigner(child);
-      psbt.signInput(i, taprootSigner);
+      const tapSigner = createTaprootSigner(
+        child.privateKey!,
+        child.publicKey!
+      );
+      psbt.signInput(i, tapSigner);
     } else {
       // p2wpkh as default
       // no redeemScript needed
-      const ecpair = ECPair.fromPrivateKey(toBuffer(child.privateKey!), {
+      const ecpair = ECPair.fromPrivateKey(u8ToBuffer(child.privateKey!), {
         network: netObj,
       });
       psbt.signInput(i, ecpair);
     }
-
-    // optionally:
-    // psbt.validateSignaturesOfInput(i, (pubkey, sighashType, sighash, signature) => {
-    //   return ecc.verifySchnorr?(sighash, pubkey, signature) : someCheck;
-    // });
   }
 
   // 9) Finalize
