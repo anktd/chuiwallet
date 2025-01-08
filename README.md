@@ -1,7 +1,19 @@
-# Chui Wallet - Run with ease 
-*Chui means leopard in Swahili*
+# UniSat Wallet
 
-Chui Wallet was born from the need to provide **a simpler, business-friendly solution** for handling cryptocurrency payments. We noticed that many existing wallets were overly technical, leaving merchants overwhelmed with complex setups and prone to frustrating issues like missing transactions.
+UniSat Wallet - the first open-source browser extension wallet for Ordinals on bitcoin.
 
-Inspired by the leopard—**fast, precise, and calm**—we build Chui to offer the same qualities: **speed, accuracy, and ease of use**. With this vision, Chui aims to **simplify crypto transactions for online businesses** and **eliminate common pain points** so merchants can focus on growing their operations, not troubleshooting their wallets.
-![image](https://github.com/user-attachments/assets/d3bbd43e-d552-40a8-9364-9942aea42adb)
+- Website: https://unisat.io/
+- Twitter: https://twitter.com/unisat_wallet
+
+## How to build
+
+- Install [Node.js](https://nodejs.org) version 16
+- Install [Yarn](https://yarnpkg.com/en/docs/install)
+- Install dependencies: `yarn`
+- Build the project to the `./dist/` folder with `yarn build:firefox` for Firefox
+- Build the project to the `./dist/` folder with `yarn build:chrome` for Chrome
+- Develop: `yarn build:chrome:dev`
+
+## Special Thanks
+
+Thanks to the MetaMask team for their contributions to the browser extension wallet community, UniSat Wallet relies heavily on their contributions.
