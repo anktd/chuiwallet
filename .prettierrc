@@ -1,16 +1,9 @@
 {
-  "printWidth": 120,
-  "tabWidth": 2,
-  "singleQuote": true,
-  "useTabs": false,
+  "trailingComma": "all",
   "semi": true,
-  "vueIndentScriptAndStyle": true,
-  "trailingComma": "none",
-  "bracketSpacing": true,
-  "jsxBracketSameLine": true,
-  "arrowParens": "always",
-  "requirePragma": false,
-  "insertPragma": false,
-  "importOrder": ["^@formily/(.*)", "^@(.*)$", "^[./]"],
-  "importOrderSeparation": true
+  "singleQuote": true,
+  "arrowParens": "avoid",
+  "printWidth": 120,
+  "bracketSameLine": true,
+  "htmlWhitespaceSensitivity": "strict"
 }
