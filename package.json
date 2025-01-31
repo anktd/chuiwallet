@@ -27,7 +27,7 @@
     "lint": "turbo lint --continue -- --fix --cache --cache-location node_modules/.cache/.eslintcache",
     "lint:fix": "turbo lint:fix --continue -- --fix --cache --cache-location node_modules/.cache/.eslintcache",
     "prettier": "turbo prettier --continue -- --cache --cache-location node_modules/.cache/.prettiercache",
-    "prepare": "husky && husky install",
+    "prepare": "husky",
     "postinstall": "pnpm build:eslint",
     "update-version": "bash update_version.sh"
   },
@@ -59,7 +59,7 @@
     "eslint-plugin-react-hooks": "5.1.0",
     "eslint-plugin-tailwindcss": "^3.17.5",
     "globals": "^15.14.0",
-    "husky": "^8.0.0",
+    "husky": "^9.1.4",
     "lint-staged": "^15.2.7",
     "postcss": "^8.4.47",
     "prettier": "^3.3.3",
