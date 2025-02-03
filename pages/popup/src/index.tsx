@@ -1,6 +1,6 @@
 import { createRoot } from 'react-dom/client';
+import App from './00_App';
 import '@src/index.css';
-import Popup from '@src/Popup';
 
 function init() {
   const appContainer = document.querySelector('#app-container');
@@ -8,8 +8,7 @@ function init() {
     throw new Error('Can not find #app-container');
   }
   const root = createRoot(appContainer);
-
-  root.render(<Popup />);
+  root.render(<App />);
 }
 
 init();
