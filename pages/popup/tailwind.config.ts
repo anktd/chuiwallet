@@ -9,6 +9,9 @@ export default {
       colors: {
         splash: '#F1E84D',
       },
+      fontFamily: {
+        sans: ['"Red Hat Display"', 'sans-serif'],
+      },
     },
   },
 } as Config;

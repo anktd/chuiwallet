@@ -4,4 +4,11 @@ import type { Config } from 'tailwindcss/types/config';
 export default {
   ...baseConfig,
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  theme: {
+    extend: {
+      colors: {
+        splash: '#F1E84D',
+      },
+    },
+  },
 } as Config;

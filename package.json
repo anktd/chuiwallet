@@ -1,11 +1,11 @@
 {
-  "name": "chuiwallet-browser-extension",
+  "name": "chuiwallet",
   "version": "0.0.1",
-  "description": "Chui Wallet Browser Extension",
+  "description": "Chui Wallet simplifies bitcoin payments with speed, precision, and ease.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Jonghakseo/chrome-extension-boilerplate-react-vite.git"
+    "url": "https://github.com/chuibot/chuiwallet.git"
   },
   "type": "module",
   "scripts": {
@@ -33,7 +33,8 @@
   },
   "dependencies": {
     "react": "18.3.1",
-    "react-dom": "18.3.1"
+    "react-dom": "18.3.1",
+    "react-router-dom": "^7.1.5"
   },
   "devDependencies": {
     "@eslint/compat": "^1.2.5",
