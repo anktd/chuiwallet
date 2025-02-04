@@ -6,7 +6,7 @@ export const BackupSeedPhrase: React.FC = () => {
   const rightColumnWords = ['bicycle', 'classes', 'riots', 'care', 'father', 'perfect'];
 
   return (
-    <div className="flex overflow-hidden flex-col items-center px-2.5 pt-12 pb-7 bg-neutral-900 max-w-[375px]">
+    <div className="flex overflow-hidden flex-col items-center px-2.5 pt-12 pb-7 bg-dark max-w-[375px]">
       <div className="flex flex-col justify-between self-stretch w-full text-center min-h-[408px]">
         <div className="flex flex-col w-full">
           <div className="text-2xl font-bold leading-loose text-white">Back up your seed phrase</div>

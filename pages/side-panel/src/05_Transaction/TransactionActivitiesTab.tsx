@@ -89,7 +89,7 @@ const transactionActivitiesData: { date?: string; transactions: TransactionActiv
 
 export const TransactionList: React.FC = () => {
   return (
-    <div className="flex overflow-hidden flex-col px-4 pt-5 bg-neutral-900 max-w-[375px]">
+    <div className="flex overflow-hidden flex-col px-4 pt-5 bg-dark max-w-[375px]">
       <img
         loading="lazy"
         src="https://cdn.builder.io/api/v1/image/assets/TEMP/430cc9db9c6ce5b015bc2ceab579bfda683de6c06bd54dfadbdb69c5793d08d7?placeholderIfAbsent=true&apiKey=7730bdd605464082ae23b346c3cac1f8"

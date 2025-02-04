@@ -4,7 +4,7 @@ import type * as React from 'react';
 
 const Receive: React.FC = () => {
   return (
-    <div className="flex overflow-hidden flex-col pb-5 font-bold text-white bg-neutral-900 max-w-[375px]">
+    <div className="flex overflow-hidden flex-col pb-5 font-bold text-white bg-dark max-w-[375px]">
       <Header title="Receive" />
       <AddressQRCode bitcoinAddress="bc1qc4tcgucdn0py28v5za4j2pxmy02zuw0wnmchp6" />
       <button

@@ -10,7 +10,7 @@ export const PasswordSetup: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen px-5 pt-12 pb-7 bg-neutral-900 max-md:px-6 max-md:py-10 max-sm:px-4 max-sm:py-8">
+    <div className="flex flex-col h-screen px-5 pt-12 pb-7 bg-dark max-md:px-6 max-md:py-10 max-sm:px-4 max-sm:py-8">
       <div className="flex flex-col flex-1">
         <div className="flex flex-col items-center self-center max-w-full text-center w-full">
           <h1 className="w-full text-2xl font-bold leading-loose text-white max-sm:text-2xl">Set up a password</h1>

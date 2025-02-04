@@ -6,7 +6,7 @@ export function WalletCreated() {
   };
 
   return (
-    <div className="flex overflow-hidden flex-col px-5 pt-24 pb-7 bg-neutral-900 max-w-[375px]">
+    <div className="flex overflow-hidden flex-col px-5 pt-24 pb-7 bg-dark max-w-[375px]">
       <div className="flex flex-col items-center self-center w-full max-w-[310px]">
         <div className="flex flex-col self-stretch w-full text-center">
           <div className="text-2xl font-bold leading-loose text-white">You've created a wallet</div>

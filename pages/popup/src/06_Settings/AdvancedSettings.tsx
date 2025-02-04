@@ -4,8 +4,8 @@ import { NetworkSelector } from './NetworkSelector';
 
 export const AdvancedSettings: React.FC = () => {
   return (
-    <div className="flex overflow-hidden flex-col pb-72 bg-neutral-900 max-w-[375px]">
-      <header className="flex gap-5 justify-between items-center p-3 text-xl font-bold leading-none text-center text-white bg-neutral-900 min-h-[48px]">
+    <div className="flex overflow-hidden flex-col pb-72 bg-dark max-w-[375px]">
+      <header className="flex gap-5 justify-between items-center p-3 text-xl font-bold leading-none text-center text-white bg-dark min-h-[48px]">
         <img
           loading="lazy"
           src="https://cdn.builder.io/api/v1/image/assets/TEMP/3d9ac0a3bff262bc2e0360a3ebf4df2782c941b15a1d4333aa055f2e4a65f0ff?placeholderIfAbsent=true&apiKey=7730bdd605464082ae23b346c3cac1f8"

@@ -51,7 +51,7 @@ const transactionAddressesData: TransactionAddressItemProps[] = [
 
 export const TransactionView: React.FC = () => {
   return (
-    <div className="flex overflow-hidden flex-col py-5 pl-4 bg-neutral-900 max-w-[375px]">
+    <div className="flex overflow-hidden flex-col py-5 pl-4 bg-dark max-w-[375px]">
       <img
         loading="lazy"
         src="https://cdn.builder.io/api/v1/image/assets/TEMP/757affc983e823c8ded401b798ef8c11fe42079d291e9de0f9a18a342202014f?placeholderIfAbsent=true&apiKey=7730bdd605464082ae23b346c3cac1f8"

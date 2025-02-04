@@ -9,7 +9,7 @@ const feeOptions = [
   { speed: 'Fast', btcAmount: '0.000102', usdAmount: '5.6' },
 ];
 
-export const SendBitcoin: React.FC = () => {
+export const SendOptions: React.FC = () => {
   return (
     <div className="flex overflow-hidden flex-col py-5 bg-dark max-w-[375px]">
       <h1 className="self-center text-xl font-bold leading-none text-center text-white">Send Bitcoin</h1>

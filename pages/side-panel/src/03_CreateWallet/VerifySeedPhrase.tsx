@@ -21,7 +21,7 @@ const rightColumnWords = [
 
 export const VerifySeedPhrase: React.FC = () => {
   return (
-    <div className="flex overflow-hidden flex-col px-5 pt-12 pb-7 bg-neutral-900 max-w-[375px]">
+    <div className="flex overflow-hidden flex-col px-5 pt-12 pb-7 bg-dark max-w-[375px]">
       <div className="flex flex-col self-center w-full text-center max-w-[304px]">
         <div className="flex flex-col w-full">
           <div className="text-2xl font-bold leading-loose text-white">Verify words</div>

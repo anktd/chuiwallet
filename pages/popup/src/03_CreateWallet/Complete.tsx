@@ -1,12 +1,11 @@
+import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/Button';
 
-export function WalletCreated() {
-  const handleDashboardClick = () => {
-    // Handle dashboard navigation
-  };
+export function Complete() {
+  const navigate = useNavigate();
 
   return (
-    <div className="flex overflow-hidden flex-col px-5 pt-24 pb-7 bg-neutral-900 max-w-[375px]">
+    <div className="flex overflow-hidden flex-col px-5 pt-24 pb-7 bg-dark max-w-[375px]">
       <div className="flex flex-col items-center self-center w-full max-w-[310px]">
         <div className="flex flex-col self-stretch w-full text-center">
           <div className="text-2xl font-bold leading-loose text-white">You've created a wallet</div>
@@ -23,7 +22,12 @@ export function WalletCreated() {
         <div className="mt-6 text-lg leading-6 text-center text-neutral-400">
           Remember we can't recover your seed phrase for you.
         </div>
-        <Button onClick={handleDashboardClick}>Go to dashboard</Button>
+        <Button
+          onClick={() => {
+            navigate('/dashboard');
+          }}>
+          Go to dashboard
+        </Button>
       </div>
     </div>
   );

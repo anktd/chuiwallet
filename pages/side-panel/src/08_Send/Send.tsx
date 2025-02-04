@@ -4,7 +4,7 @@ import type * as React from 'react';
 
 export const SendBitcoin: React.FC = () => {
   return (
-    <div className="flex overflow-hidden flex-col items-center py-5 text-lg font-bold leading-8 text-white bg-neutral-900 max-w-[375px]">
+    <div className="flex overflow-hidden flex-col items-center py-5 text-lg font-bold leading-8 text-white bg-dark max-w-[375px]">
       <div className="text-xl leading-none text-center">Send Bitcoin</div>
       <img
         loading="lazy"

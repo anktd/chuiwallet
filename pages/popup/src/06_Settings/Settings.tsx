@@ -3,7 +3,7 @@ import FiatCurrencySelector from './FIatCurrencySelector';
 
 export const Settings: React.FC = () => {
   return (
-    <div className="flex overflow-hidden flex-col items-center pb-5 font-bold bg-neutral-900 max-w-[375px]">
+    <div className="flex overflow-hidden flex-col items-center pb-5 font-bold bg-dark max-w-[375px]">
       <Header title="Settings" />
       <div className="flex flex-col mt-10 w-full max-w-[328px]">
         <FiatCurrencySelector

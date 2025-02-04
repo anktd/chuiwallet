@@ -22,7 +22,7 @@ export const TermsCheckbox: React.FC<TermsCheckboxProps> = ({ onAcceptChange }) 
             id="terms"
             onChange={handleChange}
             checked={checked}
-            className="appearance-none shrink-0 w-6 h-6"
+            className="appearance-none shrink-0 w-6 h-6 cursor-pointer"
           />
           <svg
             className={`pointer-events-none absolute top-[8px] left-[7px] w-[10px] h-[8px] text-[424242] transition-opacity duration-150 ${checked ? 'opacity-100' : 'opacity-0'}`}
@@ -38,9 +38,13 @@ export const TermsCheckbox: React.FC<TermsCheckboxProps> = ({ onAcceptChange }) 
             />
           </svg>
         </div>
-        <label htmlFor="terms" className="flex gap-1 items-center">
+        <label htmlFor="terms" className="flex gap-1 items-center cursor-pointer">
           <span className="text-white">I accept the</span>
-          <a href="https://www.blockonomics.co/privacy" className="text-yellow-300 no-underline">
+          <a
+            href="https://www.blockonomics.co/privacy"
+            className="text-yellow-300 no-underline"
+            target="_blank"
+            rel="noopener noreferrer">
             Terms of Service
           </a>
         </label>

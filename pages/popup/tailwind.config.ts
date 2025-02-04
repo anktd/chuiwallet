@@ -7,7 +7,10 @@ export default {
   theme: {
     extend: {
       colors: {
-        splash: '#F1E84D',
+        'primary-yellow': '#F1E84D',
+        disabledBg: '#797979',
+        disabledText: '#424242',
+        dark: '#141414',
       },
       fontFamily: {
         sans: ['"Red Hat Display"', 'sans-serif'],

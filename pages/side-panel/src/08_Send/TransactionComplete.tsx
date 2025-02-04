@@ -7,7 +7,7 @@ export const TransactionComplete: React.FC = () => {
   };
 
   return (
-    <div className="flex overflow-hidden flex-col items-center px-5 pt-40 pb-5 bg-neutral-900 max-w-[375px]">
+    <div className="flex overflow-hidden flex-col items-center px-5 pt-40 pb-5 bg-dark max-w-[375px]">
       <div className="flex flex-col items-center w-[54px]">
         <img
           loading="lazy"

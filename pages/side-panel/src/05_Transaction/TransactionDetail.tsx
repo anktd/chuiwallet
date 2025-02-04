@@ -44,7 +44,7 @@ export const TransactionDetail: React.FC<TransactionDataProps> = ({
   to,
 }) => {
   return (
-    <div className="flex overflow-hidden flex-col px-7 py-5 bg-neutral-900 max-w-[375px]">
+    <div className="flex overflow-hidden flex-col px-7 py-5 bg-dark max-w-[375px]">
       <div className="self-center text-xl font-bold leading-none text-center text-white">Transaction</div>
       <div className="flex flex-col justify-center items-center self-center mt-8 max-w-full w-[151px]">
         <div className="flex flex-col justify-center items-center px-1 w-8 h-8 bg-orange-300 bg-opacity-50 min-h-[32px] rounded-[100px]">

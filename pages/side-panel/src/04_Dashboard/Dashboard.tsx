@@ -4,8 +4,8 @@ import { CryptoButton } from '../components/CryptoButton';
 
 export const Dashboard: React.FC = () => {
   return (
-    <div className="flex overflow-hidden flex-col items-center pb-64 bg-neutral-900 max-w-[375px]">
-      <div className="flex gap-10 justify-between items-center self-stretch p-3 w-full text-xs font-bold leading-6 bg-neutral-900 min-h-[48px] text-neutral-200">
+    <div className="flex overflow-hidden flex-col items-center pb-64 bg-dark max-w-[375px]">
+      <div className="flex gap-10 justify-between items-center self-stretch p-3 w-full text-xs font-bold leading-6 bg-dark min-h-[48px] text-neutral-200">
         <div className="flex gap-0.5 justify-center items-center self-stretch px-2 my-auto rounded bg-zinc-800">
           <div className="self-stretch my-auto">Account 1</div>
           <img

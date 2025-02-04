@@ -6,7 +6,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ title }) => {
   return (
-    <div className="flex gap-5 justify-between items-center p-3 text-xl leading-none text-center whitespace-nowrap bg-neutral-900 min-h-[48px]">
+    <div className="flex gap-5 justify-between items-center p-3 text-xl leading-none text-center whitespace-nowrap bg-dark min-h-[48px]">
       <img
         loading="lazy"
         src="https://cdn.builder.io/api/v1/image/assets/TEMP/b5a39d6661db2a04e57b951b545b85a0b950f70cdc6b2049e8c89734c1113975?placeholderIfAbsent=true&apiKey=7730bdd605464082ae23b346c3cac1f8"
