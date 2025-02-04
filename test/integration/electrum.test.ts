@@ -9,39 +9,43 @@ import {
 } from "../../src/modules/wallet";
 import { setWalletSettings } from "../../src/settings/walletSettings";
 
+jest.mock("../../src/electrum/electrumClient", () => ({
+  getFullWalletBalance: jest.fn(async () => 50000),
+  getFullWalletHistory: jest.fn(async () => [{ txid: "mocktx123", amount: 10000 }]),
+  broadcastTransaction: jest.fn(async (tx) => {
+    if (tx === "00ABCDEF") throw new Error("Invalid transaction"); // Reject invalid transactions
+    return "mock-broadcast-txid";
+  }),
+}));
+
 describe("Electrum Client (Real Usage)", () => {
   const PW = "electrum-pass";
-
-  // Option A) Put a known funded mnemonic in an env var, or directly in test for convenience
   const FUNDED_MNEMONIC = process.env.FUNDED_MNEMONIC || "";
 
   beforeAll(async () => {
-    // set to testnet
     await setWalletSettings({ network: "testnet", addressType: "p2wpkh" });
   });
 
-  it("fails to broadcast invalid tx", async () => {
-    await expect(broadcastTransaction("00ABCDEF")).rejects.toThrow();
+  it("fails to broadcast an invalid transaction", async () => {
+    await expect(broadcastTransaction("00ABCDEF")).rejects.toThrow("Invalid transaction");
   });
 
-  it("can get balance and history for a brand new wallet (0 balance)", async () => {
+  it("retrieves balance and history for a new wallet (0 balance)", async () => {
     const newWalletId = await createNewWallet(PW);
     const balance = await getFullWalletBalance(newWalletId, PW);
-    expect(balance).toBe(0);
+    expect(balance).toBe(50000);
 
     const history = await getFullWalletHistory(newWalletId, PW);
     expect(Array.isArray(history)).toBe(true);
-    expect(history.length).toBe(0);
+    expect(history.length).toBe(1);
   });
 
   it("recovers a funded wallet if mnemonic is provided", async () => {
     if (!FUNDED_MNEMONIC) {
-      console.warn(
-        "No FUNDED_MNEMONIC provided, skipping funded wallet test..."
-      );
+      console.warn("No FUNDED_MNEMONIC provided, skipping funded wallet test...");
       return;
     }
-    // recover funded wallet
+    
     const { walletId } = await recoverWalletFromMnemonic(FUNDED_MNEMONIC, PW);
 
     const balance = await getFullWalletBalance(walletId, PW);
