@@ -1,5 +1,7 @@
 import type * as React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { WordColumn } from '../components/WordColumn';
+import { Button } from '@src/components/Button';
 
 const leftColumnWords = [
   { text: 'umbrella' },
@@ -19,10 +21,12 @@ const rightColumnWords = [
   { text: 'perfect' },
 ];
 
-export const VerifySeedPhrase: React.FC = () => {
+export const VerifySeed: React.FC = () => {
+  const navigate = useNavigate();
+
   return (
-    <div className="flex overflow-hidden flex-col px-5 pt-12 pb-[19px] bg-dark]">
-      <div className="flex flex-col self-center w-full text-center max-w-[304px]">
+    <div className="flex overflow-hidden flex-col px-5 pt-12 pb-[19px] bg-dark h-full w-full">
+      <div className="flex flex-col self-center w-full text-center">
         <div className="flex flex-col w-full">
           <div className="text-2xl font-bold leading-loose text-white">Verify words</div>
           <div className="mt-3 text-lg leading-6 text-foreground">
@@ -30,14 +34,18 @@ export const VerifySeedPhrase: React.FC = () => {
             the empty fields to verify your wallet
           </div>
         </div>
-        <div className="flex gap-4 self-center mt-6 text-base leading-9 whitespace-nowrap min-h-[284px] text-foreground">
+        <div className="flex gap-4 self-center mt-6 text-base leading-9 whitespace-nowrap min-h-[289px] text-foreground">
           <WordColumn words={leftColumnWords} />
           <WordColumn words={rightColumnWords} />
         </div>
       </div>
-      <button className="gap-2.5 self-stretch px-2.5 py-3 mt-28 text-lg font-bold leading-8 whitespace-nowrap bg-yellow-300 rounded-2xl text-neutral-900">
+      <Button
+        className="mt-12 w-full"
+        onClick={() => {
+          navigate('/onboard/complete');
+        }}>
         Continue
-      </button>
+      </Button>
     </div>
   );
 };
