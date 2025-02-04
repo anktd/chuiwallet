@@ -21,16 +21,16 @@ const rightColumnWords = [
 
 export const VerifySeedPhrase: React.FC = () => {
   return (
-    <div className="flex overflow-hidden flex-col px-5 pt-12 pb-7 bg-dark max-w-[375px]">
+    <div className="flex overflow-hidden flex-col px-5 pt-12 pb-[19px] bg-dark]">
       <div className="flex flex-col self-center w-full text-center max-w-[304px]">
         <div className="flex flex-col w-full">
           <div className="text-2xl font-bold leading-loose text-white">Verify words</div>
-          <div className="mt-3 text-lg leading-6 text-neutral-400">
+          <div className="mt-3 text-lg leading-6 text-foreground">
             Rewrite the correct words on <br />
             the empty fields to verify your wallet
           </div>
         </div>
-        <div className="flex gap-4 self-center mt-6 text-base leading-9 whitespace-nowrap min-h-[284px] text-neutral-400">
+        <div className="flex gap-4 self-center mt-6 text-base leading-9 whitespace-nowrap min-h-[284px] text-foreground">
           <WordColumn words={leftColumnWords} />
           <WordColumn words={rightColumnWords} />
         </div>

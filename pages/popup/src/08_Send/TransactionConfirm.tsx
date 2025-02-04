@@ -6,7 +6,7 @@ interface TransactionConfirmProps {
 
 export function TransactionConfirm({ onConfirm }: TransactionConfirmProps) {
   return (
-    <div className="flex overflow-hidden flex-col p-5 text-lg bg-dark max-w-[375px]">
+    <div className="flex overflow-hidden flex-col p-5 text-lg bg-dark]">
       <div className="self-center text-xl font-bold leading-none text-center text-white">Confirm transaction</div>
       <div className="flex flex-col mt-14 w-full max-w-[298px]">
         <div className="flex flex-col w-full leading-none">

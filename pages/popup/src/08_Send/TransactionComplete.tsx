@@ -7,7 +7,7 @@ export const TransactionComplete: React.FC = () => {
   };
 
   return (
-    <div className="flex overflow-hidden flex-col items-center px-5 pt-40 pb-5 bg-dark max-w-[375px]">
+    <div className="flex overflow-hidden flex-col items-center px-5 pt-40 pb-5 bg-dark]">
       <div className="flex flex-col items-center w-[54px]">
         <img
           loading="lazy"
@@ -21,7 +21,7 @@ export const TransactionComplete: React.FC = () => {
         See the state of <span className="text-yellow-300">your transaction</span>
       </div>
       <div className="mt-12 text-sm font-bold leading-none text-center text-white">Transaction ID</div>
-      <div className="text-sm font-bold leading-5 text-center text-neutral-400">
+      <div className="text-sm font-bold leading-5 text-center text-foreground">
         cb00b56c1de3e81cb3d647ed81946eb1b1c7e8f0191ad09d85175d592b59b0a5
       </div>
       <Button onClick={handleDashboardClick}>Go to dashboard</Button>

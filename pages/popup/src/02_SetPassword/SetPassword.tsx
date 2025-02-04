@@ -2,17 +2,18 @@ import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { InputField } from '../components/InputField';
 import { TermsCheckbox } from '../components/TermsCheckbox';
+import { Button } from '@src/components/Button';
 
 export const SetPassword: React.FC = () => {
   const navigate = useNavigate();
   const [termsAccepted, setTermsAccepted] = React.useState(false);
 
   return (
-    <div className="flex flex-col h-screen px-5 pt-12 pb-7 bg-dark max-md:px-6 max-md:py-10 max-sm:px-4 max-sm:py-8">
+    <div className="flex flex-col h-screen px-5 pt-12 pb-[19px] bg-dark">
       <div className="flex flex-col flex-1">
         <div className="flex flex-col items-center self-center max-w-full text-center w-full">
           <h1 className="w-full text-2xl font-bold leading-loose text-white max-sm:text-2xl">Set up a password</h1>
-          <div className="mt-3 w-full text-lg leading-6 text-neutral-400 max-sm:text-base">
+          <div className="mt-3 w-full text-lg leading-6 text-foreground max-sm:text-base">
             <span>It will be used to access Chui</span>
             <br />
             <span>on this browser</span>
@@ -24,14 +25,14 @@ export const SetPassword: React.FC = () => {
             <InputField label="Confirm password" type="password" placeholder="Confirm password" id="confirmPassword" />
             <TermsCheckbox onAcceptChange={setTermsAccepted} />
           </div>
-          <button
+          <Button
             onClick={() => {
               navigate('/onboard/generate-seed');
             }}
-            disabled={!termsAccepted}
-            className="p-3 w-full text-lg font-bold bg-primary-yellow rounded-2xl cursor-pointer border-none text-dark disabled:bg-disabledBg disabled:text-disabledText disabled:cursor-not-allowed">
+            tabIndex={0}
+            disabled={!termsAccepted}>
             Next
-          </button>
+          </Button>
         </div>
       </div>
     </div>

@@ -58,7 +58,7 @@ export const TransactionAddressItem: React.FC<TransactionAddressItemProps> = ({
             </div>
           </div>
           <div className="flex flex-col justify-center self-stretch my-auto text-xs leading-none">
-            <div className="text-right text-neutral-400">{btcAmount}</div>
+            <div className="text-right text-foreground">{btcAmount}</div>
             <div className="text-white">{usdAmount}</div>
           </div>
         </div>

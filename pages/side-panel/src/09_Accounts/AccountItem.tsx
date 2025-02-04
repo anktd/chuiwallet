@@ -16,7 +16,7 @@ const AccountItem: React.FC<AccountItemProps> = ({ accountName, amount, backgrou
           <div className="flex justify-between items-center w-full text-base font-bold leading-none text-white">
             <div className="gap-1 self-stretch my-auto w-[120px]">{accountName}</div>
           </div>
-          <div className="gap-1 mt-1.5 w-full text-sm leading-none text-neutral-400">{amount}</div>
+          <div className="gap-1 mt-1.5 w-full text-sm leading-none text-foreground">{amount}</div>
         </div>
       </div>
     </div>

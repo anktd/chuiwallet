@@ -11,6 +11,7 @@ export default {
         disabledBg: '#797979',
         disabledText: '#424242',
         dark: '#141414',
+        foreground: '#ABABAB',
       },
       fontFamily: {
         sans: ['"Red Hat Display"', 'sans-serif'],

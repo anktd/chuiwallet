@@ -3,15 +3,18 @@ import type * as React from 'react';
 export interface ButtonProps {
   children: React.ReactNode;
   onClick?: () => void;
+  disabled?: boolean;
+  tabIndex?: number;
   className?: string;
 }
 
-export const Button: React.FC<ButtonProps> = ({ children, onClick, className }) => {
+export const Button: React.FC<ButtonProps> = ({ children, onClick, disabled, tabIndex, className }) => {
   return (
     <button
       onClick={onClick}
-      className={`gap-2.5 self-stretch px-2.5 py-3 text-lg font-bold leading-8 bg-yellow-300 rounded-2xl text-neutral-900 ${className}`}
-      tabIndex={0}>
+      disabled={disabled}
+      className={`h-[55px] w-full max-w-[338px] p-3 text-lg font-bold bg-primary-yellow rounded-2xl cursor-pointer border-none text-dark disabled:bg-disabledBg disabled:text-disabledText disabled:cursor-not-allowed ${className}`}
+      tabIndex={tabIndex}>
       {children}
     </button>
   );

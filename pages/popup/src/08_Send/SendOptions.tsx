@@ -11,7 +11,7 @@ const feeOptions = [
 
 export const SendOptions: React.FC = () => {
   return (
-    <div className="flex overflow-hidden flex-col py-5 bg-dark max-w-[375px]">
+    <div className="flex overflow-hidden flex-col py-5 bg-dark]">
       <h1 className="self-center text-xl font-bold leading-none text-center text-white">Send Bitcoin</h1>
       <div className="flex flex-col px-5 mt-12 w-full text-lg font-bold leading-8 text-white">
         <div className="z-10 self-start">Amount to send</div>

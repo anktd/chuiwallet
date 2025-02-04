@@ -10,7 +10,7 @@ const accounts = [
 
 const CreateAccount: React.FC = () => {
   return (
-    <div className="flex overflow-hidden flex-col items-center pb-5 bg-dark max-w-[375px]">
+    <div className="flex overflow-hidden flex-col items-center pb-5 bg-dark]">
       <Header title={''} />
       {accounts.map((account, index) => (
         <AccountItem

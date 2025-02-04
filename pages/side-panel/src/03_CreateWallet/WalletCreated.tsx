@@ -6,11 +6,11 @@ export function WalletCreated() {
   };
 
   return (
-    <div className="flex overflow-hidden flex-col px-5 pt-24 pb-7 bg-dark max-w-[375px]">
-      <div className="flex flex-col items-center self-center w-full max-w-[310px]">
+    <div className="flex overflow-hidden flex-col px-5 pt-24 pb-[19px] bg-dark]">
+      <div className="flex flex-col items-center self-center w-full">
         <div className="flex flex-col self-stretch w-full text-center">
           <div className="text-2xl font-bold leading-loose text-white">You've created a wallet</div>
-          <div className="mt-3 text-lg leading-none text-neutral-400">Keep your seed phrase safe.</div>
+          <div className="mt-3 text-lg leading-none text-foreground">Keep your seed phrase safe.</div>
         </div>
         <div className="flex gap-6 justify-center items-center mt-6 w-[78px]">
           <img
@@ -20,7 +20,7 @@ export function WalletCreated() {
             className="object-contain self-stretch my-auto aspect-square w-[78px]"
           />
         </div>
-        <div className="mt-6 text-lg leading-6 text-center text-neutral-400">
+        <div className="mt-6 text-lg leading-6 text-center text-foreground">
           Remember we can't recover your seed phrase for you.
         </div>
         <Button onClick={handleDashboardClick}>Go to dashboard</Button>

@@ -1,17 +1,16 @@
 import AddressQRCode from '@src/components/AddressQRCode';
+import { Button } from '@src/components/Button';
 import Header from '@src/components/Header';
 import type * as React from 'react';
 
 const Receive: React.FC = () => {
   return (
-    <div className="flex overflow-hidden flex-col pb-5 font-bold text-white bg-dark max-w-[375px]">
+    <div className="flex overflow-hidden flex-col justify-center text-white bg-dark h-full px-4 pt-12 pb-[19px]">
       <Header title="Receive" />
       <AddressQRCode bitcoinAddress="bc1qc4tcgucdn0py28v5za4j2pxmy02zuw0wnmchp6" />
-      <button
-        className="gap-2.5 self-center px-2.5 py-3 mt-14 w-full text-lg leading-8 bg-yellow-300 rounded-2xl max-w-[338px] text-neutral-900"
-        tabIndex={0}>
-        Copy address
-      </button>
+      <div className="flex flex-row justify-center items-end flex-1 w-full">
+        <Button tabIndex={0}>Copy address</Button>
+      </div>
     </div>
   );
 };

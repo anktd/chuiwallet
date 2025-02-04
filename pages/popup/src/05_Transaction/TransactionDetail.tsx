@@ -30,7 +30,7 @@ const LabelValuePair: React.FC<LabelValuePairProps> = ({ label, value }) => (
     <div className="flex flex-col w-24 text-white">
       <div>{label}</div>
     </div>
-    <div className="flex flex-col text-xs leading-loose text-neutral-400 w-[201px]">{value}</div>
+    <div className="flex flex-col text-xs leading-loose text-foreground w-[201px]">{value}</div>
   </div>
 );
 
@@ -44,7 +44,7 @@ export const TransactionDetail: React.FC<TransactionDataProps> = ({
   to,
 }) => {
   return (
-    <div className="flex overflow-hidden flex-col px-7 py-5 bg-dark max-w-[375px]">
+    <div className="flex overflow-hidden flex-col px-7 py-5 bg-dark]">
       <div className="self-center text-xl font-bold leading-none text-center text-white">Transaction</div>
       <div className="flex flex-col justify-center items-center self-center mt-8 max-w-full w-[151px]">
         <div className="flex flex-col justify-center items-center px-1 w-8 h-8 bg-orange-300 bg-opacity-50 min-h-[32px] rounded-[100px]">
@@ -58,7 +58,7 @@ export const TransactionDetail: React.FC<TransactionDataProps> = ({
           1200 <span className="text-xl">usd</span>
         </div>
         <div className="text-base font-bold leading-none text-white">Sent</div>
-        <div className="flex gap-1 items-center text-xs leading-loose text-neutral-400">
+        <div className="flex gap-1 items-center text-xs leading-loose text-foreground">
           <div className="self-stretch my-auto w-[54px]">0.012 BTC </div>
           <Image
             src="https://cdn.builder.io/api/v1/image/assets/TEMP/33d98f0232a7a7ec68621d2542fed9dd15f31586abd2b3d043aff5beccc6b8fd?placeholderIfAbsent=true&apiKey=7730bdd605464082ae23b346c3cac1f8"

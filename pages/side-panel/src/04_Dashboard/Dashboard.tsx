@@ -4,7 +4,7 @@ import { CryptoButton } from '../components/CryptoButton';
 
 export const Dashboard: React.FC = () => {
   return (
-    <div className="flex overflow-hidden flex-col items-center pb-64 bg-dark max-w-[375px]">
+    <div className="flex overflow-hidden flex-col items-center pb-64 bg-dark]">
       <div className="flex gap-10 justify-between items-center self-stretch p-3 w-full text-xs font-bold leading-6 bg-dark min-h-[48px] text-neutral-200">
         <div className="flex gap-0.5 justify-center items-center self-stretch px-2 my-auto rounded bg-zinc-800">
           <div className="self-stretch my-auto">Account 1</div>
@@ -40,7 +40,7 @@ export const Dashboard: React.FC = () => {
 
       <div className="mt-2 text-sm leading-none text-center text-white">0 BTC</div>
 
-      <div className="flex gap-2.5 justify-between items-center mt-10 w-full text-lg font-medium leading-none text-center whitespace-nowrap max-w-[346px] text-neutral-400">
+      <div className="flex gap-2.5 justify-between items-center mt-10 w-full text-lg font-medium leading-none text-center whitespace-nowrap max-w-[346px] text-foreground">
         <CryptoButton
           icon="https://cdn.builder.io/api/v1/image/assets/TEMP/8806279b583038ae1e2b6b129faf0f48b17cbd7e24ef94da9ceb8bd7eb395075?placeholderIfAbsent=true&apiKey=7730bdd605464082ae23b346c3cac1f8"
           label="Receive"

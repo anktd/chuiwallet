@@ -6,7 +6,7 @@ export interface InfoTextProps {
 
 export const InfoText: React.FC<InfoTextProps> = ({ lines }) => {
   return (
-    <div className="mt-6 text-lg leading-6 text-neutral-400">
+    <div className="mt-6 text-lg leading-6 text-foreground">
       {lines.map((line, index) => (
         <React.Fragment key={index}>
           {line}

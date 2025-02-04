@@ -4,7 +4,7 @@ import { NetworkSelector } from './NetworkSelector';
 
 export const AdvancedSettings: React.FC = () => {
   return (
-    <div className="flex overflow-hidden flex-col pb-72 bg-dark max-w-[375px]">
+    <div className="flex overflow-hidden flex-col pb-[19px]2 bg-dark]">
       <header className="flex gap-5 justify-between items-center p-3 text-xl font-bold leading-none text-center text-white bg-dark min-h-[48px]">
         <img
           loading="lazy"

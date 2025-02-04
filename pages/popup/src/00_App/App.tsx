@@ -33,7 +33,7 @@ export const App: React.FC = () => {
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/onboard/set-password" replace />} />
-      <Route path="/onboard/set-password" element={<GenerateSeed />} /> {/* SetPassword */}
+      <Route path="/onboard/set-password" element={<SetPassword />} /> {/* SetPassword */}
       <Route path="/onboard/generate-seed" element={<GenerateSeed />} />
       <Route path="/onboard/backup-seed" element={<BackupSeed />} />
       <Route path="/onboard/verify-seed" element={<VerifySeed />} />

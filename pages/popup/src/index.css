@@ -83,3 +83,13 @@ input[type="checkbox"] {
 input[type="checkbox"]:checked {
   background-color: #E7DF54;
 }
+
+.btc-address {
+  width: 100%;
+  max-width: 224px;
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap;
+  white-space: -pre-wrap;
+  white-space: -o-pre-wrap;
+  word-wrap: break-word;
+}
