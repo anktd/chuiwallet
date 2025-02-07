@@ -1,0 +1,33 @@
+{
+  "name": "chui-wallet-backend",
+  "version": "1.0.0",
+  "description": "Chui: A non-custodial Bitcoin wallet backend for merchants (Chrome extension)",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json && node postbuild.js",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@samouraiwallet/electrum-client": "^1.5.2",
+    "axios": "^1.7.9",
+    "bip32": "5.0.0-rc.0",
+    "bip39": "^3.1.0",
+    "bitcoinjs-lib": "^6.1.7",
+    "config": "^3.3.12",
+    "crypto-js": "^4.2.0",
+    "ecpair": "3.0.0-rc.0",
+    "tiny-secp256k1": "^2.2.3",
+    "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "@types/config": "^3.3.5",
+    "@types/crypto-js": "^4.2.2",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.13.5",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.6",
+    "typescript": "^5.7.3"
+  },
+  "license": "MIT"
+}
