@@ -87,7 +87,9 @@ class ElectrumService {
     const scripthash = addressToScripthash(address, network);
     console.log('fetchTransactionHistory scripthash: ', scripthash);
 
-    const history = (await this.client!.blockchainAddress_getHistory(address)) as HistoryItem[];
+    // const history = (await this.client!.blockchainAddress_getHistory(address)) as HistoryItem[];
+    // return history;
+    const history = (await this.client!.blockchainScripthash_getHistory(scripthash)) as HistoryItem[];
     return history;
   }
 

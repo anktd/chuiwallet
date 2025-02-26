@@ -1,3 +1,4 @@
+// Mock the config module to provide expected values.
 jest.mock('config', () => ({
   get: (key: string) => {
     if (key === 'fee.apiUrl') return 'https://mempool.space/api/v1/fees/recommended';
@@ -9,6 +10,7 @@ jest.mock('config', () => ({
     return undefined;
   },
 }));
+
 import feeEstimator from '../src/modules/feeEstimator.js';
 import axios from 'axios';
 jest.mock('axios');
@@ -25,10 +27,12 @@ describe('FeeEstimator Module', () => {
   });
 
   test('should use fallback fee estimates on error', async () => {
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     (axios.get as jest.Mock).mockRejectedValue(new Error('API error'));
     const fees = await feeEstimator.getFeeEstimates();
     expect(fees.fast.feeRate).toBe(50);
     expect(fees.medium.feeRate).toBe(30);
     expect(fees.slow.feeRate).toBe(10);
+    consoleSpy.mockRestore();
   });
 });
