@@ -39,7 +39,7 @@ class ElectrumService {
     };
   }
 
-  private async connect(): Promise<void> {
+  public async connect(): Promise<void> {
     if (!this.client) {
       this.client = await ElectrumClient.createClient(this.options);
     }

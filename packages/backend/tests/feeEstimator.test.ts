@@ -1,6 +1,16 @@
-import feeEstimator from '../src/modules/feeEstimator';
+jest.mock('config', () => ({
+  get: (key: string) => {
+    if (key === 'fee.apiUrl') return 'https://mempool.space/api/v1/fees/recommended';
+    if (key === 'electrum.host') return 'electrum.blockstream.info';
+    if (key === 'electrum.port') return 50001;
+    if (key === 'electrum.protocol') return 'tcp';
+    if (key === 'electrum.version') return ['1.2', '1.4'];
+    if (key === 'electrum.retryPeriod') return 2000;
+    return undefined;
+  },
+}));
+import feeEstimator from '../src/modules/feeEstimator.js';
 import axios from 'axios';
-
 jest.mock('axios');
 
 describe('FeeEstimator Module', () => {

@@ -1,4 +1,4 @@
-import settings from '../src/modules/settings';
+import settings from '../src/modules/settings.js';
 
 describe('Settings Module', () => {
   test('should update and get settings', () => {

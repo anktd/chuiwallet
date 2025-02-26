@@ -1,5 +1,5 @@
-import walletConnect from '../src/modules/walletConnect';
-import Wallet from '../src/modules/wallet';
+import walletConnect from '../src/modules/walletConnect.js';
+import Wallet from '../src/modules/wallet.js';
 
 describe('WalletConnect Module', () => {
   test('should return xpub from wallet', () => {
