@@ -199,15 +199,40 @@ export default class Wallet {
   /**
    * Signs a PSBT and returns the signed transaction hex.
    */
+  // public signTransaction(psbt: bitcoin.Psbt): string {
+  //   if (!this.mnemonic && !this.seed) {
+  //     throw new Error('Wallet restored from xpriv; signing may be limited.');
+  //   }
+  //   const coin = this.network === bitcoin.networks.testnet ? 1 : 0;
+  //   const account = this.taproot ? this.root : this.root.deriveHardened(84).deriveHardened(coin).deriveHardened(0);
+  //   const keyPair = account.derive(0).derive(0);
+  //   const signer = { ...keyPair, publicKey: Buffer.from(keyPair.publicKey) };
+  //   psbt.signAllInputs(signer as unknown as bitcoin.Signer);
+  //   psbt.finalizeAllInputs();
+  //   return psbt.extractTransaction().toHex();
+  // }
   public signTransaction(psbt: bitcoin.Psbt): string {
-    if (!this.mnemonic && !this.seed) {
-      throw new Error('Wallet restored from xpriv; signing may be limited.');
-    }
-    const coin = this.network === bitcoin.networks.testnet ? 1 : 0;
-    const account = this.taproot ? this.root : this.root.deriveHardened(84).deriveHardened(coin).deriveHardened(0);
+    const account = this.account!;
+    // Derive the key for input 0
     const keyPair = account.derive(0).derive(0);
-    const signer = { ...keyPair, publicKey: Buffer.from(keyPair.publicKey) };
-    psbt.signAllInputs(signer as unknown as bitcoin.Signer);
+    if (!keyPair.privateKey) {
+      throw new Error('Derived key does not have a private key');
+    }
+
+    // Wrap the keyPair with a custom sign function that converts the signature into a Buffer.
+    const signer = {
+      ...keyPair,
+      publicKey: Buffer.from(keyPair.publicKey),
+      sign: (hash: Buffer) => {
+        // Call the original sign function, then convert its Uint8Array output to a Buffer.
+        const sig = keyPair.sign(hash);
+        return Buffer.from(sig);
+      },
+    };
+
+    for (let i = 0; i < psbt.inputCount; i++) {
+      psbt.signInput(i, signer as unknown as bitcoin.Signer);
+    }
     psbt.finalizeAllInputs();
     return psbt.extractTransaction().toHex();
   }
