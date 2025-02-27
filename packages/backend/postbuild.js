@@ -5,7 +5,7 @@ import fs from 'fs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const filePath = join(__dirname, 'dist', 'index.js');
+const filePath = join(__dirname, 'dist', 'src', 'index.js');
 let content = fs.readFileSync(filePath, 'utf8');
 
 content = content.replace(
