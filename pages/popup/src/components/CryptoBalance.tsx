@@ -9,7 +9,7 @@ export interface CryptoBalanceProps {
 
 export const CryptoBalance: React.FC<CryptoBalanceProps> = ({ cryptoName, cryptoAmount, usdAmount, icon }) => {
   return (
-    <div className="flex gap-3 justify-center items-center px-2.5 py-3 w-full rounded-lg bg-zinc-800 max-w-[346px]">
+    <div className="flex gap-3 justify-center items-center px-2.5 py-3 w-full rounded-lg bg-zinc-800 cursor-pointer">
       <div className="flex gap-3 items-center self-stretch my-auto min-w-[240px] w-[312px]">
         <img
           loading="lazy"

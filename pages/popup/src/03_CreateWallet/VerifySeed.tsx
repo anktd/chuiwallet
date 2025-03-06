@@ -1,9 +1,9 @@
-import type React from 'react';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { WordColumn } from '../components/WordColumn';
 import { Button } from '@src/components/Button';
 import { useWalletContext } from '../context/WalletContext';
+import { pickRandomPositions } from '@src/utils';
 
 export const VerifySeed: React.FC = () => {
   const navigate = useNavigate();
@@ -11,7 +11,9 @@ export const VerifySeed: React.FC = () => {
   const [seedWords, setSeedWords] = useState<string[]>([]);
   const [missingPositions, setMissingPositions] = useState<number[]>([]);
   const [userInputs, setUserInputs] = useState<{ [pos: number]: string }>({});
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = React.useState('');
 
   useEffect(() => {
     const positions = pickRandomPositions(3, 12);
@@ -51,20 +53,19 @@ export const VerifySeed: React.FC = () => {
       }
     }
     if (valid) {
-      alert('Seed verified successfully!');
       navigate('/onboard/complete');
     } else {
-      alert('Seed verification failed. Please try again.');
+      setErrorMsg('Seed verification failed. Please try again.');
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full w-full bg-dark">
-        <p className="text-white">Loading seed for verification...</p>
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="flex items-center justify-center h-full w-full bg-dark">
+  //       <p className="text-white">Loading seed for verification...</p>
+  //     </div>
+  //   );
+  // }
 
   const leftWords = seedWords.slice(0, 6).map((word, i) => {
     const pos = i + 1;
@@ -90,6 +91,7 @@ export const VerifySeed: React.FC = () => {
             Rewrite the correct words on the empty fields to verify your wallet
           </div>
         </div>
+
         <div className="flex gap-4 self-center mt-6 text-base leading-9 whitespace-nowrap min-h-[289px] text-foreground">
           <WordColumn
             words={leftWords.map((item, i) => ({
@@ -105,20 +107,12 @@ export const VerifySeed: React.FC = () => {
           />
         </div>
       </div>
-      <Button className="mt-12 w-full" onClick={handleVerify}>
+
+      <span className="mt-6 text-xs text-red-500 font-light text-center">{errorMsg}</span>
+
+      <Button className="mt-8 w-full" onClick={handleVerify}>
         Continue
       </Button>
     </div>
   );
 };
-
-function pickRandomPositions(n: number, total: number): number[] {
-  const positions: number[] = [];
-  while (positions.length < n) {
-    const pos = Math.floor(Math.random() * total) + 1;
-    if (!positions.includes(pos)) {
-      positions.push(pos);
-    }
-  }
-  return positions.sort((a, b) => a - b);
-}

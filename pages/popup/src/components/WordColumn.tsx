@@ -19,7 +19,7 @@ export const WordColumn: React.FC<WordColumnProps> = ({ words }) => (
           {item.isInput ? (
             <input
               type="text"
-              className="gap-3 self-stretch px-1.5 w-full rounded-md min-h-[35px] bg-neutral-400 text-neutral-800"
+              className="gap-3 self-stretch px-1.5 w-full rounded-md min-h-[35px] bg-neutral-400 text-neutral-800 text-center"
               placeholder="Enter word"
               onChange={e => item.onChange && item.onChange(e.target.value)}
             />

@@ -1,4 +1,3 @@
-// pages/popup/src/02_SetPassword/SetPassword.tsx
 import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { InputField } from '../components/InputField';
@@ -6,33 +5,53 @@ import { TermsCheckbox } from '../components/TermsCheckbox';
 import { Button } from '@src/components/Button';
 import WalletManager from '@extension/backend/src/walletManager';
 import { useWalletContext } from '../context/WalletContext';
+import { getPasswordStrength } from '@src/utils';
 
 export const SetPassword: React.FC = () => {
   const navigate = useNavigate();
+  const { setWallet } = useWalletContext();
+
   const [password, setPassword] = React.useState('');
   const [confirmPassword, setConfirmPassword] = React.useState('');
   const [termsAccepted, setTermsAccepted] = React.useState(false);
-  const { setWallet } = useWalletContext();
+  const [errorMsg, setErrorMsg] = React.useState('');
+
+  const passwordStrength = getPasswordStrength(password);
+
+  let strengthColorClass = 'text-red-500';
+
+  if (passwordStrength === 'medium') {
+    strengthColorClass = 'text-yellow-500';
+  } else if (passwordStrength === 'strong') {
+    strengthColorClass = 'text-green-500';
+  }
 
   const handleNext = async () => {
+    setErrorMsg('');
+
     if (!termsAccepted) {
-      alert('Please accept the terms.');
+      setErrorMsg('Please accept the terms.');
       return;
     }
+
     if (password !== confirmPassword) {
-      alert('Passwords do not match.');
+      setErrorMsg('Passwords do not match.');
       return;
     }
+
+    if (passwordStrength !== 'strong') {
+      setErrorMsg('Please choose a stronger password.');
+      return;
+    }
+
     const manager = new WalletManager();
-    // Create the wallet using your backend; adjust options as needed.
     const wallet = manager.createWallet({
       password,
       network: 'mainnet',
       taproot: false,
     });
-    // Save the wallet instance and password in context.
     setWallet(wallet, password);
-    // (Optionally persist wallet data to chrome.storage.local here)
+
     navigate('/onboard/generate-seed');
   };
 
@@ -47,6 +66,7 @@ export const SetPassword: React.FC = () => {
             <span>on this browser</span>
           </div>
         </div>
+
         <div className="flex flex-col justify-between mt-6 w-full flex-1 text-lg font-bold leading-8 gap-3">
           <div className="flex flex-col justify-start gap-3">
             <InputField
@@ -57,6 +77,13 @@ export const SetPassword: React.FC = () => {
               value={password}
               onChange={e => setPassword(e.target.value)}
             />
+
+            {password && (
+              <span className={`text-xs ${strengthColorClass}`}>
+                {passwordStrength === 'weak' ? 'Weak' : passwordStrength === 'medium' ? 'Medium' : 'Strong'}
+              </span>
+            )}
+
             <InputField
               label="Confirm password"
               type="password"
@@ -65,8 +92,16 @@ export const SetPassword: React.FC = () => {
               value={confirmPassword}
               onChange={e => setConfirmPassword(e.target.value)}
             />
+
+            <span className="mt-2 text-xs text-neutral-400 font-normal">
+              Password must be at least 8 characters long, contain uppercase letters, digits, and special characters.
+            </span>
+
             <TermsCheckbox onAcceptChange={setTermsAccepted} />
+
+            {errorMsg && <span className="mt-1 text-xs text-red-500 font-light">{errorMsg}</span>}
           </div>
+
           <Button onClick={handleNext} tabIndex={0} disabled={!termsAccepted}>
             Next
           </Button>

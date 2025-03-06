@@ -15,16 +15,22 @@ import { TransactionComplete } from '@src/08_Send/TransactionComplete';
 import { TransactionList } from '@src/05_Transaction/TransactionActivitiesTab';
 import Settings from '@src/06_Settings/Settings';
 import { AdvancedSettings } from '@src/06_Settings/AdvancedSettings';
+import { useWalletContext } from '@src/context/WalletContext';
 
 export const App: React.FC = () => {
+  const { onboarded } = useWalletContext();
+
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowSplash(false);
-    }, 2000);
+    const timer = setTimeout(
+      () => {
+        setShowSplash(false);
+      },
+      onboarded ? 500 : 2000,
+    );
     return () => clearTimeout(timer);
-  }, []);
+  }, [onboarded]);
 
   if (showSplash) {
     return <Splash />;
@@ -32,23 +38,32 @@ export const App: React.FC = () => {
 
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/onboard/set-password" replace />} />
-      <Route path="/onboard/set-password" element={<SetPassword />} /> {/* SetPassword */}
-      <Route path="/onboard/generate-seed" element={<GenerateSeed />} />
-      <Route path="/onboard/backup-seed" element={<BackupSeed />} />
-      <Route path="/onboard/verify-seed" element={<VerifySeed />} />
-      <Route path="/onboard/complete" element={<Complete />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/send" element={<SendBitcoin />} />
-      <Route path="/send/options" element={<SendOptions />} />
-      <Route path="/send/preview" element={<TransactionConfirm />} />
-      <Route path="/send/status" element={<TransactionComplete />} />
-      <Route path="/receive" element={<Receive />} />
-      <Route path="/transactions" element={<TransactionList />} />
-      <Route path="/transactions/detail" element={<TransactionList />} />
-      <Route path="/settings" element={<Settings />} />
-      <Route path="/settings/advanced" element={<AdvancedSettings />} />
-      {/* <Route path="/settings/export-pk" element={<ExportPrivateKey />} /> */}
+      {onboarded ? (
+        <>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/send" element={<SendBitcoin />} />
+          <Route path="/send/options" element={<SendOptions />} />
+          <Route path="/send/preview" element={<TransactionConfirm />} />
+          <Route path="/send/status" element={<TransactionComplete />} />
+          <Route path="/receive" element={<Receive />} />
+          <Route path="/transactions" element={<TransactionList />} />
+          <Route path="/transactions/detail" element={<TransactionList />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/settings/advanced" element={<AdvancedSettings />} />
+          {/* <Route path="/settings/export-pk" element={<ExportPrivateKey />} /> */}
+        </>
+      ) : (
+        <>
+          <Route path="/" element={<Navigate to="/onboard/set-password" replace />} />
+          <Route path="/onboard/set-password" element={<SetPassword />} />
+          <Route path="/onboard/generate-seed" element={<GenerateSeed />} />
+          <Route path="/onboard/backup-seed" element={<BackupSeed />} />
+          <Route path="/onboard/verify-seed" element={<VerifySeed />} />
+          <Route path="/onboard/complete" element={<Complete />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+        </>
+      )}
     </Routes>
   );
 };
