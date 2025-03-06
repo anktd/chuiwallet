@@ -1,12 +1,40 @@
+// pages/popup/src/02_SetPassword/SetPassword.tsx
 import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { InputField } from '../components/InputField';
 import { TermsCheckbox } from '../components/TermsCheckbox';
 import { Button } from '@src/components/Button';
+import WalletManager from '@extension/backend/src/walletManager';
+import { useWalletContext } from '../context/WalletContext';
 
 export const SetPassword: React.FC = () => {
   const navigate = useNavigate();
+  const [password, setPassword] = React.useState('');
+  const [confirmPassword, setConfirmPassword] = React.useState('');
   const [termsAccepted, setTermsAccepted] = React.useState(false);
+  const { setWallet } = useWalletContext();
+
+  const handleNext = async () => {
+    if (!termsAccepted) {
+      alert('Please accept the terms.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      alert('Passwords do not match.');
+      return;
+    }
+    const manager = new WalletManager();
+    // Create the wallet using your backend; adjust options as needed.
+    const wallet = manager.createWallet({
+      password,
+      network: 'mainnet',
+      taproot: false,
+    });
+    // Save the wallet instance and password in context.
+    setWallet(wallet, password);
+    // (Optionally persist wallet data to chrome.storage.local here)
+    navigate('/onboard/generate-seed');
+  };
 
   return (
     <div className="flex flex-col h-screen px-5 pt-12 pb-[19px] bg-dark">
@@ -21,16 +49,25 @@ export const SetPassword: React.FC = () => {
         </div>
         <div className="flex flex-col justify-between mt-6 w-full flex-1 text-lg font-bold leading-8 gap-3">
           <div className="flex flex-col justify-start gap-3">
-            <InputField label="Password" type="password" placeholder="Password" id="password" />
-            <InputField label="Confirm password" type="password" placeholder="Confirm password" id="confirmPassword" />
+            <InputField
+              label="Password"
+              type="password"
+              placeholder="Password"
+              id="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+            />
+            <InputField
+              label="Confirm password"
+              type="password"
+              placeholder="Confirm password"
+              id="confirmPassword"
+              value={confirmPassword}
+              onChange={e => setConfirmPassword(e.target.value)}
+            />
             <TermsCheckbox onAcceptChange={setTermsAccepted} />
           </div>
-          <Button
-            onClick={() => {
-              navigate('/onboard/generate-seed');
-            }}
-            tabIndex={0}
-            disabled={!termsAccepted}>
+          <Button onClick={handleNext} tabIndex={0} disabled={!termsAccepted}>
             Next
           </Button>
         </div>

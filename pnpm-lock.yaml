@@ -126,6 +126,9 @@ importers:
 
   chrome-extension:
     dependencies:
+      '@extension/backend':
+        specifier: workspace:*
+        version: link:../packages/backend
       '@extension/shared':
         specifier: workspace:*
         version: link:../packages/shared
@@ -337,6 +340,9 @@ importers:
 
   pages/popup:
     dependencies:
+      '@extension/backend':
+        specifier: workspace:*
+        version: link:../../packages/backend
       '@extension/shared':
         specifier: workspace:*
         version: link:../../packages/shared

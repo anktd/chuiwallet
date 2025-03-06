@@ -15,7 +15,7 @@ export function Complete() {
           <div className="flex justify-center items-center w-[78px]">
             <img
               loading="lazy"
-              src="https://cdn.builder.io/api/v1/image/assets/TEMP/c25324e7d5513018ecd63f59bc63a5fdac06538dc159dff335e62994023880b0?placeholderIfAbsent=true&apiKey=7730bdd605464082ae23b346c3cac1f8"
+              src="popup/bitcoin_logo.svg"
               alt="Wallet creation success"
               className="object-contain self-stretch my-auto aspect-square w-[78px]"
             />

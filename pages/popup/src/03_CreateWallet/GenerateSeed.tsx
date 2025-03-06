@@ -11,9 +11,7 @@ export const GenerateSeed: React.FC = () => {
       <div className="flex flex-col justify-between items-center w-full flex-1">
         <div className="flex flex-col max-w-[262px]">
           <div className="text-2xl font-extrabold leading-10 text-center text-white">
-            We will generate a
-            <br />
-            seed phrase for you
+            We will generate a seed phrase for you
           </div>
           <ul className="mt-6 text-lg leading-6 pl-6 text-foreground list-disc">
             {infoLines.map((line, index) => (
@@ -21,12 +19,7 @@ export const GenerateSeed: React.FC = () => {
             ))}
           </ul>
         </div>
-        <Button
-          onClick={() => {
-            navigate('/onboard/backup-seed');
-          }}>
-          Reveal seed phrase
-        </Button>
+        <Button onClick={() => navigate('/onboard/backup-seed')}>Reveal seed phrase</Button>
       </div>
     </div>
   );
