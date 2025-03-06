@@ -9,15 +9,16 @@
     "test": "jest"
   },
   "dependencies": {
+    "@bitcoinerlab/secp256k1": "^1.2.0",
     "@samouraiwallet/electrum-client": "^1.5.2",
     "axios": "^1.7.9",
+    "bech32": "^2.0.0",
     "bip32": "5.0.0-rc.0",
     "bip39": "^3.1.0",
     "bitcoinjs-lib": "^6.1.7",
     "config": "^3.3.12",
     "crypto-js": "^4.2.0",
     "ecpair": "3.0.0-rc.0",
-    "tiny-secp256k1": "^2.2.3",
     "winston": "^3.17.0"
   },
   "devDependencies": {

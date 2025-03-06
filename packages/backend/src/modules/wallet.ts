@@ -3,15 +3,15 @@ import * as bip39 from 'bip39';
 import * as bitcoin from 'bitcoinjs-lib';
 import type { BIP32Interface } from 'bip32';
 import BIP32Factory from 'bip32';
-import * as tinysecp256k1 from 'tiny-secp256k1';
+import * as secp256k1 from '@bitcoinerlab/secp256k1';
 import { initEccLib } from 'bitcoinjs-lib';
 import encryption from '../utils/encryption.js';
 
 // Initialize ECC library (required for p2tr)
-initEccLib(tinysecp256k1);
+initEccLib(secp256k1);
 
-// Wrap bip32 with tiny-secp256k1 support
-const bip32 = BIP32Factory(tinysecp256k1);
+// Wrap bip32 with secp256k1 support
+const bip32 = BIP32Factory(secp256k1);
 
 export type AddressType = 'legacy' | 'segwit' | 'taproot';
 

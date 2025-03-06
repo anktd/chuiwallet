@@ -4,20 +4,36 @@ import libAssetsPlugin from '@laynezh/vite-plugin-lib-assets';
 import makeManifestPlugin from './utils/plugins/make-manifest-plugin';
 import { watchPublicPlugin, watchRebuildPlugin } from '@extension/hmr';
 import { isDev, isProduction, watchOption } from '@extension/vite-config';
+import wasm from 'vite-plugin-wasm';
+import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill';
 
 const rootDir = resolve(__dirname);
 const srcDir = resolve(rootDir, 'src');
 
 const outDir = resolve(rootDir, '..', 'dist');
 export default defineConfig({
+  optimizeDeps: {
+    esbuildOptions: {
+      define: {
+        global: 'globalThis',
+      },
+      plugins: [
+        NodeGlobalsPolyfillPlugin({
+          buffer: true,
+        }),
+      ],
+    },
+  },
   resolve: {
     alias: {
       '@root': rootDir,
       '@src': srcDir,
       '@assets': resolve(srcDir, 'assets'),
+      buffer: 'buffer',
     },
   },
   plugins: [
+    wasm(),
     libAssetsPlugin({
       outputPath: outDir,
     }) as PluginOption,
