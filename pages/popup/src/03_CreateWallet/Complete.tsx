@@ -26,19 +26,19 @@ export function Complete() {
           <div className="flex justify-center items-center w-full gap-[18px]">
             <img
               loading="lazy"
-              src={chrome.runtime.getURL('popup/bitcoin_cash_logo.svg')}
+              src={chrome.runtime.getURL('popup/bch_coin.svg')}
               alt="Wallet creation success"
               className="object-contain self-stretch my-auto aspect-square w-[78px]"
             />
             <img
               loading="lazy"
-              src={chrome.runtime.getURL('popup/bitcoin_logo.svg')}
+              src={chrome.runtime.getURL('popup/btc_coin.svg')}
               alt="Wallet creation success"
               className="object-contain self-stretch my-auto aspect-square w-[78px]"
             />
             <img
               loading="lazy"
-              src={chrome.runtime.getURL('popup/tether_usd_logo.svg')}
+              src={chrome.runtime.getURL('popup/usdt_coin.svg')}
               alt="Wallet creation success"
               className="object-contain self-stretch my-auto aspect-square w-[78px]"
             />

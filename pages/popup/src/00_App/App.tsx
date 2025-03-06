@@ -7,7 +7,7 @@ import { BackupSeed } from '@src/03_CreateWallet/BackupSeed';
 import { VerifySeed } from '@src/03_CreateWallet/VerifySeed';
 import { Complete } from '@src/03_CreateWallet/Complete';
 import { Dashboard } from '@src/04_Dashboard/Dashboard';
-import { SendBitcoin } from '@src/08_Send/SendBitcoin';
+import { Send } from '@src/08_Send/Send';
 import Receive from '@src/07_Receive/Receive';
 import { SendOptions } from '@src/08_Send/SendOptions';
 import { TransactionConfirm } from '@src/08_Send/TransactionConfirm';
@@ -42,11 +42,11 @@ export const App: React.FC = () => {
         <>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/send" element={<SendBitcoin />} />
-          <Route path="/send/options" element={<SendOptions />} />
-          <Route path="/send/preview" element={<TransactionConfirm />} />
-          <Route path="/send/status" element={<TransactionComplete />} />
-          <Route path="/receive" element={<Receive />} />
+          <Route path="/send/:currency" element={<Send />} />
+          <Route path="/send/:currency/options" element={<SendOptions />} />
+          <Route path="/send/:currency/preview" element={<TransactionConfirm />} />
+          <Route path="/send/:currency/status" element={<TransactionComplete />} />
+          <Route path="/receive/:currency" element={<Receive />} />
           <Route path="/transactions" element={<TransactionList />} />
           <Route path="/transactions/detail" element={<TransactionList />} />
           <Route path="/settings" element={<Settings />} />
