@@ -13,27 +13,25 @@ export interface WordColumnProps {
 
 export const WordColumn: React.FC<WordColumnProps> = ({ words }) => (
   <div className="flex flex-col justify-between w-[134px]">
-    {words.map((word, index) => (
+    {words.map((item, index) => (
       <div key={index} className={index > 0 ? 'mt-3.5' : ''}>
         <div className="flex flex-col w-full max-w-[131px]">
-          {word.isInput ? (
+          {item.isInput ? (
             <input
-              className={`gap-3 self-stretch px-1.5 w-full rounded-md min-h-[35px] ${
-                word.isHighlighted ? 'bg-neutral-400 text-neutral-800' : 'bg-neutral-700 text-foreground'
-              }`}
-              style={{ outline: 'none', border: 'none' }}
+              type="text"
+              className="gap-3 self-stretch px-1.5 w-full rounded-md min-h-[35px] bg-neutral-400 text-neutral-800"
               placeholder="Enter word"
-              onChange={e => word.onChange?.(e.target.value)}
+              onChange={e => item.onChange && item.onChange(e.target.value)}
             />
           ) : (
             <div
               className={`gap-3 self-stretch px-1.5 w-full rounded-md min-h-[35px] ${
-                word.isHighlighted ? 'bg-neutral-400 text-neutral-800' : 'bg-neutral-700 text-foreground'
+                item.isHighlighted ? 'bg-neutral-400 text-neutral-800' : 'bg-neutral-700 text-foreground'
               }`}
               tabIndex={0}
               role="button"
-              aria-pressed={word.isHighlighted}>
-              {word.text}
+              aria-pressed={item.isHighlighted}>
+              {item.text}
             </div>
           )}
         </div>

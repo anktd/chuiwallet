@@ -6,6 +6,7 @@ import BIP32Factory from 'bip32';
 import * as secp256k1 from '@bitcoinerlab/secp256k1';
 import { initEccLib } from 'bitcoinjs-lib';
 import encryption from '../utils/encryption.js';
+import { Buffer } from 'buffer';
 
 // Initialize ECC library (required for p2tr)
 initEccLib(secp256k1);

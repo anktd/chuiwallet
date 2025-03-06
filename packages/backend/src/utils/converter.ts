@@ -1,5 +1,6 @@
 import { bech32, bech32m } from 'bech32';
 import { crypto, networks, opcodes, address as btcAddress } from 'bitcoinjs-lib';
+import { Buffer } from 'buffer';
 
 /**
  * Converts a Bitcoin address into the scripthash required by Electrum.

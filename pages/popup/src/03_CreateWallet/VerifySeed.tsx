@@ -1,4 +1,3 @@
-// pages/popup/src/03_CreateWallet/VerifySeed.tsx
 import type React from 'react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -67,20 +66,19 @@ export const VerifySeed: React.FC = () => {
     );
   }
 
-  // Transform seed words into two columns.
   const leftWords = seedWords.slice(0, 6).map((word, i) => {
     const pos = i + 1;
     if (missingPositions.includes(pos)) {
-      return { text: '', isHighlighted: true };
+      return { text: '', isHighlighted: true, isInput: true };
     }
-    return { text: word, isHighlighted: false };
+    return { text: word, isHighlighted: false, isInput: false };
   });
   const rightWords = seedWords.slice(6, 12).map((word, i) => {
     const pos = i + 7;
     if (missingPositions.includes(pos)) {
-      return { text: '', isHighlighted: true };
+      return { text: '', isHighlighted: true, isInput: true };
     }
-    return { text: word, isHighlighted: false };
+    return { text: word, isHighlighted: false, isInput: false };
   });
 
   return (
@@ -96,13 +94,13 @@ export const VerifySeed: React.FC = () => {
           <WordColumn
             words={leftWords.map((item, i) => ({
               ...item,
-              onChange: missingPositions.includes(i + 1) ? (val: string) => handleChange(i + 1, val) : undefined,
+              onChange: item.isInput ? (val: string) => handleChange(i + 1, val) : undefined,
             }))}
           />
           <WordColumn
             words={rightWords.map((item, i) => ({
               ...item,
-              onChange: missingPositions.includes(i + 7) ? (val: string) => handleChange(i + 7, val) : undefined,
+              onChange: item.isInput ? (val: string) => handleChange(i + 7, val) : undefined,
             }))}
           />
         </div>
@@ -114,7 +112,6 @@ export const VerifySeed: React.FC = () => {
   );
 };
 
-/** Helper: Pick N distinct random positions from 1 to total */
 function pickRandomPositions(n: number, total: number): number[] {
   const positions: number[] = [];
   while (positions.length < n) {

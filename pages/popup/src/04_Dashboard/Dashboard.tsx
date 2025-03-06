@@ -13,14 +13,14 @@ export const Dashboard: React.FC = () => {
           <div className="self-stretch my-auto">Account 1</div>
           <img
             loading="lazy"
-            src="popup/account_down_arrow.svg"
+            src={chrome.runtime.getURL('popup/account_down_arrow.svg')}
             alt=""
             className="object-contain shrink-0 self-stretch my-auto w-3 aspect-square"
           />
         </div>
         <img
           loading="lazy"
-          src="popup/menu_icon.svg"
+          src={chrome.runtime.getURL('popup/menu_icon.svg')}
           alt=""
           className="object-contain shrink-0 self-stretch my-auto w-6 aspect-square"
         />
@@ -31,7 +31,7 @@ export const Dashboard: React.FC = () => {
           <div className="self-stretch my-auto">Total Balance</div>
           <img
             loading="lazy"
-            src="popup/refresh_icon"
+            src={chrome.runtime.getURL('popup/refresh_icon.svg')}
             alt=""
             className="object-contain shrink-0 self-stretch my-auto aspect-square w-[18px]"
           />

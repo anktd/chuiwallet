@@ -17,7 +17,7 @@ export const CryptoButton: React.FC<CryptoButtonProps> = ({ icon, label, onClick
       <div className="flex flex-1 shrink gap-2 justify-center items-center self-stretch my-auto w-full basis-0">
         <img
           loading="lazy"
-          src={icon}
+          src={chrome.runtime.getURL(icon)}
           alt={`${label} icon`}
           className="object-contain shrink-0 self-stretch my-auto w-6 aspect-square"
         />

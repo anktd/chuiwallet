@@ -2,6 +2,7 @@ import { createReadStream, createWriteStream, existsSync, mkdirSync } from 'node
 import { posix, resolve } from 'node:path';
 import fg from 'fast-glob';
 import { AsyncZipDeflate, Zip } from 'fflate';
+import type { Buffer } from 'buffer';
 
 // Converts bytes to megabytes
 function toMB(bytes: number): number {

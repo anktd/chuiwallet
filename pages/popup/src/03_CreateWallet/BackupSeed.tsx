@@ -1,4 +1,3 @@
-// pages/popup/src/03_CreateWallet/BackupSeed.tsx
 import type React from 'react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';

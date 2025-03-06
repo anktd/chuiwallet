@@ -13,7 +13,7 @@ export const CryptoBalance: React.FC<CryptoBalanceProps> = ({ cryptoName, crypto
       <div className="flex gap-3 items-center self-stretch my-auto min-w-[240px] w-[312px]">
         <img
           loading="lazy"
-          src={icon}
+          src={chrome.runtime.getURL(icon)}
           alt={`${cryptoName} icon`}
           className="object-contain shrink-0 self-stretch my-auto w-12 aspect-square"
         />
