@@ -9,7 +9,7 @@ export const Send: React.FC = () => {
   const { currency } = useParams<{ currency: Currencies }>();
 
   return (
-    <div className="flex overflow-hidden flex-col items-center py-5 text-lg font-bold leading-8 text-white bg-dark]">
+    <div className="flex overflow-hidden flex-col justify-center text-white bg-dark h-full px-4 pt-12 pb-[19px]">
       <div className="text-xl leading-none text-center">Send {currency ? currencyMapping[currency] : 'Unknown'}</div>
       <img
         loading="lazy"

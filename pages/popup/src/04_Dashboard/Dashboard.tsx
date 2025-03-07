@@ -39,7 +39,7 @@ export const Dashboard: React.FC = () => {
           />
         </button>
 
-        <button>
+        <button onClick={() => navigate('/settings')}>
           <img
             loading="lazy"
             src={chrome.runtime.getURL('popup/menu_icon.svg')}
