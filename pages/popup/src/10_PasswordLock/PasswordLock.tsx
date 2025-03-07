@@ -15,10 +15,6 @@ export const PasswordLock: React.FC = () => {
   const [errorMsg, setErrorMsg] = React.useState('');
   const [loading, setLoading] = React.useState(false);
 
-  // chrome.storage.local.get(null, data => {
-  //   console.log('Stored data on password lock:', data);
-  // });
-
   const handleUnlock = async () => {
     setErrorMsg('');
 

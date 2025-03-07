@@ -3,18 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { CryptoBalance } from '../components/CryptoBalance';
 import { CryptoButton } from '../components/CryptoButton';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ButtonOutline } from '@src/components/ButtonOutline';
+import { useWalletContext } from '@src/context/WalletContext';
 
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  const { selectedAccountIndex } = useWalletContext();
 
-  const [showAccountSlide, setShowAccountSlide] = React.useState(false);
   const [showChooseReceiveCurrencySlide, setShowChooseReceiveCurrencySlide] = React.useState(false);
   const [showChooseSendCurrencySlide, setShowChooseSendCurrencySlide] = React.useState(false);
-
-  const handleToggleAccountSlide = () => {
-    setShowAccountSlide(!showAccountSlide);
-  };
 
   const handleToggleChooseReceiveCurrencySlide = () => {
     setShowChooseReceiveCurrencySlide(!showChooseReceiveCurrencySlide);
@@ -29,8 +25,8 @@ export const Dashboard: React.FC = () => {
       <div className="flex gap-10 justify-between items-center self-stretch p-3 w-full text-xs font-bold leading-6 bg-dark min-h-[48px] text-neutral-200">
         <button
           className="flex gap-2 justify-center items-center self-stretch px-2 my-auto rounded bg-zinc-800 cursor-pointer"
-          onClick={handleToggleAccountSlide}>
-          <div className="self-stretch my-auto">Account 1</div>
+          onClick={() => navigate('/accounts')}>
+          <div className="self-stretch my-auto">Account {selectedAccountIndex + 1}</div>
           <img
             loading="lazy"
             src={chrome.runtime.getURL('popup/account_down_arrow.svg')}
@@ -90,38 +86,6 @@ export const Dashboard: React.FC = () => {
           onClick={() => navigate('/send/usdt')}
         />
       </div>
-
-      <AnimatePresence>
-        {showAccountSlide && (
-          <motion.div
-            className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50 flex items-end justify-center"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={handleToggleAccountSlide}>
-            <motion.div
-              className="w-full max-w-sm bg-neutral-900 p-4 rounded-t-lg"
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ duration: 0.3 }}
-              onClick={e => e.stopPropagation()}>
-              <div className="text-white text-xl font-bold mb-4">Accounts</div>
-              <div className="flex flex-col gap-4">
-                <div className="bg-neutral-800 rounded p-2 text-white">
-                  <div>Account 1</div>
-                  <div className="text-xs text-neutral-400">7,956 USD</div>
-                </div>
-                <div className="bg-neutral-800 rounded p-2 text-white">
-                  <div>Account 2</div>
-                  <div className="text-xs text-neutral-400">0 USD</div>
-                </div>
-              </div>
-              <ButtonOutline className="mt-80">Generate account</ButtonOutline>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       <AnimatePresence>
         {showChooseReceiveCurrencySlide && (

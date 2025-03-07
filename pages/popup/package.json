@@ -22,6 +22,7 @@
     "@extension/backend": "workspace:*",
     "@extension/shared": "workspace:*",
     "@extension/storage": "workspace:*",
+    "avvvatars-react": "^0.4.2",
     "react-qr-code": "^2.0.15"
   },
   "devDependencies": {

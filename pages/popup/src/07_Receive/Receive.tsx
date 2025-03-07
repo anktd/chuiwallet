@@ -7,7 +7,7 @@ import type * as React from 'react';
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 
-const Receive: React.FC = () => {
+export const Receive: React.FC = () => {
   const { wallet } = useWalletContext();
   const { currency } = useParams<{ currency: Currencies }>();
   const [copyText, setCopyText] = useState<string>('Copy address');
@@ -42,5 +42,3 @@ const Receive: React.FC = () => {
     </div>
   );
 };
-
-export default Receive;

@@ -162,6 +162,42 @@ export default class Wallet {
     return address || '';
   }
 
+  public getAddressForAccount(index: number, addressIndex: number = 0): string {
+    let accountBranch: BIP32Interface;
+    const type = this.getAddressType();
+    if (type === 'legacy') {
+      accountBranch = this.root.deriveHardened(44).deriveHardened(this.coin).deriveHardened(index);
+    } else if (type === 'taproot') {
+      accountBranch = this.root.deriveHardened(86).deriveHardened(this.coin).deriveHardened(index);
+    } else {
+      accountBranch = this.root.deriveHardened(84).deriveHardened(this.coin).deriveHardened(index);
+    }
+    const node = accountBranch.derive(0).derive(addressIndex);
+    if (type === 'legacy') {
+      return (
+        bitcoin.payments.p2pkh({
+          pubkey: Buffer.from(node.publicKey),
+          network: this.network,
+        }).address || ''
+      );
+    } else if (type === 'taproot') {
+      const internalPubkey = Buffer.from(node.publicKey.slice(1));
+      return (
+        bitcoin.payments.p2tr({
+          internalPubkey,
+          network: this.network,
+        }).address || ''
+      );
+    } else {
+      return (
+        bitcoin.payments.p2wpkh({
+          pubkey: Buffer.from(node.publicKey),
+          network: this.network,
+        }).address || ''
+      );
+    }
+  }
+
   private getAddressType(): 'legacy' | 'segwit' | 'taproot' {
     // If the wallet was created with the taproot flag set to true, return "taproot".
     if (this.taproot) return 'taproot';
