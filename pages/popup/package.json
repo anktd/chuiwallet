@@ -21,7 +21,8 @@
   "dependencies": {
     "@extension/backend": "workspace:*",
     "@extension/shared": "workspace:*",
-    "@extension/storage": "workspace:*"
+    "@extension/storage": "workspace:*",
+    "react-qr-code": "^2.0.15"
   },
   "devDependencies": {
     "@extension/tailwindcss-config": "workspace:*",

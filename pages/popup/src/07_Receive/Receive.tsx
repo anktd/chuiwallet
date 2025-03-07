@@ -10,11 +10,11 @@ import { useParams } from 'react-router-dom';
 const Receive: React.FC = () => {
   const { wallet } = useWalletContext();
   const { currency } = useParams<{ currency: Currencies }>();
-  const [copied, setCopied] = useState(false);
+  const [copyText, setCopyText] = useState<string>('Copy address');
 
   const address = wallet ? wallet.generateAddress(0) : 'Address not found';
 
-  const handleCopyToClipboard = async () => {
+  const handleCopyAddress = async () => {
     try {
       if (!wallet || !address) {
         console.error('Address not found');
@@ -23,8 +23,8 @@ const Receive: React.FC = () => {
 
       await navigator.clipboard.writeText(address);
 
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
+      setCopyText('Copied!');
+      setTimeout(() => setCopyText('Copy address'), 3000);
     } catch (err) {
       console.error('Failed to copy seed:', err);
     }
@@ -35,14 +35,9 @@ const Receive: React.FC = () => {
       <Header title="Receive" />
       <AddressQRCode currency={currency} address={address} />
       <div className="relative flex flex-row justify-center items-end flex-1 w-full">
-        <Button tabIndex={0} onClick={handleCopyToClipboard}>
-          Copy address
+        <Button tabIndex={0} onClick={handleCopyAddress} className="relative">
+          <span>{copyText}</span>
         </Button>
-        {copied && (
-          <div className="absolute ml-1 mt-[-2px] top-0 left-full p-1 bg-body font-normal bg-neutral-700 text-foreground text-xs rounded z-[1]">
-            Copied!
-          </div>
-        )}
       </div>
     </div>
   );

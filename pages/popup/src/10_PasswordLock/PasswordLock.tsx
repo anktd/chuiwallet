@@ -108,7 +108,7 @@ export const PasswordLock: React.FC = () => {
             {errorMsg && <span className="mt-1 text-xs font-italic text-red-500 font-light">{errorMsg}</span>}
           </div>
 
-          <Button onClick={handleUnlock} tabIndex={0} disabled={loading}>
+          <Button onClick={handleUnlock} tabIndex={0} disabled={loading || !password}>
             {loading ? 'Unlocking...' : 'Unlock'}
           </Button>
         </div>
