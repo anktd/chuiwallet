@@ -13,10 +13,13 @@ interface WalletContextType {
   onboarded: boolean;
   isRestored: boolean;
   setWallet: (wallet: Wallet, password: string) => void;
+  setSelectedAccountIndex: (index: number) => void;
+  setTotalAccounts: (index: number) => void;
   setOnboarded: (onboarded: boolean) => void;
   switchAccount: (index: number) => void;
   nextAccount: () => void;
   addAccount: () => void;
+  createWallet: (seed: string, password: string, network?: 'mainnet' | 'testnet', taproot?: boolean) => void;
   restoreWallet: (seed: string, password: string, network?: 'mainnet' | 'testnet', taproot?: boolean) => void;
   clearWallet: () => void;
 }
@@ -31,10 +34,10 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [onboarded, setOnboarded] = useState(false);
   const [isRestored, setIsRestored] = useState(false);
 
-  const setWallet = (walletInstance: Wallet, pwd: string) => {
-    setWalletState(walletInstance);
-    setPassword(pwd);
-    setSessionPassword(pwd);
+  const setWallet = (newWallet: Wallet, newPassword: string) => {
+    setWalletState(newWallet);
+    setPassword(newPassword);
+    setSessionPassword(newPassword);
   };
 
   const clearWallet = () => {
@@ -44,42 +47,44 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   useEffect(() => {
-    chrome.storage.local.get(['walletOnboarded', 'selectedAccountIndex', 'totalAccounts'], res => {
-      if (res.walletOnboarded === true) {
-        setOnboarded(true);
-      }
-      if (typeof res.selectedAccountIndex === 'number') {
-        setSelectedAccountIndex(res.selectedAccountIndex);
-      }
-      if (typeof res.totalAccounts === 'number') {
-        setTotalAccounts(res.totalAccounts);
+    chrome.storage.local.get(['storedAccount'], res => {
+      const storedAccount: StoredAccount | undefined = res.storedAccount;
+      if (storedAccount) {
+        if (storedAccount.walletOnboarded === true) {
+          setOnboarded(true);
+        }
+        if (typeof storedAccount.selectedAccountIndex === 'number') {
+          setSelectedAccountIndex(storedAccount.selectedAccountIndex);
+        }
+        if (typeof storedAccount.totalAccounts === 'number') {
+          setTotalAccounts(storedAccount.totalAccounts);
+        }
       }
     });
   }, []);
 
   useEffect(() => {
-    const storedPwd = getSessionPassword();
-    if (storedPwd) {
+    const storedPassword = getSessionPassword();
+    if (storedPassword) {
       chrome.storage.local.get(['storedAccount'], async res => {
-        const storedAcc: StoredAccount | undefined = res.storedAccount;
-        if (storedAcc) {
+        const storedAccount: StoredAccount | undefined = res.storedAccount;
+        if (storedAccount) {
           try {
             const manager = new WalletManager();
 
             const restoredWallet = manager.createWallet({
-              password: storedPwd,
-              network: storedAcc.network,
-              taproot: false,
+              password: storedPassword,
+              network: storedAccount.network,
+              taproot: storedAccount.taproot,
             });
 
-            restoredWallet.restoreEncryptedMnemonic(storedAcc.encryptedMnemonic);
-            const seed = restoredWallet.recoverMnemonic(storedPwd);
+            restoredWallet.restoreEncryptedMnemonic(storedAccount.encryptedMnemonic);
+            const seed = restoredWallet.recoverMnemonic(storedPassword);
             if (seed) {
-              setWalletState(restoredWallet);
-              setPassword(storedPwd);
-              setSelectedAccountIndex(storedAcc.accountIndex);
-              setTotalAccounts(storedAcc.totalAccounts);
-              console.log('Wallet successfully restored from storage.');
+              setWallet(restoredWallet, storedPassword);
+              setSelectedAccountIndex(storedAccount.selectedAccountIndex);
+              setTotalAccounts(storedAccount.totalAccounts);
+              // console.log('Wallet successfully restored from storage.');
             } else {
               console.error('Failed to recover seed with stored password.');
               clearWallet();
@@ -96,8 +101,8 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   useEffect(() => {
     const interval = setInterval(() => {
-      const currentPwd = getSessionPassword();
-      if (!currentPwd) {
+      const currentPassword = getSessionPassword();
+      if (!currentPassword) {
         clearWallet();
       }
     }, 60 * 1000);
@@ -115,16 +120,12 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     wallet.setAccountIndex(index);
     setSelectedAccountIndex(index);
 
-    chrome.storage.local.set({ selectedAccountIndex: index }, () => {
-      console.log('Selected account index updated:', index);
-    });
-
     chrome.storage.local.get(['storedAccount'], res => {
-      if (res.storedAccount) {
-        const storedAcc = res.storedAccount as StoredAccount;
-        const newStoredAcc = { ...storedAcc, accountIndex: index };
-        chrome.storage.local.set({ storedAccount: newStoredAcc }, () => {
-          console.log('Stored account updated with new account index:', index);
+      const storedAccount: StoredAccount | undefined = res.storedAccount;
+      if (storedAccount) {
+        storedAccount.selectedAccountIndex = index;
+        chrome.storage.local.set({ storedAccount }, () => {
+          // console.log('Selected account index updated:', index);
         });
       }
     });
@@ -146,34 +147,67 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const newTotal = newIndex + 1;
     setTotalAccounts(newTotal);
 
-    chrome.storage.local.set({ totalAccounts: newTotal }, () => {
-      console.log('Total account count updated to', newTotal);
-    });
-
     chrome.storage.local.get(['storedAccount'], res => {
-      const storedAcc: StoredAccount = res.storedAccount || {
-        encryptedMnemonic: wallet.getEncryptedMnemonic()!,
-        xpub: wallet.getXpub(),
-        network: 'mainnet',
-        accountIndex: 0,
-        totalAccounts: 0,
-        isRestored: false,
-      };
+      const storedAccount: StoredAccount | undefined = res.storedAccount;
+      if (storedAccount) {
+        const newStoredAccount: StoredAccount = {
+          ...storedAccount,
+          selectedAccountIndex: newIndex,
+          totalAccounts: newTotal,
+        };
 
-      setIsRestored(true);
+        chrome.storage.local.set({ storedAccount: newStoredAccount }, () => {
+          // console.log('Stored account updated:', newStoredAccount);
+        });
 
-      const newStoredAcc: StoredAccount = {
-        ...storedAcc,
-        accountIndex: newIndex,
-        totalAccounts: newTotal,
-      };
-
-      chrome.storage.local.set({ storedAccount: newStoredAcc }, () => {
-        console.log('Stored account updated:', newStoredAcc);
-      });
+        switchAccount(newIndex);
+      }
     });
+  };
 
-    switchAccount(newIndex);
+  const createWallet = (
+    seed: string,
+    pwd: string,
+    network: 'mainnet' | 'testnet' = 'mainnet',
+    taproot: boolean = false,
+  ) => {
+    try {
+      const manager = new WalletManager();
+
+      const createdWallet = manager.createWallet({
+        password: pwd,
+        mnemonic: seed,
+        network,
+        taproot,
+      });
+
+      setWallet(createdWallet, pwd);
+
+      const storedAccount: StoredAccount = {
+        encryptedMnemonic: createdWallet.getEncryptedMnemonic()!,
+        xpub: createdWallet.getXpub(),
+        network,
+        taproot: false,
+        selectedAccountIndex: 0,
+        totalAccounts: 1,
+        isRestored: false,
+        walletOnboarded: true,
+      };
+
+      chrome.storage.local.set(
+        {
+          storedAccount,
+        },
+        () => {
+          // console.log('Wallet successfully created and persisted.');
+        },
+      );
+
+      setSelectedAccountIndex(0);
+      setTotalAccounts(1);
+    } catch (err) {
+      console.error('Error creating wallet:', err);
+    }
   };
 
   const restoreWallet = (
@@ -193,25 +227,25 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       });
 
       setWallet(restoredWallet, pwd);
+      setIsRestored(true);
 
       const storedAccount: StoredAccount = {
         encryptedMnemonic: restoredWallet.getEncryptedMnemonic()!,
         xpub: restoredWallet.getXpub(),
         network,
-        accountIndex: 0,
+        taproot: false,
+        selectedAccountIndex: 0,
         totalAccounts: 1,
         isRestored: true,
+        walletOnboarded: true,
       };
 
       chrome.storage.local.set(
         {
           storedAccount,
-          selectedAccountIndex: 0,
-          totalAccounts: 1,
-          walletOnboarded: true,
         },
         () => {
-          console.log('Wallet successfully restored from seed and persisted.');
+          // console.log('Wallet successfully restored from seed and persisted.');
         },
       );
 
@@ -232,10 +266,13 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         onboarded,
         isRestored,
         setWallet,
+        setSelectedAccountIndex,
+        setTotalAccounts,
         setOnboarded,
         switchAccount,
         nextAccount,
         addAccount,
+        createWallet,
         restoreWallet,
         clearWallet,
       }}>

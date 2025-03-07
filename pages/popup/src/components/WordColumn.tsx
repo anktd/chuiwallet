@@ -6,7 +6,6 @@ export interface WordItemProps {
   isInput?: boolean;
   placeholder?: string;
   onChange?: (value: string) => void;
-  onPaste?: (e: React.ClipboardEvent<HTMLInputElement>) => void;
 }
 
 export interface WordColumnProps {
@@ -21,10 +20,9 @@ export const WordColumn: React.FC<WordColumnProps> = ({ words }) => (
           {item.isInput ? (
             <input
               type="text"
-              value={item.text} // controlled input
-              placeholder={item.placeholder || 'Enter word'}
+              value={item.text}
+              placeholder={item.placeholder || ''}
               onChange={e => item.onChange && item.onChange(e.target.value)}
-              onPaste={item.onPaste}
               className="gap-3 self-stretch px-1.5 w-full rounded-md min-h-[35px] bg-neutral-400 text-neutral-800 text-center placeholder-[#222222]"
             />
           ) : (

@@ -4,7 +4,7 @@ import Header from '@src/components/Header';
 import { useWalletContext } from '@src/context/WalletContext';
 import type { Currencies } from '@src/types';
 import type * as React from 'react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 const Receive: React.FC = () => {
@@ -12,22 +12,7 @@ const Receive: React.FC = () => {
   const { currency } = useParams<{ currency: Currencies }>();
   const [copied, setCopied] = useState(false);
 
-  chrome.storage.local.get(null, data => {
-    console.log('Stored data:', data);
-  });
-
-  useEffect(() => {
-    chrome.storage.local.get(['walletPassword', 'encryptedMnemonic'], async res => {
-      const storedEncrypted = res.encryptedMnemonic;
-      console.log('Retrieved from storage:', { storedEncrypted });
-      // ...
-    });
-  }, []);
-
-  console.log(wallet);
-
   const address = wallet ? wallet.generateAddress(0) : 'Address not found';
-  console.log(address);
 
   const handleCopyToClipboard = async () => {
     try {

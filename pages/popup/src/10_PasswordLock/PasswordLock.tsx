@@ -1,20 +1,23 @@
 import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
+import bip39 from 'bip39';
 import { InputField } from '@src/components/InputField';
 import { Button } from '@src/components/Button';
 import { useWalletContext } from '@src/context/WalletContext';
 import WalletManager from '@extension/backend/src/walletManager';
+import type { StoredAccount } from '@src/types';
+import encryption from '@extension/backend/src/utils/encryption';
 
 export const PasswordLock: React.FC = () => {
   const navigate = useNavigate();
-  const { setWallet } = useWalletContext();
+  const { setSelectedAccountIndex, setTotalAccounts, setWallet } = useWalletContext();
   const [password, setPassword] = React.useState('');
   const [errorMsg, setErrorMsg] = React.useState('');
   const [loading, setLoading] = React.useState(false);
 
-  chrome.storage.local.get(null, data => {
-    console.log('Stored data:', data);
-  });
+  // chrome.storage.local.get(null, data => {
+  //   console.log('Stored data on password lock:', data);
+  // });
 
   const handleUnlock = async () => {
     setErrorMsg('');
@@ -27,33 +30,44 @@ export const PasswordLock: React.FC = () => {
     setLoading(true);
 
     try {
-      chrome.storage.local.get(['encryptedMnemonic'], async res => {
-        const { encryptedMnemonic } = res;
-
-        if (!encryptedMnemonic) {
-          setErrorMsg('No wallet data found. Please complete onboarding.');
+      chrome.storage.local.get(['storedAccount'], async res => {
+        const storedAccount: StoredAccount | undefined = res.storedAccount;
+        if (!storedAccount) {
+          setErrorMsg('Wallet data not found. Please complete onboarding.');
           setLoading(false);
           return;
         }
+        try {
+          const decryptedMnemonic = encryption.decrypt(storedAccount.encryptedMnemonic, password);
+          if (!decryptedMnemonic || !bip39.validateMnemonic(decryptedMnemonic)) {
+            setErrorMsg('Your password is incorrect.');
+            setLoading(false);
+            return;
+          }
 
-        const manager = new WalletManager();
+          const manager = new WalletManager();
+          const restoredWallet = manager.createWallet({
+            password: password,
+            mnemonic: decryptedMnemonic,
+            network: storedAccount.network,
+            taproot: storedAccount.taproot || false,
+          });
 
-        const restoredWallet = manager.createWallet({
-          password,
-          network: 'mainnet',
-          taproot: false,
-        });
+          const seed = restoredWallet.recoverMnemonic(password);
+          if (seed && bip39.validateMnemonic(seed)) {
+            setWallet(restoredWallet, password);
+            setSelectedAccountIndex(storedAccount.selectedAccountIndex);
+            setTotalAccounts(storedAccount.totalAccounts);
 
-        const seed = restoredWallet.recoverMnemonic(password);
-        if (!seed) {
-          setErrorMsg('Incorrect password. Please try again.');
-          setLoading(false);
-          return;
+            navigate('/dashboard');
+          } else {
+            setErrorMsg('Your password is incorrect.');
+          }
+        } catch (err) {
+          console.error('Error unlocking wallet:', err);
+          setErrorMsg('Your password is incorrect.');
         }
-
-        setWallet(restoredWallet, password);
-
-        navigate('/dashboard');
+        setLoading(false);
       });
     } catch (err) {
       console.error(err);
@@ -63,21 +77,42 @@ export const PasswordLock: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen px-5 pt-12 pb-[19px] bg-dark items-center justify-center">
-      <h1 className="text-2xl font-bold text-white mb-4">Welcome!</h1>
-      <p className="text-neutral-400 text-sm mb-4">Chui is ready for you</p>
-      <InputField
-        label="Password"
-        type="password"
-        placeholder="Password"
-        id="unlockPassword"
-        value={password}
-        onChange={e => setPassword(e.target.value)}
-      />
-      {errorMsg && <p className="mt-2 text-sm text-red-500">{errorMsg}</p>}
-      <Button onClick={handleUnlock} tabIndex={0} disabled={loading}>
-        {loading ? 'Unlocking...' : 'Unlock'}
-      </Button>
+    <div className="flex flex-col h-screen px-5 pt-12 pb-[19px] bg-dark">
+      <div className="flex flex-col flex-1">
+        <div className="flex flex-col items-center justify-center max-w-full text-center w-full">
+          <div className="flex justify-center w-full mb-[106px]">
+            <img
+              loading="lazy"
+              src={chrome.runtime.getURL('popup/logo_light.svg')}
+              alt=""
+              className="object-contain shrink-0 self-stretch my-auto w-[127px] h-[42px] aspect-square"
+            />
+          </div>
+          <h1 className="w-full text-2xl font-bold leading-loose text-white max-sm:text-2xl">Welcome!</h1>
+          <div className="mt-3 w-full text-lg leading-6 text-foreground max-sm:text-base">
+            <span>Chui is ready for you</span>
+          </div>
+        </div>
+
+        <div className="flex flex-col justify-between mt-6 w-full flex-1 text-lg font-bold leading-8 gap-3">
+          <div className="flex flex-col justify-start gap-3">
+            <InputField
+              label="Password"
+              type="password"
+              placeholder="Password"
+              id="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+            />
+
+            {errorMsg && <span className="mt-1 text-xs font-italic text-red-500 font-light">{errorMsg}</span>}
+          </div>
+
+          <Button onClick={handleUnlock} tabIndex={0} disabled={loading}>
+            {loading ? 'Unlocking...' : 'Unlock'}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };

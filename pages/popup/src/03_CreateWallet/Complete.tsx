@@ -7,9 +7,6 @@ export function Complete() {
   const { setOnboarded, isRestored } = useWalletContext();
 
   const handleComplete = () => {
-    chrome.storage.local.set({ walletOnboarded: true }, () => {
-      console.log('Onboarding complete.');
-    });
     setOnboarded(true);
 
     navigate('/dashboard');

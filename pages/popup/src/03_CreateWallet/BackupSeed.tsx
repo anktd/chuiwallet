@@ -7,7 +7,7 @@ import { useWalletContext } from '../context/WalletContext';
 
 export const BackupSeed: React.FC = () => {
   const navigate = useNavigate();
-  const { wallet, password } = useWalletContext();
+  const { createWallet, wallet, password } = useWalletContext();
   const [leftColumnWords, setLeftColumnWords] = useState<string[]>([]);
   const [rightColumnWords, setRightColumnWords] = useState<string[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -20,6 +20,7 @@ export const BackupSeed: React.FC = () => {
       setLoading(false);
       return;
     }
+
     try {
       const seed = wallet.recoverMnemonic(password);
       if (!seed) {
@@ -72,21 +73,27 @@ export const BackupSeed: React.FC = () => {
   };
 
   const handleSkip = async () => {
-    if (!wallet) {
-      console.error('Created wallet is null');
+    if (!wallet || !password) {
+      console.error('Wallet or password not available in context');
+      setLoading(false);
       return;
     }
 
-    chrome.storage.local.set(
-      {
-        encryptedMnemonic: wallet.getEncryptedMnemonic(),
-        xpub: wallet.getXpub(),
-        walletOnboarded: true,
-      },
-      () => {
-        console.log('Wallet data stored securely.');
-      },
-    );
+    const seed = wallet.recoverMnemonic(password);
+    if (!seed) {
+      console.error('Failed to recover seed');
+      setLoading(false);
+      return;
+    }
+
+    const seedWords = seed.split(' ');
+    if (seedWords.length !== 12) {
+      console.error('Expected 12 words, got', seedWords.length);
+    }
+
+    const mnemonic = seedWords.join(' ').trim();
+
+    createWallet(mnemonic, password, 'mainnet', false);
 
     navigate('/onboard/complete');
   };

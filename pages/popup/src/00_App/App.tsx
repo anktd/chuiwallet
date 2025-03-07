@@ -30,7 +30,7 @@ export const App: React.FC = () => {
       () => {
         setShowSplash(false);
       },
-      onboarded ? 500 : 2000,
+      onboarded ? 500 : 1000,
     );
     return () => clearTimeout(timer);
   }, [onboarded]);

@@ -52,12 +52,6 @@ export const Dashboard: React.FC = () => {
       <div className="flex flex-col mt-10 w-40 max-w-full leading-none text-center text-white">
         <div className="flex gap-px justify-center items-center w-full text-lg">
           <div className="self-stretch my-auto">Total Balance</div>
-          <img
-            loading="lazy"
-            src={chrome.runtime.getURL('popup/refresh_icon.svg')}
-            alt=""
-            className="object-contain shrink-0 self-stretch my-auto aspect-square w-[18px]"
-          />
         </div>
         <div className="mt-2 text-5xl font-bold uppercase cursor-pointer">
           0 <span className="text-xl">USD</span>

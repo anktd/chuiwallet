@@ -68,14 +68,13 @@ export const RestoreSeed: React.FC = () => {
 
     restoreWallet(mnemonic, password, 'mainnet', false);
 
-    navigate('/dashboard');
+    navigate('/onboard/complete');
   };
 
   const leftWords = seedWords.slice(0, 6).map((word, i) => ({
     text: word,
     isInput: true,
     onChange: (val: string) => handleChange(i + 1, val),
-    onPaste: (e: React.ClipboardEvent<HTMLInputElement>) => handlePaste(e),
     placeholder: `${i + 1}.`,
     isValid: wordValidity[i],
   }));
@@ -84,7 +83,6 @@ export const RestoreSeed: React.FC = () => {
     text: word,
     isInput: true,
     onChange: (val: string) => handleChange(i + 7, val),
-    onPaste: (e: React.ClipboardEvent<HTMLInputElement>) => handlePaste(e),
     placeholder: `${i + 7}.`,
     isValid: wordValidity[i + 6],
   }));

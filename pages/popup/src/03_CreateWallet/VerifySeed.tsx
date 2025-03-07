@@ -7,13 +7,14 @@ import { pickRandomPositions } from '@src/utils';
 
 export const VerifySeed: React.FC = () => {
   const navigate = useNavigate();
-  const { wallet, password } = useWalletContext();
-  const [seedWords, setSeedWords] = useState<string[]>([]);
+  const { createWallet, wallet, password } = useWalletContext();
+  const [seedWords, setSeedWords] = useState<string[]>(Array(12).fill(''));
   const [missingPositions, setMissingPositions] = useState<number[]>([]);
   const [userInputs, setUserInputs] = useState<{ [pos: number]: string }>({});
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = React.useState('');
+  const [isValid, setIsValid] = useState(false);
 
   useEffect(() => {
     const positions = pickRandomPositions(3, 12);
@@ -40,8 +41,16 @@ export const VerifySeed: React.FC = () => {
     setLoading(false);
   }, [wallet, password]);
 
+  useEffect(() => {
+    const allMissingMatch = missingPositions.every(pos => {
+      return userInputs[pos]?.trim() === seedWords[pos - 1]?.trim();
+    });
+    setIsValid(allMissingMatch);
+  }, [userInputs, missingPositions, seedWords]);
+
   const handleChange = (pos: number, value: string) => {
-    setUserInputs(prev => ({ ...prev, [pos]: value }));
+    const firstWord = value.trim().split(/\s+/)[0];
+    setUserInputs(prev => ({ ...prev, [pos]: firstWord }));
   };
 
   const handleVerify = () => {
@@ -56,25 +65,32 @@ export const VerifySeed: React.FC = () => {
       }
     }
 
-    if (valid) {
-      navigate('/onboard/complete');
-    } else {
+    if (!valid) {
       setErrorMsg('Seed verification failed. Please try again.');
+      return;
     }
-  };
 
-  // if (loading) {
-  //   return (
-  //     <div className="flex items-center justify-center h-full w-full bg-dark">
-  //       <p className="text-white">Loading seed for verification...</p>
-  //     </div>
-  //   );
-  // }
+    const mnemonic = seedWords.join(' ').trim();
+
+    if (!password) {
+      setErrorMsg('No universal password found. Please unlock your wallet first.');
+      return;
+    }
+
+    createWallet(mnemonic, password, 'mainnet', false);
+
+    navigate('/onboard/complete');
+  };
 
   const leftWords = seedWords.slice(0, 6).map((word, i) => {
     const pos = i + 1;
     if (missingPositions.includes(pos)) {
-      return { text: '', isHighlighted: true, isInput: true };
+      return {
+        text: userInputs[pos] || '',
+        isInput: true,
+        onChange: (val: string) => handleChange(i + 1, val),
+        placeholder: `${i + 1}.`,
+      };
     }
     return { text: word, isHighlighted: false, isInput: false };
   });
@@ -82,7 +98,12 @@ export const VerifySeed: React.FC = () => {
   const rightWords = seedWords.slice(6, 12).map((word, i) => {
     const pos = i + 7;
     if (missingPositions.includes(pos)) {
-      return { text: '', isHighlighted: true, isInput: true };
+      return {
+        text: userInputs[pos] || '',
+        isInput: true,
+        onChange: (val: string) => handleChange(i + 7, val),
+        placeholder: `${i + 7}.`,
+      };
     }
     return { text: word, isHighlighted: false, isInput: false };
   });
@@ -98,24 +119,14 @@ export const VerifySeed: React.FC = () => {
         </div>
 
         <div className="flex gap-4 self-center mt-6 text-base leading-9 whitespace-nowrap min-h-[289px] text-foreground">
-          <WordColumn
-            words={leftWords.map((item, i) => ({
-              ...item,
-              onChange: item.isInput ? (val: string) => handleChange(i + 1, val) : undefined,
-            }))}
-          />
-          <WordColumn
-            words={rightWords.map((item, i) => ({
-              ...item,
-              onChange: item.isInput ? (val: string) => handleChange(i + 7, val) : undefined,
-            }))}
-          />
+          <WordColumn words={leftWords} />
+          <WordColumn words={rightWords} />
         </div>
       </div>
 
       <span className="mt-6 text-xs text-red-500 font-light text-center">{errorMsg}</span>
 
-      <Button className="mt-8 w-full" onClick={handleVerify}>
+      <Button className="mt-8 w-full" disabled={!isValid} onClick={handleVerify}>
         Continue
       </Button>
     </div>
