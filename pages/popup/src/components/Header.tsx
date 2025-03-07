@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom';
 
 interface HeaderProps {
   title: string;
+  hideClose?: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ title }) => {
+const Header: React.FC<HeaderProps> = ({ title, hideClose = false }) => {
   const navigate = useNavigate();
 
   const handleBack = () => {
@@ -27,9 +28,9 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
         />
       </button>
 
-      <div className="self-stretch w-[262px] font-bold leading-6">{title}</div>
+      <div className="self-stretch w-[262px] font-bold leading-6 text-white">{title}</div>
 
-      <button onClick={handleClose}>
+      <button onClick={handleClose} disabled={hideClose} className={!hideClose ? '' : 'opacity-0'}>
         <img
           loading="lazy"
           src={chrome.runtime.getURL(`popup/close_icon.svg`)}

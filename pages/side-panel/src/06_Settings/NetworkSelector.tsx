@@ -9,8 +9,8 @@ export const NetworkSelector: React.FC<NetworkSelectorProps> = ({ label, value }
   return (
     <div className="flex flex-col justify-center w-full">
       <div className="text-sm leading-loose text-white">{label}</div>
-      <div className="flex flex-col w-full text-lg leading-8 whitespace-nowrap text-neutral-500">
-        <button className="flex gap-2.5 justify-center items-center px-2.5 py-3 w-full rounded-2xl border border-solid bg-stone-900 border-neutral-700">
+      <div className="flex flex-col w-full text-lg leading-8 whitespace-nowrap text-foreground-79">
+        <button className="flex gap-2.5 justify-center items-center px-2.5 py-3 w-full rounded-2xl border border-solid bg-stone-900 border-background-42">
           <div className="self-stretch my-auto w-[213px]">{value}</div>
           <img
             loading="lazy"

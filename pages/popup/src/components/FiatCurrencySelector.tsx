@@ -1,19 +1,19 @@
 import type React from 'react';
 import { useState, useRef, useEffect } from 'react';
 
-type NetworkSelectorProps = {
-  initialNetwork?: string;
+type FiatCurrencySelectorProps = {
+  initialCurrency?: string;
   options?: string[];
-  onSelect?: (network: string) => void;
+  onSelect?: (currency: string) => void;
 };
 
-const NetworkSelector: React.FC<NetworkSelectorProps> = ({
-  initialNetwork = 'Mainnet',
-  options = ['Mainnet', 'Testnet'],
+const FiatCurrencySelector: React.FC<FiatCurrencySelectorProps> = ({
+  initialCurrency = 'USD',
+  options = ['USD', 'BTC'],
   onSelect,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedNetwork, setSelectedNetwork] = useState(initialNetwork);
+  const [selectedCurrency, setSelectedCurrency] = useState(initialCurrency);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const toggleDropdown = () => {
@@ -21,7 +21,7 @@ const NetworkSelector: React.FC<NetworkSelectorProps> = ({
   };
 
   const handleSelect = (selected: string) => {
-    setSelectedNetwork(selected);
+    setSelectedCurrency(selected);
     setIsOpen(false);
     if (onSelect) {
       onSelect(selected);
@@ -40,16 +40,15 @@ const NetworkSelector: React.FC<NetworkSelectorProps> = ({
 
   return (
     <div className="relative flex flex-col justify-center w-full gap-[2px]" ref={containerRef}>
-      <div className="text-base leading-[22px] text-white font-bold">Testnets</div>
-      <div className="text-xs leading-[22px] text-foreground-e1 font-normal">Switch to an available testnet</div>
-      <div className="text-base leading-[22px] text-white font-bold mt-[8px]">BTC Network</div>
+      <div className="text-base leading-[22px] text-white font-bold">Fiat currency</div>
+      <div className="text-xs leading-[22px] text-foreground-e1">Choose the global fiat currency</div>
       <div className="flex flex-col w-full text-lg leading-8 whitespace-nowrap text-foreground-79">
         <button
           type="button"
           onClick={toggleDropdown}
           className="flex gap-2.5 justify-center items-center px-2.5 py-3 w-full rounded-2xl bg-background-1d border border-background-42">
           <span className="self-stretch my-auto w-[213px] text-left text-foregrouund1 font-bold text-lg">
-            {selectedNetwork}
+            {selectedCurrency}
           </span>
           <img
             loading="lazy"
@@ -76,4 +75,4 @@ const NetworkSelector: React.FC<NetworkSelectorProps> = ({
   );
 };
 
-export default NetworkSelector;
+export default FiatCurrencySelector;

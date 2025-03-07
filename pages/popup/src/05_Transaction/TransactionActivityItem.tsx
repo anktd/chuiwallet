@@ -48,7 +48,7 @@ export const TransactionActivityItem: React.FC<TransactionActivityItemProps> = (
             </div>
             <div className="my-auto text-sm leading-none">{amount}</div>
           </div>
-          <div className="flex gap-4 justify-between items-start mt-1.5 w-full text-sm leading-none text-neutral-500">
+          <div className="flex gap-4 justify-between items-start mt-1.5 w-full text-sm leading-none text-foreground-79">
             <div>{address}</div>
             <div className="text-right">{btcAmount}</div>
           </div>

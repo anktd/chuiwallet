@@ -13,7 +13,7 @@ export const AddressInput: React.FC<AddressInputProps> = ({ label }) => {
       <input
         id="receiving-address"
         type="text"
-        className="flex gap-2.5 py-3 w-full rounded-2xl border border-solid bg-stone-900 border-neutral-700 min-h-[55px]"
+        className="flex gap-2.5 py-3 w-full rounded-2xl border border-solid bg-stone-900 border-background-42 min-h-[55px]"
         aria-label={label}
       />
     </div>

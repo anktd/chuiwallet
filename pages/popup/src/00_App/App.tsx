@@ -19,6 +19,8 @@ import { useWalletContext } from '@src/context/WalletContext';
 import PasswordLock from '@src/10_PasswordLock/PasswordLock';
 import { RestoreSeed } from '@src/03_CreateWallet/RestoreSeed';
 import { ChooseMethod } from '@src/03_CreateWallet/ChooseMethod';
+import { UnlockSeed } from '@src/06_Settings/UnlockSeed';
+import { RevealSeed } from '@src/06_Settings/RevealSeed';
 
 export const App: React.FC = () => {
   const { onboarded, wallet } = useWalletContext();
@@ -71,7 +73,8 @@ export const App: React.FC = () => {
       <Route path="/transactions/detail" element={<TransactionList />} />
       <Route path="/settings" element={<Settings />} />
       <Route path="/settings/advanced" element={<AdvancedSettings />} />
-      {/* <Route path="/settings/export-pk" element={<ExportPrivateKey />} /> */}
+      <Route path="/settings/advanced/unlock-seed" element={<UnlockSeed />} />
+      <Route path="/settings/advanced/reveal-seed" element={<RevealSeed />} />
     </Routes>
   );
 };

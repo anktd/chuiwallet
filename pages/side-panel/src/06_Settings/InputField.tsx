@@ -13,8 +13,8 @@ export const InputField: React.FC<InputFieldProps> = ({ label, explanation, valu
     <div className="flex flex-col w-full text-xs font-bold leading-6">
       <div className="text-base leading-none text-white">{label}</div>
       {explanation && <div className="text-neutral-200">{explanation}</div>}
-      <div className="flex flex-col w-full text-lg leading-8 whitespace-nowrap text-neutral-500">
-        <div className="gap-2.5 self-stretch px-2.5 py-3 w-full rounded-2xl border border-solid bg-stone-900 border-neutral-700">
+      <div className="flex flex-col w-full text-lg leading-8 whitespace-nowrap text-foreground-79">
+        <div className="gap-2.5 self-stretch px-2.5 py-3 w-full rounded-2xl border border-solid bg-stone-900 border-background-42">
           {value}
         </div>
       </div>

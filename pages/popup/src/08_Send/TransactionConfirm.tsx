@@ -11,7 +11,7 @@ export function TransactionConfirm({ onConfirm }: TransactionConfirmProps) {
       <div className="flex flex-col mt-14 w-full max-w-[298px]">
         <div className="flex flex-col w-full leading-none">
           <div className="font-medium text-white">Asset Sent</div>
-          <div className="flex gap-2 items-center mt-2 w-full text-neutral-500">
+          <div className="flex gap-2 items-center mt-2 w-full text-foreground-79">
             <img
               loading="lazy"
               src="https://cdn.builder.io/api/v1/image/assets/TEMP/3b9b49475d1b0d2badbbc980d1683f223f7a049653d03ef24681b3088be31696?placeholderIfAbsent=true&apiKey=7730bdd605464082ae23b346c3cac1f8"
@@ -23,14 +23,14 @@ export function TransactionConfirm({ onConfirm }: TransactionConfirmProps) {
         </div>
         <div className="flex flex-col mt-6 w-full">
           <div className="font-medium leading-none text-white">Receiving address</div>
-          <div className="mt-2 leading-6 text-neutral-500">bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh</div>
+          <div className="mt-2 leading-6 text-foreground-79">bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh</div>
         </div>
-        <div className="flex flex-col mt-6 w-full leading-none text-neutral-500">
+        <div className="flex flex-col mt-6 w-full leading-none text-foreground-79">
           <div className="font-medium text-white">Amount to send</div>
           <div className="mt-2">0.012 BTC</div>
           <div className="mt-2">120 USD</div>
         </div>
-        <div className="flex flex-col mt-6 w-full leading-none text-neutral-500">
+        <div className="flex flex-col mt-6 w-full leading-none text-foreground-79">
           <div className="font-medium text-white">Fee</div>
           <div className="mt-2">0.000012 BTC</div>
           <div className="mt-2">0.52 USD</div>

@@ -8,8 +8,8 @@ function FiatCurrencySelector({ currency, arrowIconSrc }: FiatCurrencySelectorPr
     <div className="flex flex-col w-full">
       <div className="text-base leading-none text-white">Fiat currency</div>
       <div className="text-xs leading-6 text-neutral-200">Choose the global fiat currency</div>
-      <div className="flex flex-col w-full text-lg leading-8 whitespace-nowrap text-neutral-500">
-        <div className="flex gap-2.5 justify-center items-center px-2.5 py-3 w-full rounded-2xl border border-solid bg-stone-900 border-neutral-700">
+      <div className="flex flex-col w-full text-lg leading-8 whitespace-nowrap text-foreground-79">
+        <div className="flex gap-2.5 justify-center items-center px-2.5 py-3 w-full rounded-2xl border border-solid bg-stone-900 border-background-42">
           <div className="self-stretch my-auto w-[213px]">{currency}</div>
           <img
             loading="lazy"

@@ -10,7 +10,7 @@ export const CurrencyInput: React.FC<CurrencyInputProps> = ({ label, value, hasI
   return (
     <div className="flex flex-col grow w-[150px]">
       <div>{label}</div>
-      <div className="flex gap-2.5 justify-center items-center px-2.5 py-3 w-full rounded-2xl border border-solid bg-stone-900 border-neutral-700">
+      <div className="flex gap-2.5 justify-center items-center px-2.5 py-3 w-full rounded-2xl border border-solid bg-stone-900 border-background-42">
         <div className="flex-1 shrink self-stretch my-auto basis-0">{value}</div>
         {hasIcon && (
           <img
