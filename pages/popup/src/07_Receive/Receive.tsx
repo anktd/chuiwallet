@@ -12,11 +12,14 @@ const Receive: React.FC = () => {
   const { currency } = useParams<{ currency: Currencies }>();
   const [copied, setCopied] = useState(false);
 
+  chrome.storage.local.get(null, data => {
+    console.log('Stored data:', data);
+  });
+
   useEffect(() => {
     chrome.storage.local.get(['walletPassword', 'encryptedMnemonic'], async res => {
-      const storedPassword = res.walletPassword;
       const storedEncrypted = res.encryptedMnemonic;
-      console.log('Retrieved from storage:', { storedPassword, storedEncrypted });
+      console.log('Retrieved from storage:', { storedEncrypted });
       // ...
     });
   }, []);

@@ -45,14 +45,16 @@ export const SetPassword: React.FC = () => {
     }
 
     const manager = new WalletManager();
+
     const wallet = manager.createWallet({
       password,
       network: 'mainnet',
       taproot: false,
     });
+
     setWallet(wallet, password);
 
-    navigate('/onboard/generate-seed');
+    navigate('/onboard/choose-method');
   };
 
   return (

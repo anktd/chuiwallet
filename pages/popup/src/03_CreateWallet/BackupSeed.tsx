@@ -27,10 +27,12 @@ export const BackupSeed: React.FC = () => {
         setLoading(false);
         return;
       }
+
       const words = seed.split(' ');
       if (words.length !== 12) {
         console.error('Expected 12 words, got', words.length);
       }
+
       setLeftColumnWords(words.slice(0, 6));
       setRightColumnWords(words.slice(6, 12));
     } catch (err) {
@@ -69,6 +71,26 @@ export const BackupSeed: React.FC = () => {
     }
   };
 
+  const handleSkip = async () => {
+    if (!wallet) {
+      console.error('Created wallet is null');
+      return;
+    }
+
+    chrome.storage.local.set(
+      {
+        encryptedMnemonic: wallet.getEncryptedMnemonic(),
+        xpub: wallet.getXpub(),
+        walletOnboarded: true,
+      },
+      () => {
+        console.log('Wallet data stored securely.');
+      },
+    );
+
+    navigate('/onboard/complete');
+  };
+
   return (
     <div className="flex overflow-hidden flex-col items-center px-5 pt-12 pb-[19px] bg-dark h-full w-full">
       <div className="flex flex-col justify-between self-stretch w-full text-center min-h-[388px]">
@@ -97,7 +119,7 @@ export const BackupSeed: React.FC = () => {
       <button
         className="gap-2.5 self-stretch px-2.5 py-3 text-lg font-bold leading-8 text-yellow-300 whitespace-nowrap rounded-2xl"
         tabIndex={0}
-        onClick={() => navigate('/onboard/complete')}>
+        onClick={handleSkip}>
         Skip
       </button>
       <Button tabIndex={0} onClick={() => navigate('/onboard/verify-seed')}>

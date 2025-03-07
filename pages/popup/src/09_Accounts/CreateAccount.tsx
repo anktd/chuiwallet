@@ -20,7 +20,7 @@ const CreateAccount: React.FC = () => {
           backgroundColor={account.backgroundColor}
         />
       ))}
-      <ButtonOutline>Create account</ButtonOutline>
+      <ButtonOutline className="mt-80">Create account</ButtonOutline>
     </div>
   );
 };

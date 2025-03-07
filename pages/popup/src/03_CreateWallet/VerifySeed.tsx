@@ -24,6 +24,7 @@ export const VerifySeed: React.FC = () => {
       setLoading(false);
       return;
     }
+
     try {
       const seed = wallet.recoverMnemonic(password);
       if (!seed) {
@@ -31,6 +32,7 @@ export const VerifySeed: React.FC = () => {
         setLoading(false);
         return;
       }
+
       setSeedWords(seed.split(' '));
     } catch (err) {
       console.error('Error recovering seed in verify:', err);
@@ -44,6 +46,7 @@ export const VerifySeed: React.FC = () => {
 
   const handleVerify = () => {
     let valid = true;
+
     for (const pos of missingPositions) {
       const actual = seedWords[pos - 1]?.trim();
       const userVal = userInputs[pos]?.trim();
@@ -52,6 +55,7 @@ export const VerifySeed: React.FC = () => {
         break;
       }
     }
+
     if (valid) {
       navigate('/onboard/complete');
     } else {
@@ -74,6 +78,7 @@ export const VerifySeed: React.FC = () => {
     }
     return { text: word, isHighlighted: false, isInput: false };
   });
+
   const rightWords = seedWords.slice(6, 12).map((word, i) => {
     const pos = i + 7;
     if (missingPositions.includes(pos)) {

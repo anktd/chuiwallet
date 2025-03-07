@@ -123,7 +123,7 @@ export const Dashboard: React.FC = () => {
                   <div className="text-xs text-neutral-400">0 USD</div>
                 </div>
               </div>
-              <ButtonOutline>Generate account</ButtonOutline>
+              <ButtonOutline className="mt-80">Generate account</ButtonOutline>
             </motion.div>
           </motion.div>
         )}

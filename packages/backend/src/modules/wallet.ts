@@ -108,6 +108,21 @@ export default class Wallet {
     return encryption.decrypt(this.encryptedMnemonic, password);
   }
 
+  public restoreEncryptedMnemonic(encrypted: string): void {
+    this.encryptedMnemonic = encrypted;
+  }
+
+  public setAccountIndex(index: number): void {
+    const type = this.getAddressType();
+    if (type === 'legacy') {
+      this.account = this.root.deriveHardened(44).deriveHardened(this.coin).deriveHardened(index);
+    } else if (type === 'taproot') {
+      this.account = this.root.deriveHardened(86).deriveHardened(this.coin).deriveHardened(index);
+    } else {
+      this.account = this.root.deriveHardened(84).deriveHardened(this.coin).deriveHardened(index);
+    }
+  }
+
   /**
    * Generates a new receiving address.
    * For HD wallets (created from a mnemonic/seed), this uses a standard derivation.

@@ -5,3 +5,12 @@ export const currencyMapping: Record<Currencies, string> = {
   bch: 'Bitcoin Cash',
   usdt: 'USDT',
 };
+
+export interface StoredAccount {
+  encryptedMnemonic: string;
+  xpub: string;
+  network: 'mainnet' | 'testnet';
+  accountIndex: number;
+  totalAccounts: number;
+  isRestored: boolean;
+}
