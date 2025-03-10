@@ -1,6 +1,4 @@
 import { createHash } from 'crypto';
-import net from 'net';
-import tls from 'tls';
 import * as bitcoin from 'bitcoinjs-lib';
 
 type Callback = {
@@ -13,6 +11,7 @@ type ServerConfig = {
   host: string;
   port: number;
   useTls: boolean;
+  network: 'mainnet' | 'testnet';
 };
 
 export interface DetailedTransaction {
@@ -26,22 +25,35 @@ export interface DetailedTransaction {
   timestamp: number | null;
 }
 
-export class ElectrumService {
-  private serverList: ServerConfig[] = [{ host: 'bitcoinserver.nl', port: 50004, useTls: true }];
+export default class ElectrumService {
+  private availableServerList: ServerConfig[] = [
+    { host: 'bitcoinserver.nl', port: 50004, useTls: true, network: 'mainnet' },
+    { host: 'electrum.petrkr.net', port: 50004, useTls: true, network: 'mainnet' },
+    { host: 'bitcoin.dragon.zone', port: 50004, useTls: true, network: 'mainnet' },
+    { host: 'btc.electroncash.dk', port: 60004, useTls: true, network: 'mainnet' },
+    { host: 'electroncash.dk', port: 50004, useTls: true, network: 'mainnet' },
+    { host: 'bch.imaginary.cash', port: 50004, useTls: true, network: 'mainnet' },
+    { host: 'explorer.bch.ninja', port: 50004, useTls: true, network: 'mainnet' },
+    { host: 'sv.usebsv.com', port: 50004, useTls: true, network: 'mainnet' },
+    { host: 'electrum.peercoinexplorer.net', port: 50004, useTls: true, network: 'mainnet' },
+    { host: 'blackie.c3-soft.com', port: 60004, useTls: true, network: 'testnet' },
+  ];
 
+  private serverList: ServerConfig[] = [];
   private currentServerIndex: number = 0;
   private host: string;
   private port: number;
   private useTls: boolean;
-  // NodeJS.Socket or WebSocket (depending on the environment)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private socket: any = null;
   private _requestId: number = 0;
   private _callbacks: Map<number, Callback> = new Map();
-  private _buffer: string = '';
 
-  constructor() {
-    // Initialize with the first server in the list.
+  constructor(network: 'mainnet' | 'testnet' = 'mainnet') {
+    this.serverList = this.availableServerList.filter(server => server.network === network);
+    if (this.serverList.length === 0) {
+      throw new Error(`No servers available for network ${network}`);
+    }
     const initialServer = this.serverList[this.currentServerIndex];
     this.host = initialServer.host;
     this.port = initialServer.port;
@@ -63,6 +75,7 @@ export class ElectrumService {
         resolve();
       };
       this.socket.onmessage = (event: MessageEvent) => this.handleData(event.data);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       this.socket.onerror = (error: any) => {
         console.error(`WebSocket error on ${wsUrl}:`, error);
         reject(new Error('WebSocket connection error'));
@@ -71,6 +84,31 @@ export class ElectrumService {
         console.warn(`WebSocket closed on ${wsUrl}`);
       };
     });
+  }
+
+  /**
+   * Automatically try connecting to servers until one is reachable.
+   */
+  public async autoConnect(): Promise<void> {
+    let connected = false;
+    let attempts = 0;
+    const maxAttempts = this.serverList.length;
+
+    while (!connected && attempts < maxAttempts) {
+      try {
+        await this.connect();
+        connected = true;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (err: any) {
+        console.error(`Failed to connect to ${this.host}:${this.port}, error: ${err.message}`);
+        await this.switchServer();
+        attempts++;
+      }
+    }
+
+    if (!connected) {
+      throw new Error('Unable to connect to any Electrum WebSocket RPC server.');
+    }
   }
 
   /**

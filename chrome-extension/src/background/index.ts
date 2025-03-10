@@ -1,6 +1,6 @@
 import 'webextension-polyfill';
 import { walletThemeStorage } from '@extension/storage';
-import { ElectrumService } from '@extension/backend/src/modules/electrumService';
+import ElectrumService from '@extension/backend/src/modules/electrumService';
 
 walletThemeStorage.get().then(theme => {
   console.log('theme', theme);
@@ -8,7 +8,8 @@ walletThemeStorage.get().then(theme => {
 
 const electrumService = new ElectrumService();
 
-electrumService.connect().catch(err => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+electrumService.connect().catch((err: any) => {
   console.error('Failed to connect to Electrum server:', err);
 });
 
@@ -27,6 +28,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       } else {
         sendResponse({ success: false, error: 'Unknown action' });
       }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error('Error handling message:', error);
       sendResponse({ success: false, error: error.message });
