@@ -31,3 +31,62 @@ export function pickRandomPositions(n: number, total: number): number[] {
   }
   return positions.sort((a, b) => a - b);
 }
+
+export function formatAmount(value: number, digits: number = 2): string {
+  const fixed = value.toFixed(digits);
+  let [integer, fraction] = fixed.split('.');
+  integer = parseInt(integer, 10).toLocaleString();
+  fraction = fraction.replace(/0+$/, '');
+  fraction = fraction.length > 0 ? '.' + fraction : '';
+  return integer === '0' ? '0' + fraction : integer + fraction;
+}
+
+/**
+ * Helper to format timestamp to something like "10:30 AM"
+ */
+export function timestampToTime(timestamp: number) {
+  const date = new Date(timestamp * 1000);
+
+  let hours = date.getHours();
+  const minutes = date.getMinutes();
+
+  const period = hours >= 12 ? 'PM' : 'AM';
+
+  hours = hours % 12;
+  hours = hours ? hours : 12;
+
+  const formattedHours = hours < 10 ? '0' + hours : hours;
+  const formattedMinutes = minutes < 10 ? '0' + minutes : minutes;
+
+  return `${formattedHours}:${formattedMinutes} ${period}`;
+}
+
+export function capitalizeFirstLetter(value: string) {
+  return String(value).charAt(0).toUpperCase() + String(value).slice(1);
+}
+
+/**
+ * Return an icon path and label text based on status
+ */
+export function getStatusMeta(status: string) {
+  return {
+    icon: `popup/${status}_icon.svg`,
+    label: capitalizeFirstLetter(status),
+  };
+}
+
+export function truncateMiddleTxn(address: string, front = 10, back = 6) {
+  if (!address) return '';
+
+  if (address.length <= front + back) return address;
+
+  return `${address.slice(0, front)}...${address.slice(-back)}`;
+}
+
+export function truncateLastTxn(address: string, front = 10) {
+  if (!address) return '';
+
+  if (address.length <= front) return address;
+
+  return `${address.slice(0, front)}...`;
+}

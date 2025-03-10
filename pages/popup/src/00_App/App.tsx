@@ -12,10 +12,10 @@ import { Receive } from '@src/07_Receive/Receive';
 import { SendOptions } from '@src/08_Send/SendOptions';
 import { TransactionConfirm } from '@src/08_Send/TransactionConfirm';
 import { TransactionComplete } from '@src/08_Send/TransactionComplete';
-import { TransactionList } from '@src/05_Activity/TransactionActivitiesTab';
 import { Settings } from '@src/06_Settings/Settings';
 import { AdvancedSettings } from '@src/06_Settings/AdvancedSettings';
 import { useWalletContext } from '@src/context/WalletContext';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { PasswordLock } from '@src/10_PasswordLock/PasswordLock';
 import { RestoreSeed } from '@src/03_CreateWallet/RestoreSeed';
 import { ChooseMethod } from '@src/03_CreateWallet/ChooseMethod';
@@ -70,8 +70,6 @@ export const App: React.FC = () => {
       <Route path="/send/:currency/preview" element={<TransactionConfirm />} />
       <Route path="/send/:currency/status" element={<TransactionComplete />} />
       <Route path="/receive/:currency" element={<Receive />} />
-      <Route path="/transactions" element={<TransactionList />} />
-      <Route path="/transactions/detail" element={<TransactionList />} />
       <Route path="/settings" element={<Settings />} />
       <Route path="/settings/advanced" element={<AdvancedSettings />} />
       <Route path="/settings/advanced/unlock-seed" element={<UnlockSeed />} />

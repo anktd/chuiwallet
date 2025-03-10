@@ -21,7 +21,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse({ success: true, balance });
       } else if (request.action === 'getHistory') {
         const history = await electrumService.getDetailedHistory(request.walletAddress);
-        sendResponse({ success: true, history });
+        sendResponse({ success: true, history: history });
       } else if (request.action === 'sendTransaction') {
         const txid = await electrumService.sendTransaction(request.rawTxHex);
         sendResponse({ success: true, txid });

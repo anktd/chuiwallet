@@ -25,9 +25,11 @@ export const CryptoBalance: React.FC<CryptoBalanceProps> = ({ cryptoName, crypto
             <div className="gap-1 self-stretch my-auto text-base text-left font-bold leading-none whitespace-nowrap w-[120px]">
               {cryptoName}
             </div>
-            <div className="self-stretch my-auto text-sm leading-none">{cryptoAmount}</div>
+            <div className="self-stretch my-auto text-sm leading-none text-right w-full flex-grow">{cryptoAmount}</div>
           </div>
-          <div className="gap-1 mt-1.5 w-full text-sm leading-none text-right text-foreground">{usdAmount}</div>
+          <div className="gap-1 mt-1.5 w-full text-sm leading-none text-right text-foreground flex-grow">
+            {usdAmount}
+          </div>
         </div>
       </div>
     </button>
