@@ -1,10 +1,10 @@
+import type React from 'react';
+import { useState } from 'react';
 import AddressQRCode from '@src/components/AddressQRCode';
 import { Button } from '@src/components/Button';
 import Header from '@src/components/Header';
 import { useWalletContext } from '@src/context/WalletContext';
 import type { Currencies } from '@src/types';
-import type * as React from 'react';
-import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 export const Receive: React.FC = () => {
@@ -12,6 +12,7 @@ export const Receive: React.FC = () => {
   const { currency } = useParams<{ currency: Currencies }>();
   const [copyText, setCopyText] = useState<string>('Copy address');
 
+  // Generate address (or show fallback)
   const address = wallet ? wallet.generateAddress(0) : 'Address not found';
 
   const handleCopyAddress = async () => {
@@ -20,13 +21,11 @@ export const Receive: React.FC = () => {
         console.error('Address not found');
         return;
       }
-
       await navigator.clipboard.writeText(address);
-
       setCopyText('Copied!');
       setTimeout(() => setCopyText('Copy address'), 3000);
     } catch (err) {
-      console.error('Failed to copy seed:', err);
+      console.error('Failed to copy address:', err);
     }
   };
 

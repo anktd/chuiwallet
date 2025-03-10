@@ -4,27 +4,14 @@ import { CryptoBalance } from '../components/CryptoBalance';
 import { CryptoButton } from '../components/CryptoButton';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWalletContext } from '@src/context/WalletContext';
-import { useEffect, useState } from 'react';
+import Header from '@src/components/Header';
 
-interface BalanceData {
-  confirmed: number;
-  unconfirmed: number;
-  confirmedUsd: number;
-  unconfirmedUsd: number;
-}
-
-export const Dashboard: React.FC = () => {
+export const Activity: React.FC = () => {
   const navigate = useNavigate();
-  const { selectedAccountIndex, wallet } = useWalletContext();
+  const { selectedAccountIndex } = useWalletContext();
 
   const [showChooseReceiveCurrencySlide, setShowChooseReceiveCurrencySlide] = React.useState(false);
   const [showChooseSendCurrencySlide, setShowChooseSendCurrencySlide] = React.useState(false);
-  const [balance, setBalance] = useState<BalanceData | null>(null);
-  // const [history, setHistory] = useState<DetailedTransaction[]>([]);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [loading, setLoading] = useState<boolean>(true);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [error, setError] = useState<string | null>(null);
 
   const handleToggleChooseReceiveCurrencySlide = () => {
     setShowChooseReceiveCurrencySlide(!showChooseReceiveCurrencySlide);
@@ -34,24 +21,9 @@ export const Dashboard: React.FC = () => {
     setShowChooseSendCurrencySlide(!showChooseSendCurrencySlide);
   };
 
-  useEffect(() => {
-    const fetchWalletData = () => {
-      const walletAddress = wallet ? wallet.generateAddress(0) : '';
-      chrome.runtime.sendMessage({ action: 'getBalance', walletAddress }, response => {
-        if (response?.success) {
-          setBalance(response.balance);
-        } else {
-          setError(response.error);
-        }
-        setLoading(false);
-      });
-    };
-
-    fetchWalletData();
-  }, [wallet]);
-
   return (
-    <div className="relative flex overflow-hidden flex-col items-center h-full bg-dark">
+    <div className="flex flex-col items-center text-white bg-dark h-full px-4 pt-12 pb-[19px]">
+      <Header title="Settings" />
       <div className="flex gap-10 justify-between items-center self-stretch p-3 w-full text-xs font-bold leading-6 bg-dark min-h-[48px] text-neutral-200">
         <button
           className="flex gap-2 justify-center items-center self-stretch px-2 my-auto rounded bg-zinc-800 cursor-pointer"
@@ -80,13 +52,11 @@ export const Dashboard: React.FC = () => {
           <div className="self-stretch my-auto">Total Balance</div>
         </div>
         <div className="mt-2 text-5xl font-bold uppercase cursor-pointer">
-          {balance ? balance.confirmedUsd.toFixed(2) : '0'} <span className="text-xl">USD</span>
+          0 <span className="text-xl">USD</span>
         </div>
       </div>
 
-      <div className="mt-2 text-sm leading-none text-center text-white cursor-pointer">
-        {balance ? (balance.confirmed / 1e8).toFixed(8) : '0'} BTC
-      </div>
+      <div className="mt-2 text-sm leading-none text-center text-white cursor-pointer">0 BTC</div>
 
       <div className="flex gap-2.5 justify-between items-center mt-[52px] w-full text-lg font-medium leading-none text-center whitespace-nowrap max-w-[346px] text-foreground">
         <CryptoButton icon="popup/receive_icon.svg" label="Receive" onClick={handleToggleChooseReceiveCurrencySlide} />
@@ -98,8 +68,8 @@ export const Dashboard: React.FC = () => {
       <div className="flex flex-col w-full max-w-[346px] gap-[7px]">
         <CryptoBalance
           cryptoName="Bitcoin"
-          cryptoAmount={balance ? `${(balance.confirmed / 1e8).toFixed(8)} BTC` : '0 BTC'}
-          usdAmount={balance ? `$${balance.confirmedUsd.toFixed(2)}` : '0 USD'}
+          cryptoAmount="0 BTC"
+          usdAmount="0 USD"
           icon="popup/btc_coin.svg"
           onClick={() => navigate('/send/btc')}
         />
@@ -138,8 +108,8 @@ export const Dashboard: React.FC = () => {
               <div className="flex flex-col w-full max-w-[346px] gap-[7px]">
                 <CryptoBalance
                   cryptoName="Bitcoin"
-                  cryptoAmount={balance ? `${(balance.confirmed / 1e8).toFixed(8)} BTC` : '0 BTC'}
-                  usdAmount={balance ? `$${balance.confirmedUsd.toFixed(2)}` : '0 USD'}
+                  cryptoAmount="0 BTC"
+                  usdAmount="0 USD"
                   icon="popup/btc_coin.svg"
                   onClick={() => navigate('/receive/btc')}
                 />
@@ -182,8 +152,8 @@ export const Dashboard: React.FC = () => {
               <div className="flex flex-col w-full max-w-[346px] gap-[7px]">
                 <CryptoBalance
                   cryptoName="Bitcoin"
-                  cryptoAmount={balance ? `${(balance.confirmed / 1e8).toFixed(8)} BTC` : '0 BTC'}
-                  usdAmount={balance ? `$${balance.confirmedUsd.toFixed(2)}` : '0 USD'}
+                  cryptoAmount="0 BTC"
+                  usdAmount="0 USD"
                   icon="popup/btc_coin.svg"
                   onClick={() => navigate('/send/btc')}
                 />

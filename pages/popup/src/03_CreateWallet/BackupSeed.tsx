@@ -93,7 +93,7 @@ export const BackupSeed: React.FC = () => {
 
     const mnemonic = seedWords.join(' ').trim();
 
-    createWallet(mnemonic, password, 'mainnet', false);
+    createWallet(mnemonic, password, 'mainnet', 'p2pkh');
 
     navigate('/onboard/complete');
   };

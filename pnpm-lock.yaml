@@ -8,9 +8,18 @@ importers:
 
   .:
     dependencies:
+      '@electrum-cash/network':
+        specifier: ^3.3.0
+        version: 3.3.0
+      axios:
+        specifier: ^1.7.9
+        version: 1.7.9
       bip39:
         specifier: ^3.1.0
         version: 3.1.0
+      bitcoinjs-lib:
+        specifier: ^6.1.7
+        version: 6.1.7
       framer-motion:
         specifier: ^12.4.10
         version: 12.4.10(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -187,9 +196,6 @@ importers:
       '@bitcoinerlab/secp256k1':
         specifier: ^1.2.0
         version: 1.2.0
-      '@samouraiwallet/electrum-client':
-        specifier: ^1.5.2
-        version: 1.5.2
       axios:
         specifier: ^1.7.9
         version: 1.7.9
@@ -599,6 +605,9 @@ packages:
 
   '@dabh/diagnostics@2.0.3':
     resolution: {integrity: sha512-hrlQOIi7hAfzsMqlGSFyVucrx38O+j6wiGOf//H2ecvIEqYN4ADBSS2iLMh5UFyDunCNniUIPk/q3riFv45xRA==}
+
+  '@electrum-cash/network@3.3.0':
+    resolution: {integrity: sha512-j0Hc0Q4P790KAhc7wl2u2FauJZt5KqnMotK83ripBtjmOdjHQ39OWL00v/KKzW80wgjL+pWiCxLvkEzpiSxXcg==}
 
   '@esbuild/aix-ppc64@0.23.1':
     resolution: {integrity: sha512-6VhYk1diRqrhBAqpJEdjASR/+WVRtfjpqKuNw11cLiaWpAT/Uu+nokB+UJnevzy/P9C/ty6AOe0dwueMrGh/iQ==}
@@ -1058,6 +1067,11 @@ packages:
     peerDependencies:
       vite: ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0
 
+  '@monsterbitar/isomorphic-ws@5.3.1':
+    resolution: {integrity: sha512-BWfWUffbg3uO4K6Cyokg9ff43lPaXAOZcCnNe1lcjCjUMDVrRAb5qEHG5qeJp3ud2SPYbORaNsls5as6SR3oig==}
+    peerDependencies:
+      ws: '*'
+
   '@noble/curves@1.8.1':
     resolution: {integrity: sha512-warwspo+UYUPep0Q+vtdVB4Ugn8GGQj8iyB3gnRWsztmUHTI3S1nhdiWNsPUGL0vud7JlRRk1XEu7Lq1KGTnMQ==}
     engines: {node: ^14.21.3 || >=16}
@@ -1211,10 +1225,6 @@ packages:
     resolution: {integrity: sha512-k3MVFD9Oq+laHkw2N2v7ILgoa9017ZMF/inTtHzyTVZjYs9cSH18sdyAf6spBAJIGwJ5UaC7et2ZH1WCdlhkMw==}
     cpu: [x64]
     os: [win32]
-
-  '@samouraiwallet/electrum-client@1.5.2':
-    resolution: {integrity: sha512-MYnTHPAB5/eLMhniS+aQDpgkFl5eib5MIHp5md2XYneJmfN1hR2/J9EAuqwtmhPTSkBPCwq1fqMwfqGkwsoQrA==}
-    engines: {node: '>=18.6.0'}
 
   '@scure/base@1.2.4':
     resolution: {integrity: sha512-5Yy9czTO47mqz+/J8GM6GIId4umdCk1wc1q8rKERQulIoc8VP9pzDcghv10Tl2E7R96ZUx/PhND3ESYUQX8NuQ==}
@@ -1655,6 +1665,9 @@ packages:
   async-function@1.0.0:
     resolution: {integrity: sha512-hsU18Ae8CDTR6Kgu9DYf0EbCr/a5iGL0rytQDobUcdpYOKokk8LEjVphnXkDkgpi0wYVsqrXuP0bZxJaTqdgoA==}
     engines: {node: '>= 0.4'}
+
+  async-mutex@0.4.1:
+    resolution: {integrity: sha512-WfoBo4E/TbCX1G95XTjbWTE3X2XLG0m1Xbv2cwOtuPdyH9CZvnaA5nCt1ucjaKEgW2A5IF71hxrRhr83Je5xjA==}
 
   async@3.2.6:
     resolution: {integrity: sha512-htCUDlxyyCLMgaM3xXg0C0LW2xqfuQ6p05pCEIsXuyQ+a1koYKTuBMzRNwmybfLgvJDMd0r1LTn4+E0Ti6C2AA==}
@@ -3127,6 +3140,9 @@ packages:
   loose-envify@1.4.0:
     resolution: {integrity: sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==}
     hasBin: true
+
+  lossless-json@2.0.11:
+    resolution: {integrity: sha512-BP0vn+NGYvzDielvBZaFain/wgeJ1hTvURCqtKvhr1SCPePdaaTanmmcplrHfEJSJOUql7hk4FHwToNJjWRY3g==}
 
   lru-cache@10.4.3:
     resolution: {integrity: sha512-JNAzZcXrCt42VGLuYz0zfAzDfAvJWW6AfYlDBQyDV5DClI2m5sAmK+OIO7s59XfsRsWHp02jAJrRadPRGTt6SQ==}
@@ -4616,6 +4632,19 @@ snapshots:
       enabled: 2.0.0
       kuler: 2.0.0
 
+  '@electrum-cash/network@3.3.0':
+    dependencies:
+      '@monsterbitar/isomorphic-ws': 5.3.1(ws@8.18.0)
+      '@types/ws': 8.5.14
+      async-mutex: 0.4.1
+      debug: 4.4.0
+      lossless-json: 2.0.11
+      ws: 8.18.0
+    transitivePeerDependencies:
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+
   '@esbuild/aix-ppc64@0.23.1':
     optional: true
 
@@ -5035,6 +5064,10 @@ snapshots:
       semver: 7.7.0
       vite: 6.0.5(@types/node@22.13.5)(jiti@1.21.7)(terser@5.37.0)(tsx@4.19.2)(yaml@2.7.0)
 
+  '@monsterbitar/isomorphic-ws@5.3.1(ws@8.18.0)':
+    dependencies:
+      ws: 8.18.0
+
   '@noble/curves@1.8.1':
     dependencies:
       '@noble/hashes': 1.7.1
@@ -5139,8 +5172,6 @@ snapshots:
 
   '@rollup/rollup-win32-x64-msvc@4.34.1':
     optional: true
-
-  '@samouraiwallet/electrum-client@1.5.2': {}
 
   '@scure/base@1.2.4': {}
 
@@ -5648,6 +5679,10 @@ snapshots:
   ast-types-flow@0.0.8: {}
 
   async-function@1.0.0: {}
+
+  async-mutex@0.4.1:
+    dependencies:
+      tslib: 2.8.1
 
   async@3.2.6: {}
 
@@ -7574,6 +7609,8 @@ snapshots:
   loose-envify@1.4.0:
     dependencies:
       js-tokens: 4.0.0
+
+  lossless-json@2.0.11: {}
 
   lru-cache@10.4.3: {}
 

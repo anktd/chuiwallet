@@ -14,7 +14,7 @@ initEccLib(secp256k1);
 // Wrap bip32 with secp256k1 support
 const bip32 = BIP32Factory(secp256k1);
 
-export type AddressType = 'legacy' | 'segwit' | 'taproot';
+export type AddressType = 'p2pkh' | 'p2sh' | 'bech32' | 'p2tr';
 
 /**
  * WalletOptions lets you specify how to restore or create a wallet.
@@ -29,8 +29,8 @@ export interface WalletOptions {
   mnemonic?: string;
   xpriv?: string;
   network?: 'mainnet' | 'testnet';
-  taproot?: boolean; // if true, then use taproot derivation (BIP86)
-  addressType?: AddressType; // "legacy", "segwit" or "taproot"
+  addressType?: AddressType;
+  accountIndex?: number;
 }
 
 export default class Wallet {
@@ -38,20 +38,30 @@ export default class Wallet {
   private seed: Buffer | null = null;
   private root: BIP32Interface;
   private account?: BIP32Interface;
-  private taproot: boolean;
   private network: bitcoin.networks.Network;
   private encryptedMnemonic: string | null = null;
   private addresses: string[];
   private xpub: string;
   private coin: number;
+  private addressType: AddressType;
+  private accountIndex: number;
 
-  constructor({ password, mnemonic, xpriv, network = 'mainnet', taproot = false, addressType }: WalletOptions) {
+  constructor({
+    password,
+    mnemonic,
+    xpriv,
+    network = 'mainnet',
+    addressType = 'p2pkh',
+    accountIndex = 0,
+  }: WalletOptions) {
     // Set network based on parameter
     this.network = network === 'testnet' ? bitcoin.networks.testnet : bitcoin.networks.bitcoin;
     // Use coin=1 for testnet, coin=0 for mainnet
     this.coin = this.network === bitcoin.networks.testnet ? 1 : 0;
-    this.taproot = taproot;
+    // Default address type to 'bech32' if not provided
+    this.addressType = addressType || 'bech32';
     this.addresses = [];
+    this.accountIndex = accountIndex;
 
     if (xpriv) {
       // Restore from an extended private key (non-HD mnemonic restoration)
@@ -68,18 +78,20 @@ export default class Wallet {
       this.seed = bip39.mnemonicToSeedSync(this.mnemonic);
       this.root = bip32.fromSeed(this.seed, this.network);
 
-      // Determine derivation based on addressType:
-      // - "legacy" uses BIP44: m/44'/coin'/0'
-      // - "segwit" uses BIP84: m/84'/coin'/0'
-      // - "taproot" uses BIP86: m/86'/coin'/0'
-      const type = addressType || (taproot ? 'taproot' : 'segwit');
-      if (type === 'legacy') {
-        this.account = this.root.deriveHardened(44).deriveHardened(this.coin).deriveHardened(0);
-      } else if (type === 'taproot') {
-        this.account = this.root.deriveHardened(86).deriveHardened(this.coin).deriveHardened(0);
+      // Choose derivation based on the address type:
+      // p2pkh -> BIP44: m/44'/coin'/0'
+      // p2sh   -> BIP49: m/49'/coin'/0'
+      // bech32 -> BIP84: m/84'/coin'/0'
+      // p2tr   -> BIP86: m/86'/coin'/0'
+      if (this.addressType === 'p2pkh') {
+        this.account = this.root.deriveHardened(44).deriveHardened(this.coin).deriveHardened(accountIndex);
+      } else if (this.addressType === 'p2sh') {
+        this.account = this.root.deriveHardened(49).deriveHardened(this.coin).deriveHardened(accountIndex);
+      } else if (this.addressType === 'p2tr') {
+        this.account = this.root.deriveHardened(86).deriveHardened(this.coin).deriveHardened(accountIndex);
       } else {
-        // Default to segwit
-        this.account = this.root.deriveHardened(84).deriveHardened(this.coin).deriveHardened(0);
+        // Default to bech32 (BIP84)
+        this.account = this.root.deriveHardened(84).deriveHardened(this.coin).deriveHardened(accountIndex);
       }
       this.xpub = this.account.neutered().toBase58();
       this.encryptedMnemonic = encryption.encrypt(this.mnemonic, password);
@@ -113,46 +125,55 @@ export default class Wallet {
   }
 
   public setAccountIndex(index: number): void {
-    const type = this.getAddressType();
-    if (type === 'legacy') {
+    // Derive the account based on the address type
+    if (this.addressType === 'p2pkh') {
       this.account = this.root.deriveHardened(44).deriveHardened(this.coin).deriveHardened(index);
-    } else if (type === 'taproot') {
+    } else if (this.addressType === 'p2sh') {
+      this.account = this.root.deriveHardened(49).deriveHardened(this.coin).deriveHardened(index);
+    } else if (this.addressType === 'p2tr') {
       this.account = this.root.deriveHardened(86).deriveHardened(this.coin).deriveHardened(index);
     } else {
       this.account = this.root.deriveHardened(84).deriveHardened(this.coin).deriveHardened(index);
     }
+
+    this.accountIndex = index;
   }
 
   /**
    * Generates a new receiving address.
    * For HD wallets (created from a mnemonic/seed), this uses a standard derivation.
-   * Note: If the wallet was restored solely from xpriv, HD derivation is available,
-   * but you might want to restrict certain functionality.
    */
   public generateAddress(index: number = 0): string {
     let address: string | undefined;
     if (!this.account) {
       throw new Error('No account available for derivation');
     }
-    if (this.taproot || this.getAddressType() === 'taproot') {
-      // Use BIP86 derivation for taproot
-      const node = this.account.derive(0).derive(index);
-      // For P2TR, use bitcoin.payments.p2tr with the internal pubkey (drop first byte)
+    // Derive the node at branch 0 (external addresses)
+    const node = this.account.derive(0).derive(index);
+    if (this.addressType === 'p2pkh') {
+      address = bitcoin.payments.p2pkh({
+        pubkey: Buffer.from(node.publicKey),
+        network: this.network,
+      }).address;
+    } else if (this.addressType === 'p2sh') {
+      // Wrapped SegWit: p2wpkh inside p2sh
+      const p2wpkh = bitcoin.payments.p2wpkh({
+        pubkey: Buffer.from(node.publicKey),
+        network: this.network,
+      });
+      address = bitcoin.payments.p2sh({
+        redeem: p2wpkh,
+        network: this.network,
+      }).address;
+    } else if (this.addressType === 'p2tr') {
+      // For P2TR (Taproot), use the internal public key (drop the first byte)
       const internalPubkey = Buffer.from(node.publicKey.slice(1));
       address = bitcoin.payments.p2tr({
         internalPubkey,
         network: this.network,
       }).address;
-    } else if (this.getAddressType() === 'legacy') {
-      // Use BIP44 derivation for legacy addresses
-      const node = this.account.derive(0).derive(index);
-      address = bitcoin.payments.p2pkh({
-        pubkey: Buffer.from(node.publicKey),
-        network: this.network,
-      }).address;
     } else {
-      // Default to segwit (BIP84) using p2wpkh
-      const node = this.account.derive(0).derive(index);
+      // Default to bech32 (native SegWit - p2wpkh)
       address = bitcoin.payments.p2wpkh({
         pubkey: Buffer.from(node.publicKey),
         network: this.network,
@@ -160,56 +181,6 @@ export default class Wallet {
     }
     this.addresses[index] = address || '';
     return address || '';
-  }
-
-  public getAddressForAccount(index: number, addressIndex: number = 0): string {
-    let accountBranch: BIP32Interface;
-    const type = this.getAddressType();
-    if (type === 'legacy') {
-      accountBranch = this.root.deriveHardened(44).deriveHardened(this.coin).deriveHardened(index);
-    } else if (type === 'taproot') {
-      accountBranch = this.root.deriveHardened(86).deriveHardened(this.coin).deriveHardened(index);
-    } else {
-      accountBranch = this.root.deriveHardened(84).deriveHardened(this.coin).deriveHardened(index);
-    }
-    const node = accountBranch.derive(0).derive(addressIndex);
-    if (type === 'legacy') {
-      return (
-        bitcoin.payments.p2pkh({
-          pubkey: Buffer.from(node.publicKey),
-          network: this.network,
-        }).address || ''
-      );
-    } else if (type === 'taproot') {
-      const internalPubkey = Buffer.from(node.publicKey.slice(1));
-      return (
-        bitcoin.payments.p2tr({
-          internalPubkey,
-          network: this.network,
-        }).address || ''
-      );
-    } else {
-      return (
-        bitcoin.payments.p2wpkh({
-          pubkey: Buffer.from(node.publicKey),
-          network: this.network,
-        }).address || ''
-      );
-    }
-  }
-
-  private getAddressType(): 'legacy' | 'segwit' | 'taproot' {
-    // If the wallet was created with the taproot flag set to true, return "taproot".
-    if (this.taproot) return 'taproot';
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if ((this as any).addressType) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return (this as any).addressType;
-    }
-
-    // Without explicit information, default to "segwit" (BIP84).
-    return 'segwit';
   }
 
   /**
@@ -251,22 +222,12 @@ export default class Wallet {
   /**
    * Signs a PSBT and returns the signed transaction hex.
    */
-  // public signTransaction(psbt: bitcoin.Psbt): string {
-  //   if (!this.mnemonic && !this.seed) {
-  //     throw new Error('Wallet restored from xpriv; signing may be limited.');
-  //   }
-  //   const coin = this.network === bitcoin.networks.testnet ? 1 : 0;
-  //   const account = this.taproot ? this.root : this.root.deriveHardened(84).deriveHardened(coin).deriveHardened(0);
-  //   const keyPair = account.derive(0).derive(0);
-  //   const signer = { ...keyPair, publicKey: Buffer.from(keyPair.publicKey) };
-  //   psbt.signAllInputs(signer as unknown as bitcoin.Signer);
-  //   psbt.finalizeAllInputs();
-  //   return psbt.extractTransaction().toHex();
-  // }
   public signTransaction(psbt: bitcoin.Psbt): string {
-    const account = this.account!;
-    // Derive the key for input 0
-    const keyPair = account.derive(0).derive(0);
+    if (!this.account) {
+      throw new Error('No account available for signing');
+    }
+    // Derive the key for input 0 as an example.
+    const keyPair = this.account.derive(0).derive(0);
     if (!keyPair.privateKey) {
       throw new Error('Derived key does not have a private key');
     }
@@ -276,7 +237,6 @@ export default class Wallet {
       ...keyPair,
       publicKey: Buffer.from(keyPair.publicKey),
       sign: (hash: Buffer) => {
-        // Call the original sign function, then convert its Uint8Array output to a Buffer.
         const sig = keyPair.sign(hash);
         return Buffer.from(sig);
       },

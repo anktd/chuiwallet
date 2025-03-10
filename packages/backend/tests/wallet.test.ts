@@ -8,9 +8,8 @@ describe('Wallet Module', () => {
     // Create a segwit wallet (BIP84) on mainnet
     const wallet = new Wallet({
       password,
-      taproot: false,
       network: 'mainnet',
-      addressType: 'segwit',
+      addressType: 'p2pkh',
     });
     // Generate the receiving address from the wallet
     const address = wallet.generateAddress(0);

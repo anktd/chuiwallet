@@ -46,7 +46,7 @@ export const PasswordLock: React.FC = () => {
             password: password,
             mnemonic: decryptedMnemonic,
             network: storedAccount.network,
-            taproot: storedAccount.taproot || false,
+            addressType: 'p2pkh',
           });
 
           const seed = restoredWallet.recoverMnemonic(password);

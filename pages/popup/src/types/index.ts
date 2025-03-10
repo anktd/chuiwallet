@@ -10,7 +10,6 @@ export interface StoredAccount {
   encryptedMnemonic: string;
   xpub: string;
   network: 'mainnet' | 'testnet';
-  taproot: boolean;
   selectedAccountIndex: number;
   totalAccounts: number;
   isRestored: boolean;

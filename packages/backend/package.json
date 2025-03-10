@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@bitcoinerlab/secp256k1": "^1.2.0",
-    "@samouraiwallet/electrum-client": "^1.5.2",
     "axios": "^1.7.9",
     "bech32": "^2.0.0",
     "bip32": "5.0.0-rc.0",

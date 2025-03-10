@@ -4,6 +4,7 @@ import type Wallet from '@extension/backend/src/modules/wallet.js';
 import WalletManager from '@extension/backend/src/walletManager.js';
 import { getSessionPassword, setSessionPassword } from '@src/utils/sessionStorageHelper';
 import type { StoredAccount } from '@src/types';
+import type { AddressType } from '@extension/backend/dist/modules/wallet';
 
 interface WalletContextType {
   wallet: Wallet | null;
@@ -19,8 +20,8 @@ interface WalletContextType {
   switchAccount: (index: number) => void;
   nextAccount: () => void;
   addAccount: () => void;
-  createWallet: (seed: string, password: string, network?: 'mainnet' | 'testnet', taproot?: boolean) => void;
-  restoreWallet: (seed: string, password: string, network?: 'mainnet' | 'testnet', taproot?: boolean) => void;
+  createWallet: (seed: string, password: string, network?: 'mainnet' | 'testnet', addressType?: AddressType) => void;
+  restoreWallet: (seed: string, password: string, network?: 'mainnet' | 'testnet', addressType?: AddressType) => void;
   clearWallet: () => void;
 }
 
@@ -75,7 +76,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             const restoredWallet = manager.createWallet({
               password: storedPassword,
               network: storedAccount.network,
-              taproot: storedAccount.taproot,
+              addressType: 'p2pkh',
             });
 
             restoredWallet.restoreEncryptedMnemonic(storedAccount.encryptedMnemonic);
@@ -169,7 +170,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     seed: string,
     pwd: string,
     network: 'mainnet' | 'testnet' = 'mainnet',
-    taproot: boolean = false,
+    addressType: AddressType = 'p2pkh',
   ) => {
     try {
       const manager = new WalletManager();
@@ -178,7 +179,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         password: pwd,
         mnemonic: seed,
         network,
-        taproot,
+        addressType,
       });
 
       setWallet(createdWallet, pwd);
@@ -187,7 +188,6 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         encryptedMnemonic: createdWallet.getEncryptedMnemonic()!,
         xpub: createdWallet.getXpub(),
         network,
-        taproot: false,
         selectedAccountIndex: 0,
         totalAccounts: 1,
         isRestored: false,
@@ -214,7 +214,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     seed: string,
     pwd: string,
     network: 'mainnet' | 'testnet' = 'mainnet',
-    taproot: boolean = false,
+    addressType: AddressType = 'p2pkh',
   ) => {
     try {
       const manager = new WalletManager();
@@ -223,7 +223,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         password: pwd,
         mnemonic: seed,
         network,
-        taproot,
+        addressType,
       });
 
       setWallet(restoredWallet, pwd);
@@ -233,7 +233,6 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         encryptedMnemonic: restoredWallet.getEncryptedMnemonic()!,
         xpub: restoredWallet.getXpub(),
         network,
-        taproot: false,
         selectedAccountIndex: 0,
         totalAccounts: 1,
         isRestored: true,
