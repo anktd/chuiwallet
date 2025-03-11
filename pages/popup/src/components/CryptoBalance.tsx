@@ -5,14 +5,23 @@ export interface CryptoBalanceProps {
   cryptoAmount: string;
   usdAmount: string;
   icon: string;
+  disabled?: boolean;
   onClick?: () => void;
 }
 
-export const CryptoBalance: React.FC<CryptoBalanceProps> = ({ cryptoName, cryptoAmount, usdAmount, icon, onClick }) => {
+export const CryptoBalance: React.FC<CryptoBalanceProps> = ({
+  cryptoName,
+  cryptoAmount,
+  usdAmount,
+  icon,
+  disabled,
+  onClick,
+}) => {
   return (
     <button
       className="flex gap-3 justify-center items-center px-2.5 py-3 w-full rounded-lg bg-zinc-800 cursor-pointer"
-      onClick={onClick}>
+      onClick={onClick}
+      disabled={disabled}>
       <div className="flex gap-3 items-center self-stretch my-auto min-w-[240px] w-[312px]">
         <img
           loading="lazy"

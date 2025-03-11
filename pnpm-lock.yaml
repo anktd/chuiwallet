@@ -29,6 +29,9 @@ importers:
       vite-plugin-wasm:
         specifier: ^3.4.1
         version: 3.4.1(vite@6.0.5(@types/node@22.13.0)(jiti@1.21.7)(terser@5.37.0)(tsx@4.19.2)(yaml@2.7.0))
+      wallet-address-validator:
+        specifier: ^0.2.4
+        version: 0.2.4
     devDependencies:
       '@eslint/compat':
         specifier: ^1.2.5
@@ -1714,6 +1717,9 @@ packages:
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
 
+  base-x@3.0.11:
+    resolution: {integrity: sha512-xz7wQ8xDhdyP7tQxwdteLYeFfS68tSMNCZ/Y37WJ4bhGfKPpqEIlmIyueQHqOyoPhE6xNUqjzRr8ra0eF9VRvA==}
+
   base-x@4.0.0:
     resolution: {integrity: sha512-FuwxlW4H5kh37X/oW59pwTzzTKRzfrrQwhmyspRM7swOEZcHtDZSCt45U6oKgtuFE+WYPblePMVIPR4RZrh/hw==}
 
@@ -3045,6 +3051,10 @@ packages:
     engines: {node: '>=6'}
     hasBin: true
 
+  jssha@2.3.1:
+    resolution: {integrity: sha512-z75RK13RZmAYW1SR9DAO9eqosXjctPsSEkQ9QJGWx90gJMnQC4AxU/AGQYZ63VCWIJMtzXgbEZ0fTEKmllm8gw==}
+    deprecated: jsSHA versions < 3.0.0 will no longer receive feature updates
+
   jsx-ast-utils@3.3.5:
     resolution: {integrity: sha512-ZZow9HBI5O6EPgSJLUb8n2NKgmVWTwCvHGwFuJlMjvLFqlGG6pjirPhtdsseaLZjSibD8eegzmYpUZwoIlj2cQ==}
     engines: {node: '>=4.0'}
@@ -4279,6 +4289,9 @@ packages:
 
   walker@1.0.8:
     resolution: {integrity: sha512-ts/8E8l5b7kY0vlWLewOkDXMmPdLcVV4GmOQLyxuSswIJsweeFZtAsMF7k1Nszz+TYBQrlYRmzOnr398y1JemQ==}
+
+  wallet-address-validator@0.2.4:
+    resolution: {integrity: sha512-3fp0pVdhaCA6UoPK3CQFx9Y+ckQgFlCa9rOQ7DZr2Uzlh0kYKs3NaSwIDn4FSceDsi1g6W28EWDrlr9Pr3mI3Q==}
 
   watchpack@2.4.2:
     resolution: {integrity: sha512-TnbFSbcOCcDgjZ4piURLCbJ3nJhznVh9kw6F6iokjiFPl8ONxe9A6nMDVXDiNbrSfLILs6vB07F7wLBrwPYzJw==}
@@ -5737,6 +5750,10 @@ snapshots:
       babel-preset-current-node-syntax: 1.1.0(@babel/core@7.26.9)
 
   balanced-match@1.0.2: {}
+
+  base-x@3.0.11:
+    dependencies:
+      safe-buffer: 5.2.1
 
   base-x@4.0.0: {}
 
@@ -7476,6 +7493,8 @@ snapshots:
 
   json5@2.2.3: {}
 
+  jssha@2.3.1: {}
+
   jsx-ast-utils@3.3.5:
     dependencies:
       array-includes: 3.1.8
@@ -8825,6 +8844,11 @@ snapshots:
   walker@1.0.8:
     dependencies:
       makeerror: 1.0.12
+
+  wallet-address-validator@0.2.4:
+    dependencies:
+      base-x: 3.0.11
+      jssha: 2.3.1
 
   watchpack@2.4.2:
     dependencies:

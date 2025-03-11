@@ -1,3 +1,5 @@
+import WAValidator from 'wallet-address-validator';
+
 /**
  * Simple password strength checker:
  * - length >= 8 => +1
@@ -32,7 +34,7 @@ export function pickRandomPositions(n: number, total: number): number[] {
   return positions.sort((a, b) => a - b);
 }
 
-export function formatAmount(value: number, digits: number = 2): string {
+export function formatNumber(value: number, digits: number = 2): string {
   const fixed = value.toFixed(digits);
   let [integer, fraction] = fixed.split('.');
   integer = parseInt(integer, 10).toLocaleString();
@@ -65,6 +67,22 @@ export function capitalizeFirstLetter(value: string) {
   return String(value).charAt(0).toUpperCase() + String(value).slice(1);
 }
 
+export function formatTimestamp(timestamp: number) {
+  const date = new Date(timestamp * 1000);
+
+  const day = ('0' + date.getDate()).slice(-2);
+  const month = ('0' + (date.getMonth() + 1)).slice(-2);
+  const year = date.getFullYear().toString().slice(-2);
+
+  let hours = date.getHours();
+  const minutes = ('0' + date.getMinutes()).slice(-2);
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12;
+
+  return `${day}/${month}/${year} at ${hours}:${minutes} ${ampm}`;
+}
+
 /**
  * Return an icon path and label text based on status
  */
@@ -89,4 +107,8 @@ export function truncateLastTxn(address: string, front = 10) {
   if (address.length <= front) return address;
 
   return `${address.slice(0, front)}...`;
+}
+
+export function isValidBTCAddress(address: string) {
+  return WAValidator.validate(address, 'BTC');
 }

@@ -1,13 +1,16 @@
 import { Button } from '@src/components/Button';
 import type * as React from 'react';
+import { useNavigate } from 'react-router-dom';
 
-export const TransactionComplete: React.FC = () => {
+export const SendStatus: React.FC = () => {
+  const navigate = useNavigate();
+
   const handleDashboardClick = () => {
-    window.location.href = '/dashboard';
+    navigate('/dashboard');
   };
 
   return (
-    <div className="flex overflow-hidden flex-col items-center px-5 pt-40 pb-5 bg-dark]">
+    <div className="flex flex-col items-center text-white bg-dark h-full px-4 pt-12 pb-[19px]">
       <div className="flex flex-col items-center w-[54px]">
         <img
           loading="lazy"

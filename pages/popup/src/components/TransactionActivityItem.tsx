@@ -1,7 +1,7 @@
 import type * as React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { formatAmount, timestampToTime, getStatusMeta } from '@src/utils';
+import { formatNumber, timestampToTime, getStatusMeta } from '@src/utils';
 import type { TransactionActivityStatus, TransactionType } from '@extension/backend/src/modules/electrumService';
 
 export interface TransactionActivityItemProps {
@@ -18,37 +18,22 @@ export interface TransactionActivityItemProps {
   receiver: string;
 }
 
-export const TransactionActivityItem: React.FC<TransactionActivityItemProps> = ({
-  type,
-  status,
-  amountBtc,
-  amountUsd,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  feeBtc,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  feeUsd,
-  timestamp,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  confirmations,
-  transactionHash,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  sender,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  receiver,
-}) => {
+export const TransactionActivityItem: React.FC<TransactionActivityItemProps> = props => {
   const navigate = useNavigate();
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [loading, setLoading] = useState<boolean>(true);
 
-  const isSent = type === 'SEND';
+  const isSent = props.type === 'SEND';
   const sign = isSent ? '-' : '+';
-  const txnStatus = status === 'PENDING' ? 'pending' : isSent ? 'sent' : 'received';
+  const txnStatus = props.status === 'PENDING' ? 'pending' : isSent ? 'sent' : 'received';
   const { icon, label } = getStatusMeta(txnStatus);
-  const formattedTime = timestampToTime(timestamp);
+  const formattedTime = timestampToTime(props.timestamp);
 
   const handleClick = () => {
-    navigate('/transactions/detail');
+    navigate(`${props.transactionHash}/detail`, {
+      state: props,
+    });
   };
 
   return (
@@ -70,18 +55,18 @@ export const TransactionActivityItem: React.FC<TransactionActivityItemProps> = (
             <span className="text-sm font-bold">{label}</span>
             <span className="text-xs">{formattedTime}</span>
           </div>
-          <span className="text-sm text-foreground-79 text-left w-[160px] truncate">{transactionHash}</span>
+          <span className="text-sm text-foreground-79 text-left w-[160px] truncate">{props.transactionHash}</span>
         </div>
       </div>
 
       <div className="flex flex-col items-end gap-0.5">
         <span className="text-sm text-white text-nowrap">
           {sign}
-          {formatAmount(Math.abs(amountUsd))} USD
+          {formatNumber(Math.abs(props.amountUsd))} USD
         </span>
         <span className="text-sm text-foreground-79 text-nowrap">
           {sign}
-          {formatAmount(Math.abs(amountBtc), 8)} BTC
+          {formatNumber(Math.abs(props.amountBtc), 8)} BTC
         </span>
       </div>
     </button>

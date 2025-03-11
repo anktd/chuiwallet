@@ -2,7 +2,7 @@ import type * as React from 'react';
 import { useNavigate } from 'react-router-dom';
 
 interface HeaderProps {
-  title: string;
+  title: React.ReactNode;
   hideClose?: boolean;
 }
 

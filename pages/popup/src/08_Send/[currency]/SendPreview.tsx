@@ -1,13 +1,25 @@
 import { Button } from '@src/components/Button';
+import Header from '@src/components/Header';
+import type { Currencies } from '@src/types';
+import { useNavigate, useParams } from 'react-router-dom';
 
-interface TransactionConfirmProps {
+interface SendPreviewProps {
   onConfirm?: () => void;
 }
 
-export function TransactionConfirm({ onConfirm }: TransactionConfirmProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function SendPreview({ onConfirm }: SendPreviewProps) {
+  const navigate = useNavigate();
+  const { currency } = useParams<{ currency: Currencies }>();
+
+  const handleConfirm = () => {
+    navigate(`/send/${currency}/status`);
+  };
+
   return (
-    <div className="flex overflow-hidden flex-col p-5 text-lg bg-dark]">
-      <div className="self-center text-xl font-bold leading-none text-center text-white">Confirm transaction</div>
+    <div className="flex flex-col items-center text-white bg-dark h-full px-4 pt-12 pb-[19px]">
+      <Header title="Confirm Transaction" />
+
       <div className="flex flex-col mt-14 w-full max-w-[298px]">
         <div className="flex flex-col w-full leading-none">
           <div className="font-medium text-white">Asset Sent</div>
@@ -37,7 +49,7 @@ export function TransactionConfirm({ onConfirm }: TransactionConfirmProps) {
         </div>
       </div>
       <div className="mt-28">
-        <Button onClick={onConfirm}>Confirm & Send</Button>
+        <Button onClick={handleConfirm}>Confirm & Send</Button>
       </div>
     </div>
   );

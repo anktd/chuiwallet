@@ -1,7 +1,10 @@
 import type * as React from 'react';
-import { CurrencyInput } from './CurrencyInput';
-import { FeeOption } from './FeeOption';
-import { TransactionFee } from './TransactionFee';
+import { useNavigate, useParams } from 'react-router-dom';
+import { currencyMapping, type Currencies } from '@src/types';
+import { CurrencyInput } from '@src/components/CurrencyInput';
+import { FeeOption } from '@src/components/FeeOption';
+import { TransactionFee } from '@src/components/TransactionFee';
+import Header from '@src/components/Header';
 
 const feeOptions = [
   { speed: 'Slow', btcAmount: '0.000012', usdAmount: '0.95' },
@@ -10,9 +13,17 @@ const feeOptions = [
 ];
 
 export const SendOptions: React.FC = () => {
+  const navigate = useNavigate();
+  const { currency } = useParams<{ currency: Currencies }>();
+
+  const handleNext = () => {
+    navigate(`/send/${currency}/preview`);
+  };
+
   return (
-    <div className="flex flex-col text-white bg-dark h-full px-4 pt-12 pb-[19px]">
-      <h1 className="self-center text-xl font-bold leading-none text-center text-white">Send Bitcoin</h1>
+    <div className="flex flex-col items-center text-white bg-dark h-full px-4 pt-12 pb-[19px]">
+      <Header title={`Send ${currencyMapping[currency!]}`} />
+
       <div className="flex flex-col px-5 mt-12 w-full text-lg font-bold leading-8 text-white">
         <div className="z-10 self-start">Amount to send</div>
         <div className="flex gap-3 whitespace-nowrap">
@@ -50,7 +61,9 @@ export const SendOptions: React.FC = () => {
         </button>
         <TransactionFee btcAmount="0.00010" usdAmount="10" />
       </div>
-      <button className="gap-2.5 self-center px-2.5 py-3 mt-9 w-full text-lg font-bold leading-8 whitespace-nowrap bg-yellow-300 rounded-2xl max-w-[338px] text-neutral-900">
+      <button
+        className="gap-2.5 self-center px-2.5 py-3 mt-9 w-full text-lg font-bold leading-8 whitespace-nowrap bg-yellow-300 rounded-2xl max-w-[338px] text-neutral-900"
+        onClick={handleNext}>
         Next
       </button>
     </div>
