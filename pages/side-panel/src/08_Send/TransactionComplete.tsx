@@ -18,7 +18,7 @@ export const TransactionComplete: React.FC = () => {
       </div>
       <div className="mt-8 text-2xl font-bold leading-none text-center text-white">Bitcoin Sent</div>
       <div className="mt-5 text-lg leading-none text-center text-zinc-600">
-        See the state of <span className="text-yellow-300">your transaction</span>
+        See the state of <span className="text-primary-yellow">your transaction</span>
       </div>
       <div className="mt-12 text-sm font-bold leading-none text-center text-white">Transaction ID</div>
       <div className="text-sm font-bold leading-5 text-center text-foreground">

@@ -1,7 +1,7 @@
 import type React from 'react';
 import { useMemo } from 'react';
 import Header from '@src/components/Header';
-import AccountItem from './AccountItem';
+import AccountItem from '../components/AccountItem';
 import { ButtonOutline } from '@src/components/ButtonOutline';
 import { useWalletContext } from '@src/context/WalletContext';
 import { useNavigate } from 'react-router-dom';
@@ -28,7 +28,7 @@ export const Accounts: React.FC = () => {
   }, [wallet, totalAccounts]);
 
   return (
-    <div className="flex flex-col items-center text-white bg-dark h-full px-4 pt-12 pb-[19px]">
+    <div className="relative flex flex-col items-center text-white bg-dark h-full px-4 pt-12 pb-[19px]">
       <Header title="Accounts" />
       <div className="flex flex-col items-center py-4 w-full min-h-[475px] overflow-y-auto">
         {accounts.map((account, index) => (
@@ -45,7 +45,9 @@ export const Accounts: React.FC = () => {
           />
         ))}
       </div>
-      <ButtonOutline onClick={addAccount}>Create account</ButtonOutline>
+      <ButtonOutline className="absolute w-full bottom-[19px]" onClick={addAccount}>
+        Create account
+      </ButtonOutline>
     </div>
   );
 };

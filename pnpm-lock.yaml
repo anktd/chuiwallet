@@ -17,6 +17,9 @@ importers:
       framer-motion:
         specifier: ^12.4.10
         version: 12.4.10(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      jsqr:
+        specifier: ^1.4.0
+        version: 1.4.0
       react:
         specifier: 18.3.1
         version: 18.3.1
@@ -3050,6 +3053,9 @@ packages:
     resolution: {integrity: sha512-XmOWe7eyHYH14cLdVPoyg+GOH3rYX++KpzrylJwSW98t3Nk+U8XOl8FWKOgwtzdb8lXGf6zYwDUzeHMWfxasyg==}
     engines: {node: '>=6'}
     hasBin: true
+
+  jsqr@1.4.0:
+    resolution: {integrity: sha512-dxLob7q65Xg2DvstYkRpkYtmKm2sPJ9oFhrhmudT1dZvNFFTlroai3AWSpLey/w5vMcLBXRgOJsbXpdN9HzU/A==}
 
   jssha@2.3.1:
     resolution: {integrity: sha512-z75RK13RZmAYW1SR9DAO9eqosXjctPsSEkQ9QJGWx90gJMnQC4AxU/AGQYZ63VCWIJMtzXgbEZ0fTEKmllm8gw==}
@@ -7492,6 +7498,8 @@ snapshots:
   json-stable-stringify-without-jsonify@1.0.1: {}
 
   json5@2.2.3: {}
+
+  jsqr@1.4.0: {}
 
   jssha@2.3.1: {}
 

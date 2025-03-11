@@ -77,7 +77,7 @@ export const Activity: React.FC = () => {
 
       <div className="flex gap-2.5 justify-between items-center mt-[44px] w-full text-lg font-medium leading-none text-center whitespace-nowrap max-w-[346px] text-foreground">
         <CryptoButton icon="popup/receive_icon.svg" label="Receive" onClick={() => navigate('/receive/btc')} />
-        <CryptoButton icon="popup/send_icon.svg" label="Send" onClick={() => navigate('send/btc')} />
+        <CryptoButton icon="popup/send_icon.svg" label="Send" onClick={() => navigate('/send/btc')} />
       </div>
 
       <div className="h-[24px] w-full"></div>

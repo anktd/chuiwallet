@@ -19,7 +19,7 @@ export const InputField: React.FC<InputFieldProps> = ({ label, explanation, valu
         </div>
       </div>
       {showReset && (
-        <button onClick={onReset} className="flex gap-0.5 items-center py-0.5 pr-0.5 w-full text-yellow-300">
+        <button onClick={onReset} className="flex gap-0.5 items-center py-0.5 pr-0.5 w-full text-primary-yellow">
           <div className="self-stretch my-auto">Reset to default</div>
           <img
             loading="lazy"

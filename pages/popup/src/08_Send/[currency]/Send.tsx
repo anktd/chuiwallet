@@ -4,7 +4,7 @@ import Header from '@src/components/Header';
 import { currencyMapping, type Currencies } from '@src/types';
 import { isValidBTCAddress } from '@src/utils';
 import type * as React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import WAValidator from 'wallet-address-validator';
 
@@ -23,17 +23,37 @@ export const Send: React.FC = () => {
     }
   };
 
+  const handleQRCodeClick = () => {
+    chrome.runtime.sendMessage({ action: 'startDragQR' }, response => {
+      if (!response || !response.started) {
+        setError('Failed to start QR selection.');
+      }
+    });
+  };
+
+  useEffect(() => {
+    const listener = (message: { action?: string; qrData?: string }) => {
+      if (message.action === 'qrCodeResult' && message.qrData) {
+        setDestinationAddress(message.qrData);
+        setError('');
+      }
+    };
+    chrome.runtime.onMessage.addListener(listener);
+    return () => {
+      chrome.runtime.onMessage.removeListener(listener);
+    };
+  }, []);
+
   const handleNext = () => {
     if (!isValidBTCAddress(destinationAddress)) {
       setError('Please enter a valid BTC address');
       return;
     }
-
     navigate('options');
   };
 
   return (
-    <div className="flex flex-col items-center text-white bg-dark h-full px-4 pt-12 pb-[19px]">
+    <div className="relative flex flex-col items-center text-white bg-dark h-full px-4 pt-12 pb-[19px]">
       <Header title={`Send ${currencyMapping[currency!]}`} />
 
       <img
@@ -43,7 +63,7 @@ export const Send: React.FC = () => {
         className="object-contain mt-14 w-12 aspect-square"
       />
 
-      <div className="mt-14 w-full text-lg font-bold">
+      <div className="mt-14 w-full text-lg font-bold relative">
         <AddressInputField
           label="Destination address"
           type="text"
@@ -51,11 +71,12 @@ export const Send: React.FC = () => {
           id="destinationAddress"
           value={destinationAddress}
           onChange={handleAddressChange}
+          onQRClick={handleQRCodeClick} // Pass the handler to trigger drag-to-select.
         />
         <p className="mt-2 text-xs text-red-500 font-normal h-[20px]">{error}</p>
       </div>
 
-      <Button className="mt-[200px] w-full" onClick={handleNext}>
+      <Button className="absolute w-full bottom-[19px]" onClick={handleNext}>
         Next
       </Button>
     </div>

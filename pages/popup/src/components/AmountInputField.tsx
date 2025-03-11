@@ -1,32 +1,32 @@
 import type * as React from 'react';
 
-export interface AddressInputFieldProps {
+export interface AmountInputFieldProps {
   label: string;
-  type: string;
   placeholder: string;
   id: string;
   value?: string;
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  onQRClick?: () => void;
+  hasIcon: boolean;
+  currency?: string;
 }
 
-export const AddressInputField: React.FC<AddressInputFieldProps> = ({
+export const AmountInputField: React.FC<AmountInputFieldProps> = ({
   label,
-  type,
   placeholder,
   id,
   value,
   onChange,
-  onQRClick,
+  hasIcon,
+  currency,
 }) => {
   return (
     <div className="flex flex-col w-full">
-      <label htmlFor={id} className="mb-2 text-white text-lg font-extrabold">
+      <label htmlFor={id} className="text-white text-lg font-extrabold mb-0.5">
         {label}
       </label>
       <div className="relative w-full">
         <input
-          type={type}
+          type="number"
           id={id}
           placeholder={placeholder}
           className="p-3 w-full rounded-2xl border border-solid bg-input border-background-42 text-foreground-79 max-sm:p-2.5"
@@ -34,9 +34,14 @@ export const AddressInputField: React.FC<AddressInputFieldProps> = ({
           value={value}
           onChange={onChange}
         />
-        <button onClick={onQRClick} className="absolute right-3 top-1/2 transform -translate-y-1/2">
-          <img loading="lazy" src={chrome.runtime.getURL('popup/qrcode_icon.svg')} alt="QR Code" className="w-6 h-6" />
-        </button>
+        {hasIcon && (
+          <img
+            loading="lazy"
+            src={chrome.runtime.getURL(`popup/${currency}_coin.svg`)}
+            alt="coin"
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 w-[18px]"
+          />
+        )}
       </div>
     </div>
   );

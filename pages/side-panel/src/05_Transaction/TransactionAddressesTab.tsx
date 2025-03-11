@@ -60,7 +60,7 @@ export const TransactionView: React.FC = () => {
       />
       <div className="flex gap-10 justify-between items-start self-center mt-2 ml-3.5 w-full text-lg font-bold leading-none text-center whitespace-nowrap max-w-[258px]">
         <div className="text-white w-[88px]">Activity</div>
-        <div className="w-28 text-yellow-300">Addresses</div>
+        <div className="w-28 text-primary-yellow">Addresses</div>
       </div>
       <div className="flex gap-3 mt-9">
         <div className="flex flex-col grow shrink-0 basis-0 w-fit">

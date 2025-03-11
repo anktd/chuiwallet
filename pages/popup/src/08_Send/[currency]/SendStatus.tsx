@@ -10,7 +10,7 @@ export const SendStatus: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col items-center text-white bg-dark h-full px-4 pt-12 pb-[19px]">
+    <div className="relative flex flex-col items-center text-white bg-dark h-full px-4 pt-12 pb-[19px]">
       <div className="flex flex-col items-center w-[54px]">
         <img
           loading="lazy"
@@ -21,13 +21,15 @@ export const SendStatus: React.FC = () => {
       </div>
       <div className="mt-8 text-2xl font-bold leading-none text-center text-white">Bitcoin Sent</div>
       <div className="mt-5 text-lg leading-none text-center text-zinc-600">
-        See the state of <span className="text-yellow-300">your transaction</span>
+        See the state of <span className="text-primary-yellow">your transaction</span>
       </div>
       <div className="mt-12 text-sm font-bold leading-none text-center text-white">Transaction ID</div>
       <div className="text-sm font-bold leading-5 text-center text-foreground">
         cb00b56c1de3e81cb3d647ed81946eb1b1c7e8f0191ad09d85175d592b59b0a5
       </div>
-      <Button onClick={handleDashboardClick}>Go to dashboard</Button>
+      <Button className="absolute w-full bottom-[19px]" onClick={handleDashboardClick}>
+        Go to dashboard
+      </Button>
     </div>
   );
 };

@@ -21,7 +21,7 @@ export const BackupSeed: React.FC = () => {
         </div>
       </div>
       <button
-        className="gap-2.5 self-stretch px-2.5 py-3 mt-6 text-lg font-bold leading-8 text-yellow-300 whitespace-nowrap rounded-2xl"
+        className="gap-2.5 self-stretch px-2.5 py-3 mt-6 text-lg font-bold leading-8 text-primary-yellow whitespace-nowrap rounded-2xl"
         tabIndex={0}
         onClick={() => {
           navigate('/onboard/complete');

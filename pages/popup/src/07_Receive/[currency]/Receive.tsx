@@ -30,14 +30,12 @@ export const Receive: React.FC = () => {
   };
 
   return (
-    <div className="flex overflow-hidden flex-col justify-center text-white bg-dark h-full px-4 pt-12 pb-[19px]">
+    <div className="relative flex overflow-hidden flex-col justify-center text-white bg-dark h-full px-4 pt-12 pb-[19px]">
       <Header title="Receive" />
       <AddressQRCode currency={currency} address={address} />
-      <div className="relative flex flex-row justify-center items-end flex-1 w-full">
-        <Button tabIndex={0} onClick={handleCopyAddress} className="relative">
-          <span>{copyText}</span>
-        </Button>
-      </div>
+      <Button tabIndex={0} onClick={handleCopyAddress} className="absolute w-full bottom-[19px]">
+        <span>{copyText}</span>
+      </Button>
     </div>
   );
 };

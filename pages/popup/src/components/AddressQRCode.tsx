@@ -36,7 +36,7 @@ const AddressQRCode: React.FC<AddressSectionProps> = ({ currency, address }) => 
   };
 
   return (
-    <div className="relative flex flex-col items-center px-16 mt-8 w-full">
+    <div className="flex flex-col items-center px-16 w-full">
       <img
         loading="lazy"
         src={chrome.runtime.getURL(`popup/${currency ? currency : 'unknown'}_coin.svg`)}
@@ -69,7 +69,7 @@ const AddressQRCode: React.FC<AddressSectionProps> = ({ currency, address }) => 
       </div>
 
       <button
-        className="flex gap-0.5 justify-center items-center py-0.5 pr-0.5 mt-6 text-xs leading-6 text-yellow-300"
+        className="flex gap-0.5 justify-center items-center py-0.5 pr-0.5 mt-5 text-xs leading-6 text-primary-yellow"
         onClick={handleGetNewAddress}>
         <span className="self-stretch my-auto">Get a new address</span>
         <img

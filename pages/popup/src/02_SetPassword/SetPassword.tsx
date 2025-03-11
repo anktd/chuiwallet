@@ -58,7 +58,7 @@ export const SetPassword: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen px-5 pt-12 pb-[19px] bg-dark">
+    <div className="relative flex flex-col h-screen px-5 pt-12 pb-[19px] bg-dark">
       <div className="flex flex-col flex-1">
         <div className="flex flex-col items-center self-center max-w-full text-center w-full">
           <h1 className="w-full text-2xl font-bold leading-loose text-white max-sm:text-2xl">Set up a password</h1>
@@ -103,12 +103,12 @@ export const SetPassword: React.FC = () => {
 
             {errorMsg && <span className="mt-1 text-xs text-red-500 font-light">{errorMsg}</span>}
           </div>
-
-          <Button onClick={handleNext} tabIndex={0} disabled={!termsAccepted}>
-            Next
-          </Button>
         </div>
       </div>
+
+      <Button className="absolute w-full bottom-[19px]" onClick={handleNext} tabIndex={0} disabled={!termsAccepted}>
+        Next
+      </Button>
     </div>
   );
 };

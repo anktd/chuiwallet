@@ -27,7 +27,7 @@ const AddressQRCode: React.FC<AddressSectionProps> = ({ bitcoinAddress }) => {
         alt=""
         className="object-contain z-10 self-end mr-2 -mt-4 w-3 aspect-square"
       />
-      <div className="flex gap-0.5 justify-center items-center py-0.5 pr-0.5 mt-6 text-xs leading-6 text-yellow-300">
+      <div className="flex gap-0.5 justify-center items-center py-0.5 pr-0.5 mt-6 text-xs leading-6 text-primary-yellow">
         <div className="self-stretch my-auto">Get a new address</div>
         <img
           loading="lazy"

@@ -109,7 +109,7 @@ export const VerifySeed: React.FC = () => {
   });
 
   return (
-    <div className="flex overflow-hidden flex-col px-5 pt-12 pb-[19px] bg-dark h-full w-full">
+    <div className="relative flex overflow-hidden flex-col px-5 pt-12 pb-[19px] bg-dark h-full w-full">
       <div className="flex flex-col self-center w-full text-center">
         <div className="flex flex-col w-full">
           <div className="text-2xl font-bold leading-loose text-white">Verify words</div>
@@ -126,7 +126,7 @@ export const VerifySeed: React.FC = () => {
 
       <span className="mt-6 text-xs text-red-500 font-light text-center">{errorMsg}</span>
 
-      <Button className="mt-8 w-full" disabled={!isValid} onClick={handleVerify}>
+      <Button className="absolute w-full bottom-[19px]" disabled={!isValid} onClick={handleVerify}>
         Continue
       </Button>
     </div>

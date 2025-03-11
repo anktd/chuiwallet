@@ -25,7 +25,7 @@ export const SendOptions: React.FC = () => {
           />
           <CurrencyInput label="USD" value="1600" />
         </div>
-        <button className="flex gap-1 items-center self-end mt-2 text-sm font-medium leading-none text-center text-yellow-300">
+        <button className="flex gap-1 items-center self-end mt-2 text-sm font-medium leading-none text-center text-primary-yellow">
           <span className="self-stretch my-auto w-[66px]">Send Max</span>
           <div className="flex shrink-0 self-stretch my-auto w-6 h-6" />
         </button>
@@ -39,7 +39,7 @@ export const SendOptions: React.FC = () => {
             ))}
           </div>
         </div>
-        <button className="flex items-center self-end mt-3 text-sm font-medium leading-none text-center text-yellow-300">
+        <button className="flex items-center self-end mt-3 text-sm font-medium leading-none text-center text-primary-yellow">
           <span className="self-stretch my-auto w-[102px]">Set custom fee</span>
           <img
             loading="lazy"
@@ -50,7 +50,7 @@ export const SendOptions: React.FC = () => {
         </button>
         <TransactionFee btcAmount="0.00010" usdAmount="10" />
       </div>
-      <button className="gap-2.5 self-center px-2.5 py-3 mt-9 w-full text-lg font-bold leading-8 whitespace-nowrap bg-yellow-300 rounded-2xl max-w-[338px] text-neutral-900">
+      <button className="gap-2.5 self-center px-2.5 py-3 mt-9 w-full text-lg font-bold leading-8 whitespace-nowrap bg-primary-yellow rounded-2xl max-w-[338px] text-neutral-900">
         Next
       </button>
     </div>

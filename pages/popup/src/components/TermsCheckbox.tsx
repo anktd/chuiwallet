@@ -42,7 +42,7 @@ export const TermsCheckbox: React.FC<TermsCheckboxProps> = ({ onAcceptChange }) 
           <span className="text-white">I accept the</span>
           <a
             href="https://www.blockonomics.co/privacy"
-            className="text-yellow-300 no-underline"
+            className="text-primary-yellow no-underline"
             target="_blank"
             rel="noopener noreferrer">
             Terms of Service

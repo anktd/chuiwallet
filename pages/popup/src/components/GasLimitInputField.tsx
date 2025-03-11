@@ -28,7 +28,7 @@ export const GasLimitInputField: React.FC<GasLimitInputFieldProps> = ({
       {showReset && (
         <button
           onClick={onReset}
-          className="mt-1 flex justify-end gap-0.5 items-center py-1 pr-1 w-full text-yellow-300">
+          className="mt-1 flex justify-end gap-0.5 items-center py-1 pr-1 w-full text-primary-yellow">
           <div className="self-stretch my-auto text-xs font-normal">Reset to default</div>
           <img
             loading="lazy"

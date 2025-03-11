@@ -60,7 +60,7 @@ export const RevealSeed: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col text-white bg-dark h-full px-4 pt-12 pb-[19px]">
+    <div className="relative flex flex-col text-white bg-dark h-full px-4 pt-12 pb-[19px]">
       <Header title="Seed phrase" hideClose={true} />
       <div className="mt-[60px] flex flex-col self-stretch w-full text-center min-h-[360px] px-[37.5px] gap-[24px]">
         <div className="flex flex-col w-full">
@@ -73,7 +73,7 @@ export const RevealSeed: React.FC = () => {
       </div>
       <div className="w-full flex justify-center">
         <button
-          className="relative text-xs font-bold leading-5 text-yellow-300 whitespace-nowrap rounded-2xl flex gap-1"
+          className="relative text-xs font-bold leading-5 text-primary-yellow whitespace-nowrap rounded-2xl flex gap-1"
           tabIndex={0}
           onClick={handleCopyToClipboard}>
           <span>Copy</span>
@@ -85,7 +85,7 @@ export const RevealSeed: React.FC = () => {
           )}
         </button>
       </div>
-      <Button className="mt-[40px]" tabIndex={0} onClick={() => navigate('/dashboard')}>
+      <Button className="absolute w-full bottom-[19px]" tabIndex={0} onClick={() => navigate('/dashboard')}>
         Hide
       </Button>
     </div>

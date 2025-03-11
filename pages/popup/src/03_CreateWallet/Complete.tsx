@@ -13,7 +13,7 @@ export function Complete() {
   };
 
   return (
-    <div className="flex overflow-hidden flex-col items-center px-5 pt-24 pb-[19px] bg-dark h-full">
+    <div className="relative flex overflow-hidden flex-col items-center px-5 pt-24 pb-[19px] bg-dark h-full">
       <div className="flex flex-col flex-1 items-center w-full">
         <div className="flex flex-col items-center gap-6">
           <div className="flex flex-1 flex-col self-stretch w-full text-center">
@@ -48,10 +48,11 @@ export function Complete() {
             your seed phrase for you.
           </div>
         </div>
-        <div className="flex items-end flex-1 w-full">
-          <Button onClick={handleComplete}>Go to dashboard</Button>
-        </div>
       </div>
+
+      <Button className="absolute w-full bottom-[19px]" onClick={handleComplete}>
+        Go to dashboard
+      </Button>
     </div>
   );
 }

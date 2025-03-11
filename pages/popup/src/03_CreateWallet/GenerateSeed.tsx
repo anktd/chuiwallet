@@ -7,7 +7,7 @@ export const GenerateSeed: React.FC = () => {
   const infoLines = ['Back up your wallet.', 'Never lose it.', 'Never share it with anyone.'];
 
   return (
-    <div className="flex h-full w-full overflow-hidden flex-col px-5 pt-48 pb-[19px] bg-dark">
+    <div className="relativeflex h-full w-full overflow-hidden flex-col px-5 pt-48 pb-[19px] bg-dark">
       <div className="flex flex-col justify-between items-center w-full flex-1">
         <div className="flex flex-col max-w-[262px]">
           <div className="text-2xl font-extrabold leading-10 text-center text-white">
@@ -19,7 +19,9 @@ export const GenerateSeed: React.FC = () => {
             ))}
           </ul>
         </div>
-        <Button onClick={() => navigate('/onboard/backup-seed')}>Reveal seed phrase</Button>
+        <Button className="absolute w-full bottom-[19px]" onClick={() => navigate('/onboard/backup-seed')}>
+          Reveal seed phrase
+        </Button>
       </div>
     </div>
   );

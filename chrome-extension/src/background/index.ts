@@ -25,6 +25,45 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       } else if (request.action === 'sendTransaction') {
         const txid = await electrumService.sendTransaction(request.rawTxHex);
         sendResponse({ success: true, txid });
+      } else if (request.action === 'captureScreenshot') {
+        chrome.tabs.captureVisibleTab({ format: 'png' }, (dataUrl: string | undefined) => {
+          if (chrome.runtime.lastError || !dataUrl) {
+            sendResponse({
+              success: false,
+              error: chrome.runtime.lastError?.message || 'No dataUrl',
+            });
+            return;
+          }
+          sendResponse({
+            success: true,
+            dataUrl,
+          });
+        });
+      } else if (request.action === 'startDragQR') {
+        console.log('start drag qr');
+        // chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+        //   console.log(tabs);
+        //   if (tabs && tabs[0]?.id !== undefined) {
+        //     console.log('action sent');
+        //     chrome.tabs.sendMessage(tabs[0].id, { action: 'startDragQR' });
+        //   }
+        // });
+        chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+          if (tabs && tabs[0]?.id !== undefined) {
+            chrome.scripting.executeScript(
+              {
+                target: { tabId: tabs[0].id },
+                files: ['script.js'],
+              },
+              () => {
+                if (tabs && tabs[0]?.id !== undefined) {
+                  chrome.tabs.sendMessage(tabs[0].id, { action: 'startDragQR' });
+                }
+              },
+            );
+          }
+        });
+        sendResponse({ started: true });
       } else {
         sendResponse({ success: false, error: 'Unknown action' });
       }

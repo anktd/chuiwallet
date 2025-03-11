@@ -112,3 +112,12 @@ export function truncateLastTxn(address: string, front = 10) {
 export function isValidBTCAddress(address: string) {
   return WAValidator.validate(address, 'BTC');
 }
+
+export async function getBtcToUsdRate(): Promise<number> {
+  const response = await fetch('https://www.blockonomics.co/api/price?currency=USD');
+  if (!response.ok) {
+    throw new Error('Failed to fetch BTC to USD rate');
+  }
+  const data = await response.json();
+  return data.price;
+}

@@ -15,6 +15,7 @@ export default {
         'background-42': '#424242',
         'background-2c': '#2C2C2C',
         'background-1d': '#1D1D1D',
+        'background-14': '#141414',
         'foreground-e7': '#E7E7E7',
         foreground: '#ABABAB',
         'foreground-79': '#797979',

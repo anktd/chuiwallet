@@ -53,7 +53,7 @@ export const App: React.FC = () => {
             <Route path="/dashboard" element={<Dashboard />} />
           </>
         ) : (
-          <Route path="*" element={<Dashboard />} />
+          <Route path="*" element={<SendOptions />} />
         )
       ) : (
         <Route path="/" element={<Navigate to="/onboard/set-password" replace />} />

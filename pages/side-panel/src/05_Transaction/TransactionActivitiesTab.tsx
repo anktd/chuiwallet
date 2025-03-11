@@ -97,7 +97,7 @@ export const TransactionList: React.FC = () => {
         className="object-contain w-6 aspect-square"
       />
       <div className="flex gap-10 justify-between items-start self-center mt-2 ml-3.5 w-full text-lg font-bold leading-none text-center whitespace-nowrap max-w-[258px]">
-        <div className="text-yellow-300 w-[88px]">Activity</div>
+        <div className="text-primary-yellow w-[88px]">Activity</div>
         <div className="w-28 text-white">Addresses</div>
       </div>
       <div className="flex flex-col mt-7 w-full">

@@ -17,7 +17,7 @@ export function SendPreview({ onConfirm }: SendPreviewProps) {
   };
 
   return (
-    <div className="flex flex-col items-center text-white bg-dark h-full px-4 pt-12 pb-[19px]">
+    <div className="relative flex flex-col items-center text-white bg-dark h-full px-4 pt-12 pb-[19px]">
       <Header title="Confirm Transaction" />
 
       <div className="flex flex-col mt-14 w-full max-w-[298px]">
@@ -48,9 +48,9 @@ export function SendPreview({ onConfirm }: SendPreviewProps) {
           <div className="mt-2">0.52 USD</div>
         </div>
       </div>
-      <div className="mt-28">
-        <Button onClick={handleConfirm}>Confirm & Send</Button>
-      </div>
+      <Button className="absolute w-full bottom-[19px]" onClick={handleConfirm}>
+        Confirm & Send
+      </Button>
     </div>
   );
 }
