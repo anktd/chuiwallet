@@ -1,51 +1,68 @@
 import { Button } from '@src/components/Button';
 import Header from '@src/components/Header';
-import type { Currencies } from '@src/types';
-import { useNavigate, useParams } from 'react-router-dom';
+import { currencyMapping, type Currencies } from '@src/types';
+import { formatNumber } from '@src/utils';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
-interface SendPreviewProps {
-  onConfirm?: () => void;
+interface SendPreviewStates {
+  destinationAddress: string;
+  amountBtc: number;
+  amountUsd: number;
+  feeBtc: number;
+  feeUsd: number;
+  sats: number;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function SendPreview({ onConfirm }: SendPreviewProps) {
+export function SendPreview() {
   const navigate = useNavigate();
+  const location = useLocation();
+
   const { currency } = useParams<{ currency: Currencies }>();
+  const states = location.state as SendPreviewStates;
 
   const handleConfirm = () => {
-    navigate(`/send/${currency}/status`);
+    navigate(`/send/${currency}/status`, {
+      state: {
+        status: 'success',
+        transactionHash: 'cb00b56c1de3e81cb3d647ed81946eb1b1c7e8f0191ad09d85175d592b59b0a5',
+      },
+    });
   };
 
   return (
     <div className="relative flex flex-col items-center text-white bg-dark h-full px-4 pt-12 pb-[19px]">
       <Header title="Confirm Transaction" />
 
-      <div className="flex flex-col mt-14 w-full max-w-[298px]">
+      <div className="flex flex-col mt-14 w-full text-lg">
         <div className="flex flex-col w-full leading-none">
           <div className="font-medium text-white">Asset Sent</div>
           <div className="flex gap-2 items-center mt-2 w-full text-foreground-79">
             <img
               loading="lazy"
-              src="https://cdn.builder.io/api/v1/image/assets/TEMP/3b9b49475d1b0d2badbbc980d1683f223f7a049653d03ef24681b3088be31696?placeholderIfAbsent=true&apiKey=7730bdd605464082ae23b346c3cac1f8"
+              src={chrome.runtime.getURL(`popup/${currency}_coin.svg`)}
               className="object-contain shrink-0 self-stretch my-auto w-8 aspect-square"
-              alt="Bitcoin logo"
+              alt="Asset"
             />
-            <div className="self-stretch my-auto">Bitcoin (BTC)</div>
+            <div className="self-stretch my-auto">
+              {currency ? currencyMapping[currency] : 'Unknown'} ({currency?.toUpperCase()})
+            </div>
           </div>
         </div>
-        <div className="flex flex-col mt-6 w-full">
-          <div className="font-medium leading-none text-white">Receiving address</div>
-          <div className="mt-2 leading-6 text-foreground-79">bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh</div>
+        <div className="flex flex-col mt-6 w-full flex-wrap">
+          <div className="font-medium leading-none text-white">Destination address</div>
+          <div className="mt-2 leading-6 text-foreground-79 text-wrap break-all">{states.destinationAddress}</div>
         </div>
         <div className="flex flex-col mt-6 w-full leading-none text-foreground-79">
           <div className="font-medium text-white">Amount to send</div>
-          <div className="mt-2">0.012 BTC</div>
-          <div className="mt-2">120 USD</div>
+          <div className="mt-2">{formatNumber(states.amountBtc, 8)} BTC</div>
+          <div className="mt-2">{formatNumber(states.amountUsd)} USD</div>
         </div>
         <div className="flex flex-col mt-6 w-full leading-none text-foreground-79">
           <div className="font-medium text-white">Fee</div>
-          <div className="mt-2">0.000012 BTC</div>
-          <div className="mt-2">0.52 USD</div>
+          <div className="mt-2">
+            {formatNumber(states.feeBtc, 8)} BTC <span className="text-sm">({formatNumber(states.sats)} sat/vB)</span>
+          </div>
+          <div className="mt-2">{formatNumber(states.feeUsd)} USD</div>
         </div>
       </div>
       <Button className="absolute w-full bottom-[19px]" onClick={handleConfirm}>

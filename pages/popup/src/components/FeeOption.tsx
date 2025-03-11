@@ -3,8 +3,8 @@ import type * as React from 'react';
 
 export interface FeeOptionProps {
   speed: string;
-  btcAmount: string;
-  usdAmount: string;
+  btcAmount: number;
+  usdAmount: number;
   selected: boolean;
   onSelect?: () => void;
 }

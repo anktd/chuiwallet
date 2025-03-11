@@ -1,5 +1,5 @@
 import type * as React from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { currencyMapping, type Currencies } from '@src/types';
 import { AmountInputField } from '@src/components/AmountInputField';
 import { FeeOption } from '@src/components/FeeOption';
@@ -8,28 +8,43 @@ import { useEffect, useState } from 'react';
 import { getBtcToUsdRate } from '@src/utils';
 import { Button } from '@src/components/Button';
 
+interface SendOptionsState {
+  destinationAddress: string;
+}
+
 const feeOptions = [
-  { speed: 'slow', btcAmount: '0.000012', usdAmount: '0.95' },
-  { speed: 'medium', btcAmount: '0.000062', usdAmount: '2' },
-  { speed: 'fast', btcAmount: '0.000102', usdAmount: '5.6' },
+  { speed: 'slow', btcAmount: 0.000012, usdAmount: 0.95 },
+  { speed: 'medium', btcAmount: 0.000062, usdAmount: 2 },
+  { speed: 'fast', btcAmount: 0.000102, usdAmount: 5.6 },
 ];
 
 export const SendOptions: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
   const { currency } = useParams<{ currency: Currencies }>();
+  const states = location.state as SendOptionsState;
 
   const [btcAmount, setBtcAmount] = useState('');
   const [usdAmount, setUsdAmount] = useState('');
   const [exchangeRate, setExchangeRate] = useState<number | null>(null);
   const [isCustomFee, setIsCustomFee] = useState<boolean>(false);
   const [selectedFeeIndex, setSelectedFeeIndex] = useState<number>(1);
-  const [customFee, setCustomFee] = useState('3');
+  const [sats, setSats] = useState('3');
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [error, setError] = useState('');
 
   const handleNext = () => {
-    // Optionally, you can use feeOptions[selectedFeeIndex] later on.
-    navigate(`/send/${currency}/preview`);
+    navigate(`/send/${currency}/preview`, {
+      state: {
+        destinationAddress: states.destinationAddress,
+        amountBtc: Number(btcAmount),
+        amountUsd: Number(usdAmount),
+        feeBtc: feeOptions[selectedFeeIndex].btcAmount,
+        feeUsd: feeOptions[selectedFeeIndex].usdAmount,
+        sats: Number(sats),
+      },
+    });
   };
 
   useEffect(() => {
@@ -78,13 +93,13 @@ export const SendOptions: React.FC = () => {
   const handleSetCustomFee = () => {
     setIsCustomFee(!isCustomFee);
     if (!isCustomFee) {
-      setCustomFee('3');
+      setSats('3');
     }
   };
 
-  const handleCustomFeeChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSatsChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setCustomFee(value);
+    setSats(value);
   };
 
   return (
@@ -156,8 +171,8 @@ export const SendOptions: React.FC = () => {
                 placeholder="3 sat/vB"
                 id="customFee"
                 hasIcon={false}
-                value={customFee}
-                onChange={handleCustomFeeChanged}
+                value={sats}
+                onChange={handleSatsChanged}
               />
             </>
           )}

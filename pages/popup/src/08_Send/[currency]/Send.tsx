@@ -49,7 +49,11 @@ export const Send: React.FC = () => {
       setError('Please enter a valid BTC address');
       return;
     }
-    navigate('options');
+    navigate('options', {
+      state: {
+        destinationAddress,
+      },
+    });
   };
 
   return (
@@ -71,7 +75,7 @@ export const Send: React.FC = () => {
           id="destinationAddress"
           value={destinationAddress}
           onChange={handleAddressChange}
-          onQRClick={handleQRCodeClick} // Pass the handler to trigger drag-to-select.
+          onQRClick={handleQRCodeClick}
         />
         <p className="mt-2 text-xs text-red-500 font-normal h-[20px]">{error}</p>
       </div>
