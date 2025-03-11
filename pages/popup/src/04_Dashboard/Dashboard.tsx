@@ -53,8 +53,9 @@ export const Dashboard: React.FC = () => {
   }, [wallet]);
 
   return (
-    <div className="relative flex overflow-hidden flex-col items-center h-full bg-dark">
-      <div className="flex gap-10 justify-between items-center self-stretch p-3 w-full text-xs font-bold leading-6 bg-dark min-h-[48px] text-neutral-200">
+    // <div className="relative flex overflow-hidden flex-col items-center h-full bg-dark">
+    <div className="relative flex flex-col items-center text-white bg-dark h-full px-4 pb-[19px]">
+      <div className="flex gap-10 justify-between items-center self-stretch py-3 w-full text-xs font-bold leading-6 bg-dark min-h-[48px] text-neutral-200">
         <button
           className="flex gap-2 justify-center items-center self-stretch px-2 my-auto rounded bg-zinc-800 cursor-pointer"
           onClick={() => navigate('/accounts')}>
