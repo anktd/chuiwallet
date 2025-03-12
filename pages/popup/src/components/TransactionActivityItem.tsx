@@ -66,7 +66,7 @@ export const TransactionActivityItem: React.FC<TransactionActivityItemProps> = p
         </span>
         <span className="text-sm text-foreground-79 text-nowrap">
           {sign}
-          {formatNumber(Math.abs(props.amountBtc), 8)} BTC
+          {formatNumber(Math.abs(props.amountBtc), 6)} BTC
         </span>
       </div>
     </button>

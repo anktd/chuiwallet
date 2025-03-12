@@ -11,7 +11,6 @@ import { Complete } from '@src/03_CreateWallet/Complete';
 import { Dashboard } from '@src/04_Dashboard/Dashboard';
 import { TransactionDetail } from '@src/04_Dashboard/[currency]/TransactionDetail';
 import { Activity } from '@src/04_Dashboard/[currency]/Activity';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { PasswordLock } from '@src/05_PasswordLock/PasswordLock';
 import { Settings } from '@src/06_Settings/Settings';
 import { AdvancedSettings } from '@src/06_Settings/AdvancedSettings';
@@ -53,7 +52,7 @@ export const App: React.FC = () => {
             <Route path="/dashboard" element={<Dashboard />} />
           </>
         ) : (
-          <Route path="*" element={<Dashboard />} />
+          <Route path="*" element={<PasswordLock />} />
         )
       ) : (
         <Route path="/" element={<Navigate to="/onboard/set-password" replace />} />

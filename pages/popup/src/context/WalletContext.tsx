@@ -1,8 +1,8 @@
 import type React from 'react';
-import { createContext, useContext, useState, useEffect } from 'react';
-import type Wallet from '@extension/backend/src/modules/wallet.js';
+import { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import Wallet from '@extension/backend/src/modules/wallet.js';
 import WalletManager from '@extension/backend/src/walletManager.js';
-import { getSessionPassword, setSessionPassword } from '@src/utils/sessionStorageHelper';
+import { getSessionPassword, SESSION_PASSWORD_KEY, setSessionPassword } from '@src/utils/sessionStorageHelper';
 import type { StoredAccount } from '@src/types';
 import type { AddressType } from '@extension/backend/dist/modules/wallet';
 
@@ -22,6 +22,7 @@ interface WalletContextType {
   addAccount: () => void;
   createWallet: (seed: string, password: string, network?: 'mainnet' | 'testnet', addressType?: AddressType) => void;
   restoreWallet: (seed: string, password: string, network?: 'mainnet' | 'testnet', addressType?: AddressType) => void;
+  unlockWallet: (password: string) => void;
   clearWallet: () => void;
 }
 
@@ -35,16 +36,18 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [onboarded, setOnboarded] = useState(false);
   const [isRestored, setIsRestored] = useState(false);
 
+  const manager = useMemo(() => new WalletManager(), []);
+
   const setWallet = (newWallet: Wallet, newPassword: string) => {
     setWalletState(newWallet);
     setPassword(newPassword);
     setSessionPassword(newPassword);
   };
 
-  const clearWallet = () => {
+  const clearWallet = async () => {
     setWalletState(null);
     setPassword('');
-    sessionStorage.removeItem('walletPassword');
+    await chrome.storage.session.remove([SESSION_PASSWORD_KEY]);
   };
 
   useEffect(() => {
@@ -65,45 +68,54 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, []);
 
   useEffect(() => {
-    const storedPassword = getSessionPassword();
-    if (storedPassword) {
-      chrome.storage.local.get(['storedAccount'], async res => {
-        const storedAccount: StoredAccount | undefined = res.storedAccount;
-        if (storedAccount) {
-          try {
-            const manager = new WalletManager();
+    (async () => {
+      const storedPwd = await getSessionPassword();
+      if (storedPwd) {
+        chrome.storage.local.get(['storedAccount'], res => {
+          const storedAccount: StoredAccount | undefined = res.storedAccount;
+          if (storedAccount) {
+            try {
+              const restoredMnemonic = Wallet.getDecryptedMnemonic(storedAccount.encryptedMnemonic, storedPwd);
+              if (!restoredMnemonic) {
+                console.error('Failed to recover seed with stored password.');
+                clearWallet();
+              }
 
-            const restoredWallet = manager.createWallet({
-              password: storedPassword,
-              network: storedAccount.network,
-              addressType: 'p2pkh',
-            });
+              const restoredWallet = manager.createWallet({
+                password: storedPwd!,
+                mnemonic: restoredMnemonic!,
+                network: storedAccount.network,
+                addressType: 'p2pkh',
+                accountIndex: storedAccount.selectedAccountIndex,
+              });
 
-            restoredWallet.restoreEncryptedMnemonic(storedAccount.encryptedMnemonic);
-            const seed = restoredWallet.recoverMnemonic(storedPassword);
-            if (seed) {
-              setWallet(restoredWallet, storedPassword);
-              setSelectedAccountIndex(storedAccount.selectedAccountIndex);
-              setTotalAccounts(storedAccount.totalAccounts);
-              // console.log('Wallet successfully restored from storage.');
-            } else {
-              console.error('Failed to recover seed with stored password.');
-              clearWallet();
+              const seed = restoredWallet.recoverMnemonic(storedPwd);
+              if (seed) {
+                setWalletState(restoredWallet);
+                setPassword(storedPwd);
+                setSelectedAccountIndex(storedAccount.selectedAccountIndex);
+                setTotalAccounts(storedAccount.totalAccounts);
+                console.log('Wallet successfully restored from storage.');
+                console.log('account index: ', restoredWallet.getAccountIndex());
+              } else {
+                console.error('Failed to recover seed with stored password.');
+                clearWallet();
+              }
+            } catch (err) {
+              console.error('Error restoring wallet from storage:', err);
             }
-          } catch (err) {
-            console.error('Error restoring wallet from storage:', err);
           }
-        }
-      });
-    } else {
-      clearWallet();
-    }
-  }, []);
+        });
+      } else {
+        clearWallet();
+      }
+    })();
+  }, [manager]);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      const currentPassword = getSessionPassword();
-      if (!currentPassword) {
+      const currentPwd = getSessionPassword();
+      if (!currentPwd) {
         clearWallet();
       }
     }, 60 * 1000);
@@ -173,8 +185,6 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     addressType: AddressType = 'p2pkh',
   ) => {
     try {
-      const manager = new WalletManager();
-
       const createdWallet = manager.createWallet({
         password: pwd,
         mnemonic: seed,
@@ -217,8 +227,6 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     addressType: AddressType = 'p2pkh',
   ) => {
     try {
-      const manager = new WalletManager();
-
       const restoredWallet = manager.createWallet({
         password: pwd,
         mnemonic: seed,
@@ -255,6 +263,14 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   };
 
+  const unlockWallet = (pwd: string) => {
+    if (pwd) {
+      setPassword(pwd);
+    } else {
+      clearWallet();
+    }
+  };
+
   return (
     <WalletContext.Provider
       value={{
@@ -273,6 +289,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         addAccount,
         createWallet,
         restoreWallet,
+        unlockWallet,
         clearWallet,
       }}>
       {children}

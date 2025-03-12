@@ -36,7 +36,7 @@ const AddressQRCode: React.FC<AddressSectionProps> = ({ currency, address }) => 
   };
 
   return (
-    <div className="flex flex-col items-center px-16 w-full">
+    <div className="flex flex-col items-center px-16 mt-8 w-full">
       <img
         loading="lazy"
         src={chrome.runtime.getURL(`popup/${currency ? currency : 'unknown'}_coin.svg`)}

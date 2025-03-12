@@ -85,8 +85,8 @@ export const Activity: React.FC = () => {
       <div className="w-full max-w-[346px]">
         <div className="flex flex-col w-full gap-[7px]">
           <div className="flex justify-between items-center">
-            <span className="mb-2 text-white text-sm font-bold">Activity</span>
-            <span className="mb-2 text-white text-sm">{formatNumber(history.length)} total</span>
+            <span className="text-white text-sm font-bold">Activity</span>
+            <span className="text-white text-sm">{formatNumber(history.length)} total</span>
           </div>
           <TransactionActivityList transactions={history} />
         </div>

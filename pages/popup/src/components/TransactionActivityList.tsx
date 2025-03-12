@@ -52,7 +52,7 @@ export const TransactionActivityList: React.FC<TransactionActivityListProps> = (
 
   return (
     <div
-      className={`flex flex-col gap-4 overflow-y-auto h-[236px] [&::-webkit-scrollbar]:w-2
+      className={`flex flex-col gap-2 overflow-y-auto h-[236px] [&::-webkit-scrollbar]:w-2
   [&::-webkit-scrollbar-track]:rounded-full
   [&::-webkit-scrollbar-track]:transparent
   [&::-webkit-scrollbar-thumb]:rounded-full
@@ -65,7 +65,7 @@ export const TransactionActivityList: React.FC<TransactionActivityListProps> = (
 
         return (
           <div key={dateKey}>
-            <div className="text-gray-400 text-sm text-right">{dateLabel}</div>
+            <div className="text-gray-400 text-xs text-right pr-1 mb-2">{dateLabel}</div>
             <div className="flex flex-col gap-2">
               {sortedTxs.map(transaction => (
                 <TransactionActivityItem

@@ -450,32 +450,6 @@ export default class ElectrumService {
   }
 
   /**
-   * Helper to calculate the fee for a transaction (in BTC) by summing input values and subtracting outputs.
-   * This is similar to what we do in getDetailedHistory, but can be called separately.
-   */
-  private async calculateFee(tx_hash: string): Promise<number> {
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const rawTxResponse: any = await this._sendRequest('blockchain.transaction.get', [tx_hash, true]);
-      let rawTxHex: string;
-      if (typeof rawTxResponse === 'object' && rawTxResponse.hex) {
-        rawTxHex = rawTxResponse.hex;
-      } else {
-        rawTxHex = rawTxResponse;
-      }
-      const tx = bitcoin.Transaction.fromHex(rawTxHex);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const inputValuesSats = await Promise.all((rawTxResponse.vin || []).map((vin: any) => this.getVinValue(vin)));
-      const totalInputsSats = inputValuesSats.reduce((sum, val) => sum + val, 0);
-      const totalOutputsSats = tx.outs.reduce((sum, out) => sum + out.value, 0);
-      return (totalInputsSats - totalOutputsSats) / 1e8;
-    } catch (e) {
-      console.error(e);
-      return 0;
-    }
-  }
-
-  /**
    * Broadcast a raw transaction (hex string) to the Bitcoin network.
    * Returns the transaction ID (txid) if successful.
    */
@@ -488,11 +462,7 @@ export default class ElectrumService {
    */
   public close(): void {
     if (!this.socket) return;
-    if (typeof window === 'undefined') {
-      this.socket.end();
-    } else {
-      this.socket.close();
-    }
+    this.socket.close();
     this.socket = null;
   }
 

@@ -52,6 +52,9 @@ const manifest = withSidePanel({
       matches: ['*://*/*'],
     },
   ],
+  content_security_policy: {
+    extension_pages: "script-src 'self'; object-src 'self'",
+  },
 });
 
 export default manifest;

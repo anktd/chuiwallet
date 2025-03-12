@@ -40,14 +40,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           });
         });
       } else if (request.action === 'startDragQR') {
-        console.log('start drag qr');
-        // chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
-        //   console.log(tabs);
-        //   if (tabs && tabs[0]?.id !== undefined) {
-        //     console.log('action sent');
-        //     chrome.tabs.sendMessage(tabs[0].id, { action: 'startDragQR' });
-        //   }
-        // });
         chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
           if (tabs && tabs[0]?.id !== undefined) {
             chrome.scripting.executeScript(

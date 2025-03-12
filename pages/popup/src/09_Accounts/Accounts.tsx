@@ -17,7 +17,7 @@ export const Accounts: React.FC = () => {
   const accounts = useMemo(() => {
     if (!wallet) return [];
     return Array.from({ length: totalAccounts }, (_, i) => {
-      const address = wallet.generateAddress(i);
+      const address = wallet.getAddress('p2pkh', i);
 
       return {
         name: `Account ${i + 1}`,

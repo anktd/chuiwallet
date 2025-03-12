@@ -10,7 +10,7 @@ import encryption from '@extension/backend/src/utils/encryption';
 
 export const PasswordLock: React.FC = () => {
   const navigate = useNavigate();
-  const { setSelectedAccountIndex, setTotalAccounts, setWallet } = useWalletContext();
+  const { unlockWallet } = useWalletContext();
   const [password, setPassword] = React.useState('');
   const [errorMsg, setErrorMsg] = React.useState('');
   const [loading, setLoading] = React.useState(false);
@@ -51,9 +51,7 @@ export const PasswordLock: React.FC = () => {
 
           const seed = restoredWallet.recoverMnemonic(password);
           if (seed && bip39.validateMnemonic(seed)) {
-            setWallet(restoredWallet, password);
-            setSelectedAccountIndex(storedAccount.selectedAccountIndex);
-            setTotalAccounts(storedAccount.totalAccounts);
+            unlockWallet(password);
 
             navigate('/dashboard');
           } else {
