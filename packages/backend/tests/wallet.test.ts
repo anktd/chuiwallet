@@ -12,7 +12,7 @@ describe('Wallet Module', () => {
       addressType: 'p2pkh',
     });
     // Generate the receiving address from the wallet
-    const address = wallet.generateAddress(0);
+    const address = wallet.generateAddress();
     // Derive the expected output script using bitcoinjs-lib's toOutputScript
     const outputScript = bitcoin.address.toOutputScript(address, bitcoin.networks.bitcoin);
     const scriptPubKeyHex = outputScript.toString('hex');

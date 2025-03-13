@@ -12,8 +12,7 @@ export const Receive: React.FC = () => {
   const { currency } = useParams<{ currency: Currencies }>();
   const [copyText, setCopyText] = useState<string>('Copy address');
 
-  // Generate address (or show fallback)
-  const address = wallet ? wallet.generateAddress(0) : 'Address not found';
+  const address = wallet ? wallet.generateAddress() : 'Address not found';
 
   const handleCopyAddress = async () => {
     try {

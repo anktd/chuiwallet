@@ -7,21 +7,18 @@ import Header from '@src/components/Header';
 import { useEffect, useState } from 'react';
 import { getBtcToUsdRate } from '@src/utils';
 import { Button } from '@src/components/Button';
+import { useWalletContext } from '@src/context/WalletContext';
+import type { FeeOptionSetting } from '@extension/backend/src/modules/electrumService';
 
 interface SendOptionsState {
   destinationAddress: string;
+  balance: number;
 }
 
-const feeOptions = [
-  { speed: 'slow', btcAmount: 0.000012, usdAmount: 0.95 },
-  { speed: 'medium', btcAmount: 0.000062, usdAmount: 2 },
-  { speed: 'fast', btcAmount: 0.000102, usdAmount: 5.6 },
-];
-
 export const SendOptions: React.FC = () => {
+  const { wallet } = useWalletContext();
   const navigate = useNavigate();
   const location = useLocation();
-
   const { currency } = useParams<{ currency: Currencies }>();
   const states = location.state as SendOptionsState;
 
@@ -30,22 +27,85 @@ export const SendOptions: React.FC = () => {
   const [exchangeRate, setExchangeRate] = useState<number | null>(null);
   const [isCustomFee, setIsCustomFee] = useState<boolean>(false);
   const [selectedFeeIndex, setSelectedFeeIndex] = useState<number>(1);
-  const [sats, setSats] = useState('3');
+  const [feeOptions, setFeeOptions] = useState<FeeOptionSetting[]>([]);
+  const [customFeeOption, setCustomFeeOption] = useState<FeeOptionSetting | null>(null);
+  const [customSats, setCustomSats] = useState('1');
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [feeEstimatesLoading, setFeeEstimatesLoading] = useState<boolean>(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [feeCustomEstimatesLoading, setCustomFeeEstimatesLoading] = useState<boolean>(false);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [error, setError] = useState('');
 
   const handleNext = () => {
+    const feeData = isCustomFee && customFeeOption ? customFeeOption : feeOptions[selectedFeeIndex];
+
+    const maxBtc = states.balance - feeData.btcAmount;
+    if (maxBtc < Number(btcAmount)) {
+      setError('Insufficient funds');
+      return;
+    }
+
     navigate(`/send/${currency}/preview`, {
       state: {
         destinationAddress: states.destinationAddress,
         amountBtc: Number(btcAmount),
         amountUsd: Number(usdAmount),
-        feeBtc: feeOptions[selectedFeeIndex].btcAmount,
-        feeUsd: feeOptions[selectedFeeIndex].usdAmount,
-        sats: Number(sats),
+        feeBtc: feeData.btcAmount,
+        feeUsd: feeData.usdAmount,
+        sats: Number(feeData.sats),
       },
     });
   };
+
+  useEffect(() => {
+    async function fetchFees() {
+      setFeeEstimatesLoading(true);
+
+      const walletAddress = wallet ? wallet.generateAddress() : undefined;
+      if (walletAddress) {
+        chrome.runtime.sendMessage(
+          { action: 'getFeeEstimates', from: walletAddress, to: states.destinationAddress },
+          response => {
+            if (response?.success) {
+              setFeeOptions(response.estimates);
+            } else {
+              setError(response.error);
+            }
+            setFeeEstimatesLoading(false);
+          },
+        );
+      } else {
+        setFeeEstimatesLoading(false);
+      }
+    }
+
+    fetchFees();
+  }, [states.destinationAddress, wallet]);
+
+  useEffect(() => {
+    async function fetchCustomFee() {
+      setCustomFeeEstimatesLoading(true);
+
+      const walletAddress = wallet ? wallet.generateAddress() : undefined;
+      if (walletAddress) {
+        chrome.runtime.sendMessage(
+          { action: 'getCustomFeeEstimates', from: walletAddress, to: states.destinationAddress, customSats },
+          response => {
+            if (response?.success) {
+              setCustomFeeOption(response.customEstimate);
+            } else {
+              setError(response.error);
+            }
+            setCustomFeeEstimatesLoading(false);
+          },
+        );
+      } else {
+        setCustomFeeEstimatesLoading(false);
+      }
+    }
+    fetchCustomFee();
+  }, [customFeeOption, customSats, states.destinationAddress, wallet]);
 
   useEffect(() => {
     async function fetchRate() {
@@ -70,6 +130,7 @@ export const SendOptions: React.FC = () => {
       setUsdAmount(usdVal.toFixed(2));
     } else {
       setUsdAmount('');
+      setError('Failed to fetch exchange rates');
     }
   };
 
@@ -83,23 +144,39 @@ export const SendOptions: React.FC = () => {
       setBtcAmount(btcVal.toFixed(8));
     } else {
       setBtcAmount('');
+      setError('Failed to fetch exchange rates');
     }
   };
 
   const handleSetMaxAmount = () => {
-    // Implement "Send Max" functionality as needed
+    if (!states.balance) return;
+
+    const feeData = isCustomFee && customFeeOption ? customFeeOption : feeOptions[selectedFeeIndex];
+
+    const maxBtc = states.balance - feeData.btcAmount;
+
+    if (maxBtc < 0) {
+      setBtcAmount('0');
+      setUsdAmount('0');
+      setError('Insufficient balance');
+    } else {
+      setBtcAmount(maxBtc.toFixed(8));
+      if (exchangeRate !== null) {
+        setUsdAmount((maxBtc * exchangeRate).toFixed(2));
+      }
+    }
   };
 
   const handleSetCustomFee = () => {
     setIsCustomFee(!isCustomFee);
     if (!isCustomFee) {
-      setSats('3');
+      setCustomSats('1');
     }
   };
 
   const handleSatsChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setSats(value);
+    setCustomSats(value);
   };
 
   return (
@@ -171,7 +248,7 @@ export const SendOptions: React.FC = () => {
                 placeholder="3 sat/vB"
                 id="customFee"
                 hasIcon={false}
-                value={sats}
+                value={customSats}
                 onChange={handleSatsChanged}
               />
             </>

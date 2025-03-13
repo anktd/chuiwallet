@@ -1,5 +1,6 @@
 import { createHash } from 'crypto';
 import * as bitcoin from 'bitcoinjs-lib';
+import axios from 'axios';
 
 type Callback = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -7,15 +8,21 @@ type Callback = {
   reject: (error: Error) => void;
 };
 
-type ServerConfig = {
+export type ServerConfig = {
   host: string;
   port: number;
   useTls: boolean;
   network: 'mainnet' | 'testnet';
 };
-
 export type TransactionActivityStatus = 'PENDING' | 'CONFIRMED';
 export type TransactionType = 'SEND' | 'RECEIVE';
+
+export interface FeeOptionSetting {
+  speed: string;
+  sats: number;
+  btcAmount: number;
+  usdAmount: number;
+}
 
 export interface TransactionActivity {
   type: TransactionType;
@@ -434,19 +441,113 @@ export default class ElectrumService {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async getVinValue(vinEntry: any): Promise<number> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const prevTxResponse: any = await this._sendRequest('blockchain.transaction.get', [vinEntry.txid, true]);
+    const rawTxHex: string =
+      typeof prevTxResponse === 'object' && prevTxResponse.hex ? prevTxResponse.hex : prevTxResponse;
+    const prevTx = bitcoin.Transaction.fromHex(rawTxHex);
+    const output = prevTx.outs[vinEntry.vout];
+    return output.value;
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  catch(e: any) {
+    console.error(e);
+    return 0;
+  }
+
+  /**
+   * Estimates the fee for sending a transaction from 'from' to 'to' address.
+   * @param from - The sending address.
+   * @param to - The receiving address.
+   * @returns An array of fee options,
+   */
+  public async getFeeEstimates(from: string, to: string): Promise<FeeOptionSetting[]> {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const prevTxResponse: any = await this._sendRequest('blockchain.transaction.get', [vinEntry.txid, true]);
-      const rawTxHex: string =
-        typeof prevTxResponse === 'object' && prevTxResponse.hex ? prevTxResponse.hex : prevTxResponse;
-      const prevTx = bitcoin.Transaction.fromHex(rawTxHex);
-      const output = prevTx.outs[vinEntry.vout];
-      // output.value is in BTC; convert to satoshis.
-      return output.value;
-    } catch (e) {
-      console.error(e);
-      return 0;
+      // Fetch fee rates from mempool.space API (sats per byte)
+      const feeResponse = await axios.get('https://mempool.space/api/v1/fees/recommended');
+      const { fastestFee, halfHourFee, hourFee } = feeResponse.data;
+
+      // Estimate input and output sizes (in bytes) based on address type heuristics.
+      const inputSize = this.estimateInputSize(from);
+      const outputSize = this.estimateOutputSize(to);
+      const overhead = 10; // bytes, for tx overhead
+      const txSize = overhead + inputSize + outputSize;
+
+      // Fetch the current BTC price in USD.
+      const btcPrice = await this.getBtcToUsdRate();
+
+      // Calculate fee amounts.
+      const slowBtc = (hourFee * txSize) / 1e8;
+      const mediumBtc = (halfHourFee * txSize) / 1e8;
+      const fastBtc = (fastestFee * txSize) / 1e8;
+
+      return [
+        { speed: 'slow', sats: hourFee, btcAmount: slowBtc, usdAmount: slowBtc * btcPrice },
+        { speed: 'medium', sats: halfHourFee, btcAmount: mediumBtc, usdAmount: mediumBtc * btcPrice },
+        { speed: 'fast', sats: fastestFee, btcAmount: fastBtc, usdAmount: fastBtc * btcPrice },
+      ];
+    } catch (error) {
+      console.error('Error fetching fee estimates:', error);
+
+      return [
+        { speed: 'slow', sats: 0, btcAmount: 0, usdAmount: 0 },
+        { speed: 'medium', sats: 0, btcAmount: 0, usdAmount: 0 },
+        { speed: 'fast', sats: 0, btcAmount: 0, usdAmount: 0 },
+      ];
     }
+  }
+
+  public async getCustomFeeEstimates(from: string, to: string, customSats: number): Promise<FeeOptionSetting> {
+    try {
+      // Estimate input and output sizes (in bytes) based on address type heuristics.
+      const inputSize = this.estimateInputSize(from);
+      const outputSize = this.estimateOutputSize(to);
+      const overhead = 10; // bytes, for tx overhead
+      const txSize = overhead + inputSize + outputSize;
+
+      // Fetch the current BTC price in USD.
+      const btcPrice = await this.getBtcToUsdRate();
+
+      // Calculate fee amounts.
+      const btcAmount = (customSats * txSize) / 1e8;
+
+      return { speed: 'custom', sats: customSats, btcAmount: btcAmount, usdAmount: btcAmount * btcPrice };
+    } catch (error) {
+      console.error('Error fetching fee estimates:', error);
+
+      return { speed: 'custom', sats: customSats, btcAmount: 0, usdAmount: 0 };
+    }
+  }
+
+  /**
+   * Estimate input size (in bytes) based on the "from" address type.
+   * These heuristics are based on typical transaction sizes:
+   * - Legacy (P2PKH): ~148 bytes per input.
+   * - P2SH: ~108 bytes.
+   * - Segwit (P2WPKH): ~68 vbytes.
+   * - Taproot (P2TR): ~57 vbytes.
+   */
+  private estimateInputSize(address: string): number {
+    if (address.startsWith('1')) return 148;
+    if (address.startsWith('3')) return 108;
+    if (address.startsWith('bc1p')) return 57;
+    if (address.startsWith('bc1q')) return 68;
+    return 148;
+  }
+
+  /**
+   * Estimate output size (in bytes) based on the "to" address type:
+   * - Legacy (P2PKH): ~34 bytes.
+   * - P2SH: ~32 bytes.
+   * - Segwit (P2WPKH): ~31 vbytes.
+   * - Taproot (P2TR): ~43 bytes.
+   */
+  private estimateOutputSize(address: string): number {
+    if (address.startsWith('1')) return 34;
+    if (address.startsWith('3')) return 32;
+    if (address.startsWith('bc1p')) return 43;
+    if (address.startsWith('bc1q')) return 31;
+    return 34;
   }
 
   /**

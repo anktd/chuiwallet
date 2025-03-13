@@ -1,4 +1,4 @@
-import { capitalizeFirstLetter } from '@src/utils';
+import { capitalizeFirstLetter, formatNumber } from '@src/utils';
 import type * as React from 'react';
 
 export interface FeeOptionProps {
@@ -25,8 +25,8 @@ export const FeeOption: React.FC<FeeOptionProps> = ({ speed, btcAmount, usdAmoun
       </div>
       <div className="w-full text-sm font-medium whitespace-nowrap text-zinc-500">{capitalizeFirstLetter(speed)}</div>
       <div className="flex flex-col items-center w-full text-xs text-white gap-1">
-        <div>{btcAmount} BTC</div>
-        <div>{usdAmount} USD</div>
+        <div>{formatNumber(btcAmount, 6)} BTC</div>
+        <div>{formatNumber(usdAmount, 2)} USD</div>
       </div>
     </button>
   );

@@ -5,12 +5,18 @@ import { currencyMapping, type Currencies } from '@src/types';
 import { isValidBTCAddress } from '@src/utils';
 import type * as React from 'react';
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import WAValidator from 'wallet-address-validator';
+
+interface SendState {
+  balance: number;
+}
 
 export const Send: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { currency } = useParams<{ currency: Currencies }>();
+  const states = location.state as SendState;
 
   const [destinationAddress, setDestinationAddress] = useState('');
   const [error, setError] = useState('');
@@ -52,6 +58,7 @@ export const Send: React.FC = () => {
     navigate('options', {
       state: {
         destinationAddress,
+        balance: states.balance,
       },
     });
   };

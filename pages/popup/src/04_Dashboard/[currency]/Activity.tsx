@@ -29,7 +29,7 @@ export const Activity: React.FC = () => {
 
   useEffect(() => {
     const fetchWalletData = () => {
-      const walletAddress = wallet ? wallet.generateAddress(0) : undefined;
+      const walletAddress = wallet ? wallet.generateAddress() : undefined;
       if (walletAddress) {
         chrome.runtime.sendMessage({ action: 'getHistory', walletAddress }, response => {
           if (response?.success) {
@@ -77,7 +77,17 @@ export const Activity: React.FC = () => {
 
       <div className="flex gap-2.5 justify-between items-center mt-[44px] w-full text-lg font-medium leading-none text-center whitespace-nowrap max-w-[346px] text-foreground">
         <CryptoButton icon="popup/receive_icon.svg" label="Receive" onClick={() => navigate('/receive/btc')} />
-        <CryptoButton icon="popup/send_icon.svg" label="Send" onClick={() => navigate('/send/btc')} />
+        <CryptoButton
+          icon="popup/send_icon.svg"
+          label="Send"
+          onClick={() =>
+            navigate('/send/btc', {
+              state: {
+                balance: balance / 1e8,
+              },
+            })
+          }
+        />
       </div>
 
       <div className="h-[24px] w-full"></div>

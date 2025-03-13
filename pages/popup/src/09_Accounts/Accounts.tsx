@@ -10,12 +10,9 @@ export const Accounts: React.FC = () => {
   const navigate = useNavigate();
   const { addAccount, selectedAccountIndex, switchAccount, totalAccounts, wallet } = useWalletContext();
 
-  // chrome.storage.local.get(null, data => {
-  //   console.log('Stored data on password lock:', data);
-  // });
-
   const accounts = useMemo(() => {
     if (!wallet) return [];
+
     return Array.from({ length: totalAccounts }, (_, i) => {
       const address = wallet.getAddress('p2pkh', i);
 

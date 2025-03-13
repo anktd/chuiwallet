@@ -95,8 +95,6 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                 setPassword(storedPwd);
                 setSelectedAccountIndex(storedAccount.selectedAccountIndex);
                 setTotalAccounts(storedAccount.totalAccounts);
-                console.log('Wallet successfully restored from storage.');
-                console.log('account index: ', restoredWallet.getAccountIndex());
               } else {
                 console.error('Failed to recover seed with stored password.');
                 clearWallet();
@@ -137,9 +135,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const storedAccount: StoredAccount | undefined = res.storedAccount;
       if (storedAccount) {
         storedAccount.selectedAccountIndex = index;
-        chrome.storage.local.set({ storedAccount }, () => {
-          // console.log('Selected account index updated:', index);
-        });
+        chrome.storage.local.set({ storedAccount }, () => {});
       }
     });
   };
@@ -169,9 +165,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           totalAccounts: newTotal,
         };
 
-        chrome.storage.local.set({ storedAccount: newStoredAccount }, () => {
-          // console.log('Stored account updated:', newStoredAccount);
-        });
+        chrome.storage.local.set({ storedAccount: newStoredAccount }, () => {});
 
         switchAccount(newIndex);
       }
@@ -208,9 +202,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         {
           storedAccount,
         },
-        () => {
-          // console.log('Wallet successfully created and persisted.');
-        },
+        () => {},
       );
 
       setSelectedAccountIndex(0);
@@ -265,7 +257,40 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const unlockWallet = (pwd: string) => {
     if (pwd) {
-      setPassword(pwd);
+      chrome.storage.local.get(['storedAccount'], res => {
+        const storedAccount: StoredAccount | undefined = res.storedAccount;
+        if (storedAccount) {
+          try {
+            const restoredMnemonic = Wallet.getDecryptedMnemonic(storedAccount.encryptedMnemonic, pwd);
+            if (!restoredMnemonic) {
+              console.error('Failed to recover seed with stored password.');
+              clearWallet();
+            }
+
+            const restoredWallet = manager.createWallet({
+              password: pwd!,
+              mnemonic: restoredMnemonic!,
+              network: storedAccount.network,
+              addressType: 'p2pkh',
+              accountIndex: storedAccount.selectedAccountIndex,
+            });
+
+            const seed = restoredWallet.recoverMnemonic(pwd);
+            if (seed) {
+              setWalletState(restoredWallet);
+              setPassword(pwd);
+              setSessionPassword(pwd);
+              setSelectedAccountIndex(storedAccount.selectedAccountIndex);
+              setTotalAccounts(storedAccount.totalAccounts);
+            } else {
+              console.error('Failed to recover seed with stored password.');
+              clearWallet();
+            }
+          } catch (err) {
+            console.error('Error restoring wallet from storage:', err);
+          }
+        }
+      });
     } else {
       clearWallet();
     }

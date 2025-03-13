@@ -36,7 +36,7 @@ export const Dashboard: React.FC = () => {
 
   useEffect(() => {
     const fetchWalletData = () => {
-      const walletAddress = wallet ? wallet.generateAddress(0) : undefined;
+      const walletAddress = wallet ? wallet.generateAddress() : undefined;
       if (walletAddress) {
         chrome.runtime.sendMessage({ action: 'getBalance', walletAddress }, response => {
           if (response?.success) {
@@ -200,7 +200,13 @@ export const Dashboard: React.FC = () => {
                   cryptoAmount={balance ? `${formatNumber(balance.confirmed / 1e8, 8)} BTC` : '0 BTC'}
                   usdAmount={balance ? `${formatNumber(balance.confirmedUsd)} USD` : '0 USD'}
                   icon="popup/btc_coin.svg"
-                  onClick={() => navigate('/send/btc')}
+                  onClick={() =>
+                    navigate('/send/btc', {
+                      state: {
+                        balance: balance ? balance.confirmed / 1e8 : 0,
+                      },
+                    })
+                  }
                 />
                 <CryptoBalance
                   cryptoName="Bitcoin Cash"

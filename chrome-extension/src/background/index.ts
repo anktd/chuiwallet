@@ -22,6 +22,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       } else if (request.action === 'getHistory') {
         const history = await electrumService.getDetailedHistory(request.walletAddress);
         sendResponse({ success: true, history: history });
+      } else if (request.action === 'getFeeEstimates') {
+        const estimates = await electrumService.getFeeEstimates(request.from, request.to);
+        sendResponse({ success: true, estimates });
+      } else if (request.action === 'getCustomFeeEstimates') {
+        const customEstimate = await electrumService.getCustomFeeEstimates(
+          request.from,
+          request.to,
+          request.customSats,
+        );
+        sendResponse({ success: true, customEstimate });
       } else if (request.action === 'sendTransaction') {
         const txid = await electrumService.sendTransaction(request.rawTxHex);
         sendResponse({ success: true, txid });
