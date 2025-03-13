@@ -44,9 +44,7 @@ export const TransactionDetail: React.FC = () => {
       <div className="flex flex-col justify-center items-center self-center mt-10 mb-4 max-w-full w-[151px] gap-0.5">
         <img
           loading="lazy"
-          src={chrome.runtime.getURL(
-            `popup/${status == 'CONFIRMED' ? (type == 'SEND' ? 'sent' : 'received') : 'pending'}_icon.svg`,
-          )}
+          src={chrome.runtime.getURL(`popup/${type == 'SEND' ? 'sent' : 'received'}_icon.svg`)}
           alt={status == 'CONFIRMED' ? (type == 'SEND' ? 'Sent' : 'Received') : 'Pending'}
           className="object-contain w-6"
         />
@@ -54,11 +52,7 @@ export const TransactionDetail: React.FC = () => {
           {formatNumber(Math.abs(amountUsd))} <span className="text-xl">usd</span>
         </div>
         <div className="text-base font-bold leading-none text-white">
-          {status == 'CONFIRMED'
-            ? type == 'SEND'
-              ? 'Sent'
-              : 'Received'
-            : `Pending (${type == 'SEND' ? 'Sent' : 'Received'})`}
+          {status == 'CONFIRMED' ? (type == 'SEND' ? 'Sent' : 'Received') : 'Pending'}
         </div>
         <span className="text-xs leading-loose text-foreground">{formatNumber(Math.abs(amountBtc), 8)} BTC</span>
       </div>
@@ -74,10 +68,14 @@ export const TransactionDetail: React.FC = () => {
             value={`${formatNumber(Math.abs(feeBtc), 8)} BTC (${formatNumber(Math.abs(feeUsd))} USD)`}
           />
         )}
-        <LabelValue label="Date & Hour" value={formatTimestamp(timestamp)} />
+        {status == 'CONFIRMED' && <LabelValue label="Date & Hour" value={formatTimestamp(timestamp)} />}
         <LabelValue
           label="Confirmations"
-          value={<div className="text-green-500">{formatNumber(confirmations)} Confirmations</div>}
+          value={
+            <div className={`${confirmations == 0 ? 'text-primary-orange' : 'text-primary-green'}`}>
+              {confirmations == 0 ? 'Unconfirmed' : `${formatNumber(confirmations)} Confirmations`}
+            </div>
+          }
         />
       </div>
 

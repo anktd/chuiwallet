@@ -1,6 +1,7 @@
 import 'webextension-polyfill';
 import { walletThemeStorage } from '@extension/storage';
 import ElectrumService from '@extension/backend/src/modules/electrumService';
+import WalletManager from '@extension/backend/src/walletManager';
 
 walletThemeStorage.get().then(theme => {
   console.log('theme', theme);
@@ -34,6 +35,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse({ success: true, customEstimate });
       } else if (request.action === 'sendTransaction') {
         const txid = await electrumService.sendTransaction(request.rawTxHex);
+        sendResponse({ success: true, txid });
+      } else if (request.action === 'signAndSendTransaction') {
+        const walletData = request.walletData;
+        const walletManager = new WalletManager();
+        const wallet = walletManager.createWallet({
+          password: walletData.password,
+          mnemonic: walletData.mnemonic,
+          network: walletData.network,
+          addressType: walletData.addressType,
+          accountIndex: walletData.accountIndex,
+        });
+        const txid = await electrumService.signAndSendTransaction(wallet, request.to, request.amount, request.feeRates);
         sendResponse({ success: true, txid });
       } else if (request.action === 'captureScreenshot') {
         chrome.tabs.captureVisibleTab({ format: 'png' }, (dataUrl: string | undefined) => {

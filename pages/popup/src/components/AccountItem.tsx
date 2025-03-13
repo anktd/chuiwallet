@@ -12,7 +12,7 @@ interface AccountItemProps {
 const AccountItem: React.FC<AccountItemProps> = ({ accountName, address, amount, selected, onClick }) => {
   return (
     <button
-      className={`flex gap-3 justify-center items-center px-2.5 py-3 mt-2.5 w-full rounded-lg ${
+      className={`flex gap-3 justify-center items-center px-2.5 py-3 w-full rounded-lg ${
         selected ? 'bg-background-2c' : ''
       } hover:bg-background-2c max-w-[346px]`}
       onClick={onClick}>

@@ -18,12 +18,12 @@ export const SetPassword: React.FC = () => {
 
   const passwordStrength = getPasswordStrength(password);
 
-  let strengthColorClass = 'text-red-500';
+  let strengthColorClass = 'text-primary-red';
 
   if (passwordStrength === 'medium') {
-    strengthColorClass = 'text-yellow-500';
+    strengthColorClass = 'text-primary-yellow';
   } else if (passwordStrength === 'strong') {
-    strengthColorClass = 'text-green-500';
+    strengthColorClass = 'text-primary-green';
   }
 
   const handleNext = async () => {
@@ -101,7 +101,7 @@ export const SetPassword: React.FC = () => {
 
             <TermsCheckbox onAcceptChange={setTermsAccepted} />
 
-            {errorMsg && <span className="mt-1 text-xs text-red-500 font-light">{errorMsg}</span>}
+            {errorMsg && <span className="mt-1 text-xs text-primary-red font-light">{errorMsg}</span>}
           </div>
         </div>
       </div>

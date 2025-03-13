@@ -97,9 +97,7 @@ export const Dashboard: React.FC = () => {
         <CryptoButton icon="popup/send_icon.svg" label="Send" onClick={handleToggleChooseSendCurrencySlide} />
       </div>
 
-      <div className="h-[24px] w-full"></div>
-
-      <div className="flex flex-col w-full max-w-[346px] gap-[7px]">
+      <div className="flex flex-col w-full max-w-[346px] gap-[7px] mt-4">
         <CryptoBalance
           cryptoName="Bitcoin"
           cryptoAmount={balance ? `${formatNumber(balance.confirmed / 1e8, 8)} BTC` : '0 BTC'}

@@ -1,6 +1,7 @@
 import { createHash } from 'crypto';
 import * as bitcoin from 'bitcoinjs-lib';
 import axios from 'axios';
+import type Wallet from './wallet';
 
 type Callback = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -441,18 +442,19 @@ export default class ElectrumService {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async getVinValue(vinEntry: any): Promise<number> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const prevTxResponse: any = await this._sendRequest('blockchain.transaction.get', [vinEntry.txid, true]);
-    const rawTxHex: string =
-      typeof prevTxResponse === 'object' && prevTxResponse.hex ? prevTxResponse.hex : prevTxResponse;
-    const prevTx = bitcoin.Transaction.fromHex(rawTxHex);
-    const output = prevTx.outs[vinEntry.vout];
-    return output.value;
-  }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  catch(e: any) {
-    console.error(e);
-    return 0;
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const prevTxResponse: any = await this._sendRequest('blockchain.transaction.get', [vinEntry.txid, true]);
+      const rawTxHex: string =
+        typeof prevTxResponse === 'object' && prevTxResponse.hex ? prevTxResponse.hex : prevTxResponse;
+      const prevTx = bitcoin.Transaction.fromHex(rawTxHex);
+      const output = prevTx.outs[vinEntry.vout];
+      return output.value;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (e: any) {
+      console.error(e);
+      return 0;
+    }
   }
 
   /**
@@ -551,11 +553,176 @@ export default class ElectrumService {
   }
 
   /**
+   * Fetches UTXOs for a given address using the Electrum RPC WebSocket API,
+   * and computes the scriptPubKey for that address.
+   *
+   * @param electrumClient - An instance of your Electrum client that provides RPC calls.
+   * @param address - The Bitcoin address for which UTXOs are fetched.
+   * @param network - The bitcoinjs-lib network (e.g. bitcoin.networks.bitcoin or bitcoin.networks.testnet).
+   * @returns A promise resolving to an array of UTXO objects in the format:
+   *   { txid: string; vout: number; scriptPubKey: string; value: number }
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public async getUtxos(address: string): Promise<any[]> {
+    const scripthash = await this._addressToScriptHash(address);
+    const utxosResponse = await this.tryRpcRequest('blockchain.scripthash.listunspent', [scripthash]);
+
+    const outputScript = bitcoin.address
+      .toOutputScript(address, this.network === 'mainnet' ? bitcoin.networks.bitcoin : bitcoin.networks.testnet)
+      .toString('hex');
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const utxos = utxosResponse.map((utxo: any) => ({
+      txid: utxo.tx_hash,
+      vout: utxo.tx_pos,
+      scriptPubKey: outputScript,
+      value: utxo.value,
+    }));
+
+    return utxos;
+  }
+
+  /**
+   * Helper function to convert a rawTx value into a Buffer.
+   * It accepts a string (hex), a Buffer, an ArrayBuffer, or an object with a 'data' property.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public parseRawTx(rawTx: any): Buffer {
+    if (typeof rawTx === 'string') {
+      return Buffer.from(rawTx, 'hex');
+    }
+    if (Buffer.isBuffer(rawTx)) {
+      return rawTx;
+    }
+    if (rawTx instanceof ArrayBuffer) {
+      return Buffer.from(new Uint8Array(rawTx));
+    }
+    if (rawTx && typeof rawTx === 'object') {
+      if (typeof rawTx.hex === 'string') {
+        return Buffer.from(rawTx.hex, 'hex');
+      }
+      if (Array.isArray(rawTx.data)) {
+        return Buffer.from(rawTx.data);
+      }
+    }
+    throw new TypeError(
+      "Invalid rawTx type: must be a hex string, Buffer, ArrayBuffer, or object with a 'hex' or 'data' property.",
+    );
+  }
+
+  /**
+   * Creates a PSBT for a transaction.
+   *
+   * @param from - The sending address.
+   * @param params - The transaction parameters:
+   *   - to: Destination address.
+   *   - amount: Amount to send (in satoshis).
+   *   - feeRate: Fee rate in sat/byte.
+   *   - utxos: Array of UTXOs, each must include:
+   *         txid: string,
+   *         vout: number,
+   *         scriptPubKey: string,
+   *         value: number,
+   *         rawTx?: string  // Full raw transaction hex (required for non-segwit inputs)
+   * @returns A bitcoin.Psbt object.
+   */
+  public async createTransaction(
+    from: string,
+    params: {
+      to: string;
+      amount: number;
+      feeRate: number;
+      utxos: Array<{ txid: string; vout: number; scriptPubKey: string; value: number; rawTx?: string }>;
+    },
+  ): Promise<bitcoin.Psbt> {
+    const psbt = new bitcoin.Psbt({
+      network: this.network === 'mainnet' ? bitcoin.networks.bitcoin : bitcoin.networks.testnet,
+    });
+
+    let inputSum = 0;
+
+    // Loop through UTXOs and add inputs.
+    for (const utxo of params.utxos) {
+      // Determine if the UTXO is legacy based on its scriptPubKey prefix.
+      if (typeof utxo.scriptPubKey === 'string' && utxo.scriptPubKey.startsWith('76a914')) {
+        // Legacy (P2PKH) input – require the full raw transaction.
+        if (!utxo.rawTx) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const rawTx: any = await this._sendRequest('blockchain.transaction.get', [utxo.txid, true]);
+          utxo.rawTx = rawTx;
+          if (!utxo.rawTx) {
+            throw new Error(`Mssing rawTx for legacy UTXO ${utxo.txid}:${utxo.vout}`);
+          }
+        }
+
+        const nonWitnessUtxo = this.parseRawTx(utxo.rawTx);
+
+        psbt.addInput({
+          hash: utxo.txid,
+          index: utxo.vout,
+          nonWitnessUtxo: nonWitnessUtxo,
+        });
+      } else {
+        // Otherwise assume segwit input.
+        const scriptBuffer =
+          typeof utxo.scriptPubKey === 'string' ? Buffer.from(utxo.scriptPubKey, 'hex') : utxo.scriptPubKey;
+        psbt.addInput({
+          hash: utxo.txid,
+          index: utxo.vout,
+          witnessUtxo: {
+            script: scriptBuffer,
+            value: utxo.value,
+          },
+        });
+      }
+      inputSum += utxo.value;
+      if (inputSum >= params.amount + params.feeRate) break;
+    }
+
+    psbt.addOutput({ address: params.to, value: params.amount });
+
+    const change = inputSum - params.amount - params.feeRate;
+    if (change > 0) {
+      // Send change back to the sender.
+      psbt.addOutput({ address: from, value: change });
+    }
+
+    return psbt;
+  }
+
+  /**
    * Broadcast a raw transaction (hex string) to the Bitcoin network.
    * Returns the transaction ID (txid) if successful.
    */
   public async sendTransaction(rawTxHex: string): Promise<string> {
     return this.tryRpcRequest('blockchain.transaction.broadcast', [rawTxHex]);
+  }
+
+  /**
+   * Signs and broadcasts a transaction using the provided wallet.
+   *
+   * @param wallet - The wallet object used to create and sign the transaction.
+   * @param to - The destination Bitcoin address.
+   * @param amount - The amount to send (in satoshis).
+   * @param feeRate - The fee rate in satoshis per byte.
+   * @returns A promise that resolves with the transaction ID (txid) if successful.
+   */
+  public async signAndSendTransaction(wallet: Wallet, to: string, amount: number, feeRate: number): Promise<string> {
+    const fromAddress = wallet.generateAddress();
+
+    const utxos = await this.getUtxos(fromAddress);
+
+    const psbt = await this.createTransaction(fromAddress, { to, amount, feeRate, utxos });
+
+    const signedTxHex = wallet.signTransaction(psbt);
+
+    try {
+      const txid: string = await this.sendTransaction(signedTxHex);
+      console.log('Transaction broadcasted, txid:', txid);
+      return txid;
+    } finally {
+      console.error('Failed to broadcast transaction');
+    }
   }
 
   /**

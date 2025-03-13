@@ -1,5 +1,5 @@
 import type React from 'react';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import Header from '@src/components/Header';
 import AccountItem from '../components/AccountItem';
 import { ButtonOutline } from '@src/components/ButtonOutline';
@@ -9,6 +9,8 @@ import { useNavigate } from 'react-router-dom';
 export const Accounts: React.FC = () => {
   const navigate = useNavigate();
   const { addAccount, selectedAccountIndex, switchAccount, totalAccounts, wallet } = useWalletContext();
+
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const accounts = useMemo(() => {
     if (!wallet) return [];
@@ -24,10 +26,24 @@ export const Accounts: React.FC = () => {
     });
   }, [wallet, totalAccounts]);
 
+  useEffect(() => {}, [selectedAccountIndex]);
+
+  useEffect(() => {
+    if (containerRef.current) {
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+    }
+  }, [accounts.length]);
+
   return (
     <div className="relative flex flex-col items-center text-white bg-dark h-full px-4 pt-12 pb-[19px]">
       <Header title="Accounts" />
-      <div className="flex flex-col items-center py-4 w-full min-h-[475px] overflow-y-auto">
+      <div
+        ref={containerRef}
+        className={`flex flex-col items-center w-full h-[452px] mt-2 overflow-y-auto gap-2 [&::-webkit-scrollbar]:w-2
+      [&::-webkit-scrollbar-track]:rounded-full
+      [&::-webkit-scrollbar-track]:transparent
+      [&::-webkit-scrollbar-thumb]:rounded-full
+      [&::-webkit-scrollbar-thumb]:bg-neutral-700 ${accounts.length > 5 ? 'mr-[-12px] overflow-x-visible' : ''}`}>
         {accounts.map((account, index) => (
           <AccountItem
             key={index}

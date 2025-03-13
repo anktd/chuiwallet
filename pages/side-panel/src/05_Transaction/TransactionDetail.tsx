@@ -75,7 +75,7 @@ export const TransactionDetail: React.FC<TransactionDataProps> = ({
       <LabelValuePair label="Amount" value="0.012 BTC (1200 USD)" />
       <LabelValuePair label="Fee" value="0.00012 BTC (0.093 USD)" />
       <LabelValuePair label="Date & Hour" value="24/05/25 at 10:30 PM" />
-      <LabelValuePair label="Confirmations" value={<div className="text-green-500">2 confirmations</div>} />
+      <LabelValuePair label="Confirmations" value={<div className="text-primary-green">2 confirmations</div>} />
       <Image
         src="https://cdn.builder.io/api/v1/image/assets/TEMP/6840471a43d450d1f6b614a8d7f8d39e387e53599914946dd05f077521421fc1?placeholderIfAbsent=true&apiKey=7730bdd605464082ae23b346c3cac1f8"
         alt="Transaction detail"

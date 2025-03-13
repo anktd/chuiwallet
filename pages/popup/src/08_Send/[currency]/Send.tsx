@@ -84,7 +84,7 @@ export const Send: React.FC = () => {
           onChange={handleAddressChange}
           onQRClick={handleQRCodeClick}
         />
-        <p className="mt-2 text-xs text-red-500 font-normal h-[20px]">{error}</p>
+        <p className="mt-2 text-xs text-primary-red font-normal h-[20px]">{error}</p>
       </div>
 
       <Button className="absolute w-full bottom-[19px]" onClick={handleNext}>

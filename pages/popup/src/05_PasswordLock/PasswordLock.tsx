@@ -99,7 +99,7 @@ export const PasswordLock: React.FC = () => {
               onChange={e => setPassword(e.target.value)}
             />
 
-            {errorMsg && <span className="mt-1 text-xs font-italic text-red-500 font-light">{errorMsg}</span>}
+            {errorMsg && <span className="mt-1 text-xs font-italic text-primary-red font-light">{errorMsg}</span>}
           </div>
 
           <Button onClick={handleUnlock} tabIndex={0} disabled={loading || !password}>

@@ -9,6 +9,9 @@ export default {
       colors: {
         dark: '#141414',
         'primary-yellow': '#F1E84D',
+        'primary-orange': '#FB8200',
+        'primary-green': '#3EE246',
+        'primary-red': '#F62C2C',
         'background-ab': '#ABABAB',
         'background-79': '#797979',
         'background-5f': '#5F5F5F',

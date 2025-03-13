@@ -1,7 +1,11 @@
+import Wallet from '@extension/backend/src/modules/wallet';
 import { Button } from '@src/components/Button';
 import Header from '@src/components/Header';
-import { currencyMapping, type Currencies } from '@src/types';
+import type { StoredAccount, Currencies } from '@src/types';
+import { currencyMapping } from '@src/types';
 import { formatNumber } from '@src/utils';
+import { getSessionPassword } from '@src/utils/sessionStorageHelper';
+import { useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 interface SendPreviewStates {
@@ -16,17 +20,66 @@ interface SendPreviewStates {
 export function SendPreview() {
   const navigate = useNavigate();
   const location = useLocation();
-
   const { currency } = useParams<{ currency: Currencies }>();
   const states = location.state as SendPreviewStates;
 
-  const handleConfirm = () => {
-    navigate(`/send/${currency}/status`, {
-      state: {
-        status: 'success',
-        transactionHash: 'cb00b56c1de3e81cb3d647ed81946eb1b1c7e8f0191ad09d85175d592b59b0a5',
-      },
-    });
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [confirmLoading, setConfirmLoading] = useState<boolean>(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [error, setError] = useState('');
+
+  const handleConfirm = async () => {
+    const storedPwd = await getSessionPassword();
+    if (storedPwd) {
+      chrome.storage.local.get(['storedAccount'], res => {
+        const storedAccount: StoredAccount | undefined = res.storedAccount;
+        if (storedAccount) {
+          const restoredMnemonic = Wallet.getDecryptedMnemonic(storedAccount.encryptedMnemonic, storedPwd);
+          if (!restoredMnemonic) {
+            console.error('Failed to recover seed with stored password.');
+          }
+
+          const walletData = {
+            password: storedPwd!,
+            mnemonic: restoredMnemonic!,
+            network: storedAccount.network,
+            addressType: 'p2pkh',
+            accountIndex: storedAccount.selectedAccountIndex,
+          };
+
+          chrome.runtime.sendMessage(
+            {
+              action: 'signAndSendTransaction',
+              walletData,
+              to: states.destinationAddress,
+              amount: states.amountBtc * 1e8,
+              feeRates: states.feeBtc * 1e8,
+            },
+            response => {
+              if (response?.success) {
+                const transactionHash = response.txid;
+                console.log(transactionHash);
+                if (transactionHash) {
+                  navigate(`/send/${currency}/status`, {
+                    state: {
+                      status: 'success',
+                      transactionHash,
+                    },
+                  });
+                } else {
+                  setError('Failed to broadcast transaction');
+                }
+              } else {
+                setError(response.error);
+              }
+              setConfirmLoading(false);
+            },
+          );
+        }
+      });
+    } else {
+      setError('Wallet is null');
+    }
   };
 
   return (

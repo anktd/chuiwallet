@@ -250,41 +250,6 @@ export default class Wallet {
   }
 
   /**
-   * Creates a PSBT for a transaction.
-   */
-  public createTransaction(params: {
-    to: string;
-    amount: number;
-    feeRate: number;
-    utxos: Array<{ txid: string; vout: number; scriptPubKey: string; value: number }>;
-  }): bitcoin.Psbt {
-    if (!this.mnemonic && !this.seed) {
-      throw new Error('Wallet restored from xpriv; HD transaction creation may be limited.');
-    }
-    const psbt = new bitcoin.Psbt({ network: this.network });
-    let inputSum = 0;
-    for (const utxo of params.utxos) {
-      psbt.addInput({
-        hash: utxo.txid,
-        index: utxo.vout,
-        witnessUtxo: {
-          script: Buffer.from(utxo.scriptPubKey, 'hex'),
-          value: utxo.value,
-        },
-      });
-      inputSum += utxo.value;
-      if (inputSum >= params.amount + params.feeRate) break;
-    }
-    psbt.addOutput({ address: params.to, value: params.amount });
-    const change = inputSum - params.amount - params.feeRate;
-    if (change > 0) {
-      const changeAddress = this.generateAddress();
-      psbt.addOutput({ address: changeAddress, value: change });
-    }
-    return psbt;
-  }
-
-  /**
    * Signs a PSBT and returns the signed transaction hex.
    */
   public signTransaction(psbt: bitcoin.Psbt): string {

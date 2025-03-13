@@ -53,7 +53,7 @@ export const TransactionActivityItem: React.FC<TransactionActivityItemProps> = p
         <div className="flex flex-col gap-0.5">
           <div className="flex flex-row items-center text-left gap-1 text-white">
             <span className="text-sm font-bold">{label}</span>
-            <span className="text-xs">{formattedTime}</span>
+            {props.status === 'CONFIRMED' && <span className="text-xs">{formattedTime}</span>}
           </div>
           <span className="text-sm text-foreground-79 text-left w-[160px] truncate">{props.transactionHash}</span>
         </div>

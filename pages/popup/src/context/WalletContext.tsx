@@ -1,5 +1,5 @@
 import type React from 'react';
-import { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import Wallet from '@extension/backend/src/modules/wallet.js';
 import WalletManager from '@extension/backend/src/walletManager.js';
 import { getSessionPassword, SESSION_PASSWORD_KEY, setSessionPassword } from '@src/utils/sessionStorageHelper';
@@ -32,9 +32,12 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [wallet, setWalletState] = useState<Wallet | null>(null);
   const [password, setPassword] = useState('');
   const [selectedAccountIndex, setSelectedAccountIndex] = useState<number>(0);
+  const [pendingNewAccountIndex, setPendingNewAccountIndex] = useState<number | null>(null);
   const [totalAccounts, setTotalAccounts] = useState<number>(0);
   const [onboarded, setOnboarded] = useState(false);
   const [isRestored, setIsRestored] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_, forceUpdate] = useState(0);
 
   const manager = useMemo(() => new WalletManager(), []);
 
@@ -120,28 +123,32 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return () => clearInterval(interval);
   }, []);
 
-  const switchAccount = (index: number) => {
-    if (!wallet) return;
+  const switchAccount = useCallback(
+    (index: number) => {
+      if (!wallet) return;
 
-    if (index < 0 || index >= totalAccounts) {
-      console.error('Invalid account index');
-      return;
-    }
-
-    wallet.setAccountIndex(index);
-    setSelectedAccountIndex(index);
-
-    chrome.storage.local.get(['storedAccount'], res => {
-      const storedAccount: StoredAccount | undefined = res.storedAccount;
-      if (storedAccount) {
-        storedAccount.selectedAccountIndex = index;
-        chrome.storage.local.set({ storedAccount }, () => {});
+      if (index < 0 || index >= totalAccounts) {
+        console.error('Invalid account index');
+        return;
       }
-    });
-  };
+
+      wallet.setAccountIndex(index);
+      setSelectedAccountIndex(index);
+
+      chrome.storage.local.get(['storedAccount'], res => {
+        const storedAccount: StoredAccount | undefined = res.storedAccount;
+        if (storedAccount) {
+          storedAccount.selectedAccountIndex = index;
+          chrome.storage.local.set({ storedAccount }, () => {});
+        }
+      });
+    },
+    [totalAccounts, wallet],
+  );
 
   const nextAccount = () => {
     if (!wallet || totalAccounts === 0) return;
+
     const nextIndex = (selectedAccountIndex + 1) % totalAccounts;
     switchAccount(nextIndex);
   };
@@ -152,25 +159,32 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       return;
     }
 
-    const newIndex = totalAccounts;
-    const newTotal = newIndex + 1;
-    setTotalAccounts(newTotal);
-
     chrome.storage.local.get(['storedAccount'], res => {
       const storedAccount: StoredAccount | undefined = res.storedAccount;
       if (storedAccount) {
+        const newIndex = totalAccounts;
+        const newTotal = newIndex + 1;
+
         const newStoredAccount: StoredAccount = {
           ...storedAccount,
           selectedAccountIndex: newIndex,
           totalAccounts: newTotal,
         };
 
-        chrome.storage.local.set({ storedAccount: newStoredAccount }, () => {});
+        setTotalAccounts(newTotal);
+        setPendingNewAccountIndex(newIndex);
 
-        switchAccount(newIndex);
+        chrome.storage.local.set({ storedAccount: newStoredAccount }, () => {});
       }
     });
   };
+
+  useEffect(() => {
+    if (pendingNewAccountIndex !== null && pendingNewAccountIndex < totalAccounts) {
+      switchAccount(pendingNewAccountIndex);
+      setPendingNewAccountIndex(null);
+    }
+  }, [totalAccounts, pendingNewAccountIndex, switchAccount]);
 
   const createWallet = (
     seed: string,

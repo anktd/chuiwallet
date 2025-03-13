@@ -124,7 +124,7 @@ export const VerifySeed: React.FC = () => {
         </div>
       </div>
 
-      <span className="mt-6 text-xs text-red-500 font-light text-center">{errorMsg}</span>
+      <span className="mt-6 text-xs text-primary-red font-light text-center">{errorMsg}</span>
 
       <Button className="absolute w-full bottom-[19px]" disabled={!isValid} onClick={handleVerify}>
         Continue

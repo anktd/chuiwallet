@@ -61,7 +61,7 @@ export const Activity: React.FC = () => {
         }
       />
 
-      <div className="flex flex-col mt-10 w-40 max-w-full leading-none text-center text-white">
+      <div className="flex flex-col mt-10 max-w-full leading-none text-center text-white">
         <div className="flex gap-px justify-center items-center w-full text-lg">
           <div className="self-stretch my-auto">Total Balance</div>
         </div>
@@ -90,9 +90,7 @@ export const Activity: React.FC = () => {
         />
       </div>
 
-      <div className="h-[24px] w-full"></div>
-
-      <div className="w-full max-w-[346px]">
+      <div className="w-full max-w-[346px] mt-4">
         <div className="flex flex-col w-full gap-[7px]">
           <div className="flex justify-between items-center">
             <span className="text-white text-sm font-bold">Activity</span>
