@@ -1,10 +1,10 @@
 import Wallet from '@extension/backend/src/modules/wallet';
+import { getSessionPassword } from '@extension/backend/src/utils/sessionStorageHelper';
 import { Button } from '@src/components/Button';
 import Header from '@src/components/Header';
 import type { StoredAccount, Currencies } from '@src/types';
 import { currencyMapping } from '@src/types';
 import { formatNumber } from '@src/utils';
-import { getSessionPassword } from '@src/utils/sessionStorageHelper';
 import { useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 

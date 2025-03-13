@@ -2,9 +2,13 @@ import type React from 'react';
 import { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import Wallet from '@extension/backend/src/modules/wallet.js';
 import WalletManager from '@extension/backend/src/walletManager.js';
-import { getSessionPassword, SESSION_PASSWORD_KEY, setSessionPassword } from '@src/utils/sessionStorageHelper';
+import {
+  deleteSessionPassword,
+  getSessionPassword,
+  setSessionPassword,
+} from '@extension/backend/src/utils/sessionStorageHelper.js';
 import type { StoredAccount } from '@src/types';
-import type { AddressType } from '@extension/backend/dist/modules/wallet';
+import type { AddressType } from '@extension/backend/src/modules/wallet';
 
 interface WalletContextType {
   wallet: Wallet | null;
@@ -50,7 +54,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const clearWallet = async () => {
     setWalletState(null);
     setPassword('');
-    await chrome.storage.session.remove([SESSION_PASSWORD_KEY]);
+    await deleteSessionPassword();
   };
 
   useEffect(() => {

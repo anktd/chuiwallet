@@ -78,7 +78,7 @@ export const Dashboard: React.FC = () => {
         </button>
       </div>
 
-      <div className="flex flex-col mt-10 w-40 max-w-full leading-none text-center text-white">
+      <div className="flex flex-col mt-10 max-w-full leading-none text-center text-white">
         <div className="flex gap-px justify-center items-center w-full text-lg">
           <div className="self-stretch my-auto">Total Balance</div>
         </div>
