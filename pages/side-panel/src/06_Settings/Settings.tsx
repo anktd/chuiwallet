@@ -1,29 +1,43 @@
 import Header from '@src/components/Header';
-import FiatCurrencySelector from './FIatCurrencySelector';
+import FiatCurrencySelector from '../components/FiatCurrencySelector';
+import { useNavigate } from 'react-router-dom';
 
 export const Settings: React.FC = () => {
+  const navigate = useNavigate();
+
   return (
-    <div className="flex overflow-hidden flex-col items-center pb-5 font-bold bg-dark]">
+    <div className="relative flex flex-col items-center text-white bg-dark h-full px-4 pt-12 pb-[19px]">
       <Header title="Settings" />
-      <div className="flex flex-col mt-10 w-full max-w-[328px]">
-        <FiatCurrencySelector
-          currency="USD"
-          arrowIconSrc="https://cdn.builder.io/api/v1/image/assets/TEMP/089cd0d182a250c79bcf29b22da0eabf89bae1e0403a00851b188c3f01f048d5?placeholderIfAbsent=true&apiKey=7730bdd605464082ae23b346c3cac1f8"
-        />
-        <div className="flex self-start py-2 mt-2 min-h-[16px]" />
-        <div className="flex gap-10 justify-between items-start mt-2 w-full text-base leading-none text-white">
-          <div>Advanced Settings</div>
+
+      <div className="flex flex-col justify-center mt-[40px] w-full gap-[8px] max-w-[600px] mx-auto">
+        <FiatCurrencySelector initialCurrency="USD" options={['USD', 'BTC']} />
+
+        <div className="flex self-start my-2 h-[1px] w-full bg-background-5f" />
+
+        <button
+          className="flex gap-10 justify-between items-start py-2 w-full text-base leading-none text-white"
+          onClick={() => navigate('/settings/advanced')}>
+          <span className="text-base font-bold">Advanced Settings</span>
           <img
             loading="lazy"
-            src="https://cdn.builder.io/api/v1/image/assets/TEMP/e62a2f0dfe32fef272f88a4628802b0ead234b8276035d9390952bebe29b3f20?placeholderIfAbsent=true&apiKey=7730bdd605464082ae23b346c3cac1f8"
+            src={chrome.runtime.getURL(`popup/right_arrow_icon.svg`)}
             alt=""
             className="object-contain shrink-0 w-6 aspect-square"
           />
-        </div>
+        </button>
       </div>
-      <div className="flex gap-5 justify-between mt-96 w-full text-xs leading-6 text-white max-w-[328px]">
-        <div className="self-stretch">Terms and services</div>
-        <div className="self-stretch whitespace-nowrap">Help</div>
+
+      <div className="absolute left-4 right-4 bottom-[25px] flex gap-5 justify-between text-xs leading-6 text-white max-w-[600px] mx-auto">
+        <div className="self-stretch">
+          <a className="underline font-bold text-xs" href="https://www.blockonomics.co/privacy" target="_blank">
+            Terms and services
+          </a>
+        </div>
+        <div className="self-stretch whitespace-nowrap">
+          <a className="underline font-bold text-xs" href="https://help.blockonomics.co/" target="_blank">
+            Help
+          </a>
+        </div>
       </div>
     </div>
   );

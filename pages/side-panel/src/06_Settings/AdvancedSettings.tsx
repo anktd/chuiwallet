@@ -1,37 +1,46 @@
 import type * as React from 'react';
-import { InputField } from './InputField';
-import { NetworkSelector } from './NetworkSelector';
+import { useNavigate } from 'react-router-dom';
+import { GasLimitInputField } from '@src/components/GasLimitInputField';
+import Header from '@src/components/Header';
+import NetworkSelector from '@src/components/NetworkSelector';
+import { useWalletContext } from '@src/context/WalletContext';
 
 export const AdvancedSettings: React.FC = () => {
+  const navigate = useNavigate();
+  const { network, updateNetwork } = useWalletContext();
+
+  const displayNetwork = network === 'mainnet' ? 'Mainnet' : 'Testnet';
+
   return (
-    <div className="flex overflow-hidden flex-col pb-[19px]2 bg-dark]">
-      <header className="flex gap-5 justify-between items-center p-3 text-xl font-bold leading-none text-center text-white bg-dark min-h-[48px]">
-        <img
-          loading="lazy"
-          src="https://cdn.builder.io/api/v1/image/assets/TEMP/3d9ac0a3bff262bc2e0360a3ebf4df2782c941b15a1d4333aa055f2e4a65f0ff?placeholderIfAbsent=true&apiKey=7730bdd605464082ae23b346c3cac1f8"
-          className="object-contain shrink-0 self-stretch my-auto w-6 aspect-square"
-          alt=""
-        />
-        <div className="self-stretch w-[262px]">Advanced settings</div>
-        <img
-          loading="lazy"
-          src="https://cdn.builder.io/api/v1/image/assets/TEMP/eead1829ee9f249cffbf31469d55efc178ccf0f07d07314bcba736da42027913?placeholderIfAbsent=true&apiKey=7730bdd605464082ae23b346c3cac1f8"
-          className="object-contain shrink-0 self-stretch my-auto w-6 aspect-square"
-          alt=""
-        />
-      </header>
+    <div className="flex flex-col text-white bg-dark h-full px-4 pt-12 pb-[19px]">
+      <Header title="Settings" />
 
-      <main className="flex flex-col self-center mt-10 w-full max-w-[328px]">
-        <InputField label="Gap limit" explanation="Explanation" value="00" showReset={true} onReset={() => {}} />
+      <main className="flex flex-col self-center mt-10 w-full max-w-[600px] mx-auto">
+        <GasLimitInputField label="Gap limit" explanation="Explanation" showReset={true} onReset={() => {}} />
 
-        <div className="flex flex-col justify-center mt-2 w-full">
-          <div className="text-base font-bold leading-none text-white">Testnets</div>
-          <div className="text-xs leading-6 text-neutral-200">Switch to an available testnet</div>
+        <div className="flex self-start my-2 h-[1px] w-full bg-background-5f" />
+
+        <div className="flex flex-col mt-3 mb-3 w-full font-bold">
+          <NetworkSelector
+            initialNetwork={displayNetwork}
+            options={['Mainnet', 'Testnet']}
+            onChange={selected => updateNetwork(selected.toLowerCase() as 'mainnet' | 'testnet')}
+          />
         </div>
 
-        <div className="flex flex-col mt-2 w-full font-bold">
-          <NetworkSelector label="BTC Network" value="Mainnet" />
-        </div>
+        <div className="flex self-start my-2 h-[1px] w-full bg-background-5f" />
+
+        <button
+          className="flex gap-10 justify-between items-start py-2 w-full text-base leading-none text-white"
+          onClick={() => navigate('/settings/advanced/unlock-seed')}>
+          <span className="text-base font-bold">Reveal seed phrase</span>
+          <img
+            loading="lazy"
+            src={chrome.runtime.getURL(`popup/right_arrow_icon.svg`)}
+            alt=""
+            className="object-contain shrink-0 w-6 aspect-square"
+          />
+        </button>
       </main>
     </div>
   );
