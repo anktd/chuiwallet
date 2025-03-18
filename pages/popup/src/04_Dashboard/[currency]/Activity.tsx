@@ -7,6 +7,7 @@ import { formatNumber } from '@src/utils';
 import TransactionActivityList from '@src/components/TransactionActivityList';
 import type { TransactionActivity } from '@extension/backend/src/modules/electrumService';
 import Header from '@src/components/Header';
+import Skeleton from 'react-loading-skeleton';
 
 interface ActivityStates {
   balance: number;
@@ -22,13 +23,14 @@ export const Activity: React.FC = () => {
   const { balance, balanceUsd } = activityStates;
 
   const [history, setHistory] = useState<TransactionActivity[]>([]);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [historyLoading, setHistoryLoading] = useState<boolean>(true);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchWalletData = () => {
+      setHistoryLoading(true);
+
       const walletAddress = wallet ? wallet.generateAddress() : undefined;
       if (walletAddress) {
         chrome.runtime.sendMessage({ action: 'getHistory', walletAddress }, response => {
@@ -37,12 +39,15 @@ export const Activity: React.FC = () => {
           } else {
             setError(response.error);
           }
+
           setHistoryLoading(false);
         });
       }
     };
 
-    fetchWalletData();
+    if (wallet) {
+      fetchWalletData();
+    }
   }, [wallet]);
 
   return (
@@ -96,7 +101,15 @@ export const Activity: React.FC = () => {
             <span className="text-white text-sm font-bold">Activity</span>
             <span className="text-white text-sm">{formatNumber(history.length)} total</span>
           </div>
-          <TransactionActivityList transactions={history} />
+          {historyLoading ? (
+            <>
+              <Skeleton className="mt-6 !h-[66px]" />
+              <Skeleton className="!h-[66px]" />
+              <Skeleton className="!h-[66px]" />
+            </>
+          ) : (
+            <TransactionActivityList transactions={history} />
+          )}
         </div>
       </div>
     </div>

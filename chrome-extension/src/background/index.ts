@@ -10,7 +10,7 @@ walletThemeStorage.get().then(theme => {
 const electrumService = new ElectrumService();
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-electrumService.connect().catch((err: any) => {
+electrumService.autoSelectAndConnect().catch((err: any) => {
   console.error('Failed to connect to Electrum server:', err);
 });
 

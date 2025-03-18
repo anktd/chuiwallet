@@ -39,17 +39,80 @@ export interface TransactionActivity {
   receiver: string;
 }
 
+interface ExtendedServerConfig extends ServerConfig {
+  latency?: number;
+  healthy?: boolean;
+}
+
+// Example function to measure latency by sending a simple RPC call.
+async function measureServerLatency(server: ExtendedServerConfig): Promise<number> {
+  const protocol = server.useTls ? 'wss://' : 'ws://';
+  const url = `${protocol}${server.host}:${server.port}`;
+  return new Promise<number>(resolve => {
+    const socket = new WebSocket(url);
+    const start = performance.now();
+    // Use a timeout to consider the server unresponsive if it takes too long.
+    const timeout = setTimeout(() => {
+      socket.close();
+      resolve(Number.MAX_SAFE_INTEGER);
+    }, 5000); // 5 seconds
+
+    socket.onopen = () => {
+      // Optionally send a lightweight RPC call like server.version here.
+      socket.send(JSON.stringify({ id: 1, method: 'server.version', params: [] }));
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    socket.onmessage = (event: MessageEvent) => {
+      clearTimeout(timeout);
+      const end = performance.now();
+      socket.close();
+      resolve(end - start);
+    };
+
+    socket.onerror = () => {
+      clearTimeout(timeout);
+      socket.close();
+      resolve(Number.MAX_SAFE_INTEGER);
+    };
+  });
+}
+
+// Function to scan all servers and update their latency.
+async function scanServers(servers: ExtendedServerConfig[]): Promise<ExtendedServerConfig[]> {
+  const scannedServers = await Promise.all(
+    servers.map(async server => {
+      const latency = await measureServerLatency(server);
+      return { ...server, latency, healthy: latency < 5000 }; // healthy if latency is less than 5 seconds
+    }),
+  );
+  return scannedServers;
+}
+
+// Function to select the best server from a list.
+async function selectBestServer(servers: ExtendedServerConfig[]): Promise<ExtendedServerConfig> {
+  const scanned = await scanServers(servers);
+  // Filter out unhealthy servers.
+  const healthyServers = scanned.filter(s => s.healthy);
+  if (healthyServers.length === 0) {
+    throw new Error('No healthy servers found');
+  }
+  // Sort by latency.
+  healthyServers.sort((a, b) => a.latency! - b.latency!);
+  return healthyServers[0];
+}
+
 export default class ElectrumService {
   private availableServerList: ServerConfig[] = [
     { host: 'bitcoinserver.nl', port: 50004, useTls: true, network: 'mainnet' },
-    { host: 'electrum.petrkr.net', port: 50004, useTls: true, network: 'mainnet' },
-    { host: 'bitcoin.dragon.zone', port: 50004, useTls: true, network: 'mainnet' },
+    // { host: 'electrum.petrkr.net', port: 50004, useTls: true, network: 'mainnet' },
+    // { host: 'bitcoin.dragon.zone', port: 50004, useTls: true, network: 'mainnet' },
     { host: 'btc.electroncash.dk', port: 60004, useTls: true, network: 'mainnet' },
-    { host: 'electroncash.dk', port: 50004, useTls: true, network: 'mainnet' },
-    { host: 'bch.imaginary.cash', port: 50004, useTls: true, network: 'mainnet' },
-    { host: 'explorer.bch.ninja', port: 50004, useTls: true, network: 'mainnet' },
-    { host: 'sv.usebsv.com', port: 50004, useTls: true, network: 'mainnet' },
-    { host: 'electrum.peercoinexplorer.net', port: 50004, useTls: true, network: 'mainnet' },
+    // { host: 'electroncash.dk', port: 50004, useTls: true, network: 'mainnet' },
+    // { host: 'bch.imaginary.cash', port: 50004, useTls: true, network: 'mainnet' },
+    // { host: 'explorer.bch.ninja', port: 50004, useTls: true, network: 'mainnet' },
+    // { host: 'sv.usebsv.com', port: 50004, useTls: true, network: 'mainnet' },
+    // { host: 'electrum.peercoinexplorer.net', port: 50004, useTls: true, network: 'mainnet' },
     { host: 'blackie.c3-soft.com', port: 60004, useTls: true, network: 'testnet' },
   ];
 
@@ -59,6 +122,7 @@ export default class ElectrumService {
   private port: number;
   private useTls: boolean;
   private network: 'mainnet' | 'testnet';
+  private currentServer: ExtendedServerConfig | null = null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private socket: any = null;
   private _requestId: number = 0;
@@ -94,7 +158,8 @@ export default class ElectrumService {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       this.socket.onerror = (error: any) => {
         console.error(`WebSocket error on ${wsUrl}:`, error);
-        reject(new Error('WebSocket connection error'));
+        reject();
+        // reject(new Error('WebSocket connection error'));
       };
       this.socket.onclose = () => {
         console.warn(`WebSocket closed on ${wsUrl}`);
@@ -105,25 +170,25 @@ export default class ElectrumService {
   /**
    * Automatically try connecting to servers until one is reachable.
    */
-  public async autoConnect(): Promise<void> {
-    let connected = false;
-    let attempts = 0;
-    const maxAttempts = this.serverList.length;
-
-    while (!connected && attempts < maxAttempts) {
-      try {
-        await this.connect();
-        connected = true;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (err: any) {
-        console.error(`Failed to connect to ${this.host}:${this.port}, error: ${err.message}`);
-        await this.switchServer();
-        attempts++;
-      }
-    }
-
-    if (!connected) {
-      throw new Error('Unable to connect to any Electrum WebSocket RPC server.');
+  public async autoSelectAndConnect(): Promise<void> {
+    try {
+      const bestServer = await selectBestServer(this.serverList);
+      console.log(`Selected best server: ${bestServer.host}:${bestServer.port} (latency: ${bestServer.latency} ms)`);
+      this.currentServer = bestServer;
+      // Connect via your proxy URL if needed. If your proxy is configured to route
+      // to the best server internally, then you just connect to your proxy.
+      const protocol = bestServer.useTls ? 'wss://' : 'ws://';
+      const wsUrl = `${protocol}${bestServer.host}:${bestServer.port}`;
+      this.socket = new WebSocket(wsUrl);
+      this.socket.onopen = () => {
+        console.log(`Connected to Electrum server at ${wsUrl}`);
+      };
+      this.socket.onmessage = (event: MessageEvent) => this.handleData(event.data);
+      this.socket.onerror = (error: Event) => console.error('WebSocket error:', error);
+      this.socket.onclose = () => console.warn('WebSocket closed.');
+    } catch (error) {
+      console.error('Failed to select and connect to a server:', error);
+      throw error;
     }
   }
 
@@ -197,25 +262,18 @@ export default class ElectrumService {
   }
 
   /**
-   * Convert a legacy Bitcoin P2PKH address (Base58) to an Electrum script hash.
+   * Convert bitcoin address to an Electrum script hash.
    */
   private async _addressToScriptHash(address: string): Promise<string> {
-    const ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
-    let num = BigInt(0);
-    for (const char of address) {
-      const index = ALPHABET.indexOf(char);
-      if (index < 0) throw new Error('Invalid Bitcoin address');
-      num = num * 58n + BigInt(index);
-    }
-    // Convert bigint to hex, padded to 25 bytes (50 hex characters)
-    const hex = num.toString(16).padStart(50, '0');
-    const fullPayload = Buffer.from(hex, 'hex');
-    // Extract hash160 (skip version (1 byte) and checksum (4 bytes))
-    const hash160 = fullPayload.slice(1, fullPayload.length - 4);
-    // Construct P2PKH script: OP_DUP OP_HASH160 <hash160> OP_EQUALVERIFY OP_CHECKSIG
-    const script = Buffer.concat([Buffer.from([0x76, 0xa9, 0x14]), hash160, Buffer.from([0x88, 0xac])]);
-    const hash = await this.sha256(script);
+    // Determine the bitcoinjs-lib network (bitcoin or testnet)
+    const networkConfig = this.network === 'mainnet' ? bitcoin.networks.bitcoin : bitcoin.networks.testnet;
+    // Convert the address to its corresponding output script.
+    const outputScript = bitcoin.address.toOutputScript(address, networkConfig);
+    // Compute SHA-256 hash of the output script.
+    const hash = await this.sha256(outputScript);
+    // Reverse the hash and return its hex string.
     const reversedHash = Buffer.from(hash).reverse();
+
     return reversedHash.toString('hex');
   }
 
@@ -325,7 +383,6 @@ export default class ElectrumService {
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const rawTxResponse: any = await this._sendRequest('blockchain.transaction.get', [tx_hash, true]);
-        console.log('rawTxResponse', rawTxResponse);
         let rawTxHex: string;
         if (typeof rawTxResponse === 'object' && rawTxResponse.hex) {
           rawTxHex = rawTxResponse.hex;

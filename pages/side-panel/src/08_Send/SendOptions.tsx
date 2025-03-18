@@ -50,7 +50,7 @@ export const SendOptions: React.FC = () => {
         </button>
         <TransactionFee btcAmount="0.00010" usdAmount="10" />
       </div>
-      <button className="gap-2.5 self-center px-2.5 py-3 mt-9 w-full text-lg font-bold leading-8 whitespace-nowrap bg-primary-yellow rounded-2xl max-w-[338px] text-neutral-900">
+      <button className="gap-2.5 self-center px-2.5 py-3 mt-9 w-full text-lg font-bold leading-8 whitespace-nowrap bg-primary-yellow rounded-2xl max-w-[343px] text-neutral-900">
         Next
       </button>
     </div>

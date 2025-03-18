@@ -9,6 +9,7 @@ import { getBtcToUsdRate } from '@src/utils';
 import { Button } from '@src/components/Button';
 import { useWalletContext } from '@src/context/WalletContext';
 import type { FeeOptionSetting } from '@extension/backend/src/modules/electrumService';
+import Skeleton from 'react-loading-skeleton';
 
 interface SendOptionsState {
   destinationAddress: string;
@@ -30,14 +31,17 @@ export const SendOptions: React.FC = () => {
   const [feeOptions, setFeeOptions] = useState<FeeOptionSetting[]>([]);
   const [customFeeOption, setCustomFeeOption] = useState<FeeOptionSetting | null>(null);
   const [customSats, setCustomSats] = useState('1');
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [feeEstimatesLoading, setFeeEstimatesLoading] = useState<boolean>(false);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [feeCustomEstimatesLoading, setCustomFeeEstimatesLoading] = useState<boolean>(false);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [error, setError] = useState('');
 
   const handleNext = () => {
+    if (btcAmount == '' || btcAmount == null || Number(btcAmount) == 0) {
+      setError('Please input amount');
+      return;
+    }
+
     const feeData = isCustomFee && customFeeOption ? customFeeOption : feeOptions[selectedFeeIndex];
 
     const maxBtc = states.balance - feeData.btcAmount;
@@ -69,10 +73,11 @@ export const SendOptions: React.FC = () => {
           response => {
             if (response?.success) {
               setFeeOptions(response.estimates);
+              setFeeEstimatesLoading(false);
             } else {
               setError(response.error);
+              setFeeEstimatesLoading(false);
             }
-            setFeeEstimatesLoading(false);
           },
         );
       } else {
@@ -85,27 +90,37 @@ export const SendOptions: React.FC = () => {
 
   useEffect(() => {
     async function fetchCustomFee() {
+      console.log('fetchCustomFee');
       setCustomFeeEstimatesLoading(true);
 
       const walletAddress = wallet ? wallet.generateAddress() : undefined;
       if (walletAddress) {
+        console.log('fetchCustomFee walletAddress');
         chrome.runtime.sendMessage(
           { action: 'getCustomFeeEstimates', from: walletAddress, to: states.destinationAddress, customSats },
           response => {
+            console.log('fetchCustomFee walletAddress getCustomFeeEstimates');
             if (response?.success) {
               setCustomFeeOption(response.customEstimate);
+              setCustomFeeEstimatesLoading(false);
             } else {
               setError(response.error);
+              setCustomFeeEstimatesLoading(false);
             }
-            setCustomFeeEstimatesLoading(false);
+
+            console.log('fetchCustomFee walletAddress getCustomFeeEstimates false');
           },
         );
       } else {
         setCustomFeeEstimatesLoading(false);
+        console.log('setCustomFeeEstimatesLoading false');
       }
     }
-    fetchCustomFee();
-  }, [customFeeOption, customSats, states.destinationAddress, wallet]);
+
+    if (isCustomFee) {
+      fetchCustomFee();
+    }
+  }, [customSats, isCustomFee, states.destinationAddress, wallet]);
 
   useEffect(() => {
     async function fetchRate() {
@@ -194,6 +209,7 @@ export const SendOptions: React.FC = () => {
             onChange={handleBtcAmountChange}
             hasIcon={true}
             currency={currency}
+            disabled={feeEstimatesLoading}
           />
           <span className="mt-7 text-[20px]">=</span>
           <AmountInputField
@@ -203,11 +219,13 @@ export const SendOptions: React.FC = () => {
             value={usdAmount}
             onChange={handleUsdAmountChange}
             hasIcon={false}
+            disabled={feeEstimatesLoading}
           />
         </div>
         <button
           className="flex gap-1 items-center self-end mt-2 text-sm font-medium text-center text-primary-yellow"
-          onClick={handleSetMaxAmount}>
+          onClick={handleSetMaxAmount}
+          disabled={feeEstimatesLoading}>
           <span className="self-stretch my-auto">Send Max</span>
         </button>
       </div>
@@ -216,21 +234,32 @@ export const SendOptions: React.FC = () => {
         <div className="self-start text-lg font-bold leading-8 text-white mb-0.5">Choose fees</div>
         <div className="flex gap-2 items-center text-center">
           <div className="flex gap-2 items-center self-stretch my-auto min-w-[240px] w-[346px]">
-            {feeOptions.map((option, index) => (
-              <FeeOption
-                key={index}
-                {...option}
-                selected={selectedFeeIndex === index}
-                onSelect={() => setSelectedFeeIndex(index)}
-              />
-            ))}
+            {feeEstimatesLoading ? (
+              <>
+                <Skeleton className="!w-[110px] !h-[110px] !rounded-2xl" />
+                <Skeleton className="!w-[110px] !h-[110px] !rounded-2xl" />
+                <Skeleton className="!w-[110px] !h-[110px] !rounded-2xl" />
+              </>
+            ) : (
+              <>
+                {feeOptions.map((option, index) => (
+                  <FeeOption
+                    key={index}
+                    {...option}
+                    selected={selectedFeeIndex === index}
+                    onSelect={() => setSelectedFeeIndex(index)}
+                  />
+                ))}
+              </>
+            )}
           </div>
         </div>
 
         <div className="flex flex-col w-[229px] items-end text-lg font-bold">
           <button
             className="flex items-center self-end my-2 text-sm font-medium text-center text-primary-yellow"
-            onClick={handleSetCustomFee}>
+            onClick={handleSetCustomFee}
+            disabled={feeCustomEstimatesLoading}>
             <span className="self-stretch my-auto">Set Custom Fee</span>
             {isCustomFee && (
               <img
@@ -250,13 +279,14 @@ export const SendOptions: React.FC = () => {
                 hasIcon={false}
                 value={customSats}
                 onChange={handleSatsChanged}
+                disabled={feeCustomEstimatesLoading}
               />
             </>
           )}
         </div>
       </div>
 
-      <Button className="absolute w-full bottom-[19px]" onClick={handleNext}>
+      <Button className="absolute w-full bottom-[19px]" onClick={handleNext} disabled={!btcAmount}>
         Next
       </Button>
     </div>

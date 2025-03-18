@@ -49,7 +49,7 @@ export const SetPassword: React.FC = () => {
     const wallet = manager.createWallet({
       password,
       network: 'mainnet',
-      addressType: 'p2pkh',
+      addressType: 'bech32',
     });
 
     setWallet(wallet, password);

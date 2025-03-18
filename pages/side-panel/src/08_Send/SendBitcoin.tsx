@@ -21,7 +21,7 @@ export const SendBitcoin: React.FC = () => {
           className="object-contain z-10 self-end mt-0 mr-14 w-6 aspect-square"
         />
       </div>
-      <Button className="mt-72 max-w-[338px]">Next</Button>
+      <Button className="mt-72 max-w-[343px]">Next</Button>
     </div>
   );
 };

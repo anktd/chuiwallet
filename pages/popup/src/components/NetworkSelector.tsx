@@ -4,13 +4,13 @@ import { useState, useRef, useEffect } from 'react';
 type NetworkSelectorProps = {
   initialNetwork?: string;
   options?: string[];
-  onSelect?: (network: string) => void;
+  onChange?: (network: string) => void;
 };
 
 const NetworkSelector: React.FC<NetworkSelectorProps> = ({
   initialNetwork = 'Mainnet',
   options = ['Mainnet', 'Testnet'],
-  onSelect,
+  onChange,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedNetwork, setSelectedNetwork] = useState(initialNetwork);
@@ -23,8 +23,8 @@ const NetworkSelector: React.FC<NetworkSelectorProps> = ({
   const handleSelect = (selected: string) => {
     setSelectedNetwork(selected);
     setIsOpen(false);
-    if (onSelect) {
-      onSelect(selected);
+    if (onChange) {
+      onChange(selected);
     }
   };
 

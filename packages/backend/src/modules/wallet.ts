@@ -50,7 +50,7 @@ export default class Wallet {
     mnemonic,
     xpriv,
     network = 'mainnet',
-    addressType = 'p2pkh',
+    addressType = 'bech32',
     accountIndex = 0,
   }: WalletOptions) {
     // Set network based on parameter.

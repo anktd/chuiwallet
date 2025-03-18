@@ -17,6 +17,7 @@ export const AddressInputField: React.FC<AddressInputFieldProps> = ({
   id,
   value,
   onChange,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onQRClick,
 }) => {
   return (
@@ -34,9 +35,9 @@ export const AddressInputField: React.FC<AddressInputFieldProps> = ({
           value={value}
           onChange={onChange}
         />
-        <button onClick={onQRClick} className="absolute right-3 top-1/2 transform -translate-y-1/2">
+        {/* <button onClick={onQRClick} className="absolute right-3 top-1/2 transform -translate-y-1/2">
           <img loading="lazy" src={chrome.runtime.getURL('popup/qrcode_icon.svg')} alt="QR Code" className="w-6 h-6" />
-        </button>
+        </button> */}
       </div>
     </div>
   );

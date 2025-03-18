@@ -17,6 +17,7 @@ interface WalletContextType {
   totalAccounts: number;
   onboarded: boolean;
   isRestored: boolean;
+  network: 'mainnet' | 'testnet';
   setWallet: (wallet: Wallet, password: string) => void;
   setSelectedAccountIndex: (index: number) => void;
   setTotalAccounts: (index: number) => void;
@@ -28,6 +29,7 @@ interface WalletContextType {
   restoreWallet: (seed: string, password: string, network?: 'mainnet' | 'testnet', addressType?: AddressType) => void;
   unlockWallet: (password: string) => void;
   clearWallet: () => void;
+  updateNetwork: (newNetwork: 'mainnet' | 'testnet') => void;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
@@ -40,6 +42,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [totalAccounts, setTotalAccounts] = useState<number>(0);
   const [onboarded, setOnboarded] = useState(false);
   const [isRestored, setIsRestored] = useState(false);
+  const [network, setNetwork] = useState<'mainnet' | 'testnet'>('mainnet');
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_, forceUpdate] = useState(0);
 
@@ -92,7 +95,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                 password: storedPwd!,
                 mnemonic: restoredMnemonic!,
                 network: storedAccount.network,
-                addressType: 'p2pkh',
+                addressType: 'bech32',
                 accountIndex: storedAccount.selectedAccountIndex,
               });
 
@@ -193,14 +196,14 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const createWallet = (
     seed: string,
     pwd: string,
-    network: 'mainnet' | 'testnet' = 'mainnet',
-    addressType: AddressType = 'p2pkh',
+    net: 'mainnet' | 'testnet' = 'mainnet',
+    addressType: AddressType = 'bech32',
   ) => {
     try {
       const createdWallet = manager.createWallet({
         password: pwd,
         mnemonic: seed,
-        network,
+        network: net,
         addressType,
       });
 
@@ -209,7 +212,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const storedAccount: StoredAccount = {
         encryptedMnemonic: createdWallet.getEncryptedMnemonic()!,
         xpub: createdWallet.getXpub(),
-        network,
+        network: net,
         selectedAccountIndex: 0,
         totalAccounts: 1,
         isRestored: false,
@@ -233,14 +236,14 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const restoreWallet = (
     seed: string,
     pwd: string,
-    network: 'mainnet' | 'testnet' = 'mainnet',
-    addressType: AddressType = 'p2pkh',
+    net: 'mainnet' | 'testnet' = 'mainnet',
+    addressType: AddressType = 'bech32',
   ) => {
     try {
       const restoredWallet = manager.createWallet({
         password: pwd,
         mnemonic: seed,
-        network,
+        network: net,
         addressType,
       });
 
@@ -250,7 +253,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const storedAccount: StoredAccount = {
         encryptedMnemonic: restoredWallet.getEncryptedMnemonic()!,
         xpub: restoredWallet.getXpub(),
-        network,
+        network: net,
         selectedAccountIndex: 0,
         totalAccounts: 1,
         isRestored: true,
@@ -289,7 +292,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
               password: pwd!,
               mnemonic: restoredMnemonic!,
               network: storedAccount.network,
-              addressType: 'p2pkh',
+              addressType: 'bech32',
               accountIndex: storedAccount.selectedAccountIndex,
             });
 
@@ -314,6 +317,17 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   };
 
+  const updateNetwork = (newNetwork: 'mainnet' | 'testnet') => {
+    setNetwork(newNetwork);
+    chrome.storage.local.get(['storedAccount'], res => {
+      const storedAccount: StoredAccount | undefined = res.storedAccount;
+      if (storedAccount) {
+        storedAccount.network = newNetwork;
+        chrome.storage.local.set({ storedAccount });
+      }
+    });
+  };
+
   return (
     <WalletContext.Provider
       value={{
@@ -323,6 +337,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         totalAccounts,
         onboarded,
         isRestored,
+        network,
         setWallet,
         setSelectedAccountIndex,
         setTotalAccounts,
@@ -334,6 +349,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         restoreWallet,
         unlockWallet,
         clearWallet,
+        updateNetwork,
       }}>
       {children}
     </WalletContext.Provider>

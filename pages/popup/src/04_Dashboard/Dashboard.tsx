@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useWalletContext } from '@src/context/WalletContext';
 import { useEffect, useState } from 'react';
 import { formatNumber } from '@src/utils';
+import Skeleton from 'react-loading-skeleton';
 
 interface BalanceData {
   confirmed: number;
@@ -21,7 +22,6 @@ export const Dashboard: React.FC = () => {
   const [showChooseReceiveCurrencySlide, setShowChooseReceiveCurrencySlide] = React.useState(false);
   const [showChooseSendCurrencySlide, setShowChooseSendCurrencySlide] = React.useState(false);
   const [balance, setBalance] = useState<BalanceData | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [balanceLoading, setBalanceLoading] = useState<boolean>(true);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [error, setError] = useState<string | null>(null);
@@ -36,6 +36,8 @@ export const Dashboard: React.FC = () => {
 
   useEffect(() => {
     const fetchWalletData = () => {
+      setBalanceLoading(true);
+
       const walletAddress = wallet ? wallet.generateAddress() : undefined;
       if (walletAddress) {
         chrome.runtime.sendMessage({ action: 'getBalance', walletAddress }, response => {
@@ -44,12 +46,15 @@ export const Dashboard: React.FC = () => {
           } else {
             setError(response.error);
           }
+
           setBalanceLoading(false);
         });
       }
     };
 
-    fetchWalletData();
+    if (wallet) {
+      fetchWalletData();
+    }
   }, [wallet]);
 
   return (
@@ -83,18 +88,43 @@ export const Dashboard: React.FC = () => {
           <div className="self-stretch my-auto">Total Balance</div>
         </div>
         <div className="flex justify-center items-end mt-2 text-5xl font-bold uppercase cursor-pointer gap-[8px] flex-wrap max-w-[300px]">
-          <span>{balance ? formatNumber(balance.confirmedUsd) : '0'}</span>
-          <span className="text-xl">USD</span>
+          {balanceLoading ? (
+            <>
+              <Skeleton className="!w-[150px] !h-[48px] !rounded-sm" />
+            </>
+          ) : (
+            <>
+              <span>{balance ? formatNumber(balance.confirmedUsd) : '0'}</span>
+              <span className="text-xl">USD</span>
+            </>
+          )}
         </div>
       </div>
 
-      <div className="mt-2 text-sm leading-none text-center text-white cursor-pointer">
-        {balance ? formatNumber(balance.confirmed / 1e8, 8) : '0'} BTC
-      </div>
+      {balanceLoading ? (
+        <Skeleton className="mt-2 !w-[100px] !h-[16px] !rounded-sm" />
+      ) : (
+        <div className="mt-2 text-sm leading-none text-center text-white cursor-pointer">
+          {balance ? formatNumber(balance.confirmed / 1e8, 8) : '0'} BTC
+        </div>
+      )}
 
       <div className="flex gap-2.5 justify-between items-center mt-[44px] w-full text-lg font-medium leading-none text-center whitespace-nowrap max-w-[346px] text-foreground">
-        <CryptoButton icon="popup/receive_icon.svg" label="Receive" onClick={handleToggleChooseReceiveCurrencySlide} />
-        <CryptoButton icon="popup/send_icon.svg" label="Send" onClick={handleToggleChooseSendCurrencySlide} />
+        {balanceLoading ? (
+          <>
+            <Skeleton className="!w-[166.5px] !h-[54px] !rounded-[1rem]" />
+            <Skeleton className="!w-[166.5px] !h-[54px] !rounded-[1rem]" />
+          </>
+        ) : (
+          <>
+            <CryptoButton
+              icon="popup/receive_icon.svg"
+              label="Receive"
+              onClick={handleToggleChooseReceiveCurrencySlide}
+            />
+            <CryptoButton icon="popup/send_icon.svg" label="Send" onClick={handleToggleChooseSendCurrencySlide} />
+          </>
+        )}
       </div>
 
       <div className="flex flex-col w-full max-w-[346px] gap-[7px] mt-4">
@@ -103,6 +133,7 @@ export const Dashboard: React.FC = () => {
           cryptoAmount={balance ? `${formatNumber(balance.confirmed / 1e8, 8)} BTC` : '0 BTC'}
           usdAmount={balance ? `${formatNumber(balance.confirmedUsd)} USD` : '0 USD'}
           icon="popup/btc_coin.svg"
+          isLoading={balanceLoading}
           onClick={() =>
             navigate('/dashboard/btc/activity', {
               state: {
@@ -117,6 +148,7 @@ export const Dashboard: React.FC = () => {
           cryptoAmount="0 BCH"
           usdAmount="0 USD"
           icon="popup/bch_coin.svg"
+          isLoading={balanceLoading}
           disabled={true}
           onClick={() => navigate('/dashboard/bch/activity')}
         />
@@ -125,6 +157,7 @@ export const Dashboard: React.FC = () => {
           cryptoAmount="0 USDT"
           usdAmount="0 USD"
           icon="popup/usdt_coin.svg"
+          isLoading={balanceLoading}
           disabled={true}
           onClick={() => navigate('/dashboard/usdt/activity')}
         />
@@ -152,6 +185,7 @@ export const Dashboard: React.FC = () => {
                   cryptoAmount={balance ? `${formatNumber(balance.confirmed / 1e8, 8)} BTC` : '0 BTC'}
                   usdAmount={balance ? `${formatNumber(balance.confirmedUsd)} USD` : '0 USD'}
                   icon="popup/btc_coin.svg"
+                  isLoading={balanceLoading}
                   onClick={() => navigate('/receive/btc')}
                 />
                 <CryptoBalance
@@ -159,6 +193,7 @@ export const Dashboard: React.FC = () => {
                   cryptoAmount="0 BCH"
                   usdAmount="0 USD"
                   icon="popup/bch_coin.svg"
+                  isLoading={balanceLoading}
                   disabled={true}
                   onClick={() => navigate('/receive/bch')}
                 />
@@ -167,6 +202,7 @@ export const Dashboard: React.FC = () => {
                   cryptoAmount="0 USDT"
                   usdAmount="0 USD"
                   icon="popup/usdt_coin.svg"
+                  isLoading={balanceLoading}
                   disabled={true}
                   onClick={() => navigate('/receive/usdt')}
                 />
@@ -198,6 +234,7 @@ export const Dashboard: React.FC = () => {
                   cryptoAmount={balance ? `${formatNumber(balance.confirmed / 1e8, 8)} BTC` : '0 BTC'}
                   usdAmount={balance ? `${formatNumber(balance.confirmedUsd)} USD` : '0 USD'}
                   icon="popup/btc_coin.svg"
+                  isLoading={balanceLoading}
                   onClick={() =>
                     navigate('/send/btc', {
                       state: {
@@ -211,6 +248,7 @@ export const Dashboard: React.FC = () => {
                   cryptoAmount="0 BCH"
                   usdAmount="0 USD"
                   icon="popup/bch_coin.svg"
+                  isLoading={balanceLoading}
                   disabled={true}
                   onClick={() => navigate('/send/bch')}
                 />
@@ -219,6 +257,7 @@ export const Dashboard: React.FC = () => {
                   cryptoAmount="0 USDT"
                   usdAmount="0 USD"
                   icon="popup/usdt_coin.svg"
+                  isLoading={balanceLoading}
                   disabled={true}
                   onClick={() => navigate('/send/usdt')}
                 />

@@ -9,7 +9,7 @@ describe('Wallet Module', () => {
     const wallet = new Wallet({
       password,
       network: 'mainnet',
-      addressType: 'p2pkh',
+      addressType: 'bech32',
     });
     // Generate the receiving address from the wallet
     const address = wallet.generateAddress();

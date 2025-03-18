@@ -66,7 +66,7 @@ export const RestoreSeed: React.FC = () => {
       return;
     }
 
-    restoreWallet(mnemonic, password, 'mainnet', 'p2pkh');
+    restoreWallet(mnemonic, password, 'mainnet', 'bech32');
 
     navigate('/onboard/complete');
   };

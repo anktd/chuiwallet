@@ -3,9 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { GasLimitInputField } from '@src/components/GasLimitInputField';
 import Header from '@src/components/Header';
 import NetworkSelector from '@src/components/NetworkSelector';
+import { useWalletContext } from '@src/context/WalletContext';
 
 export const AdvancedSettings: React.FC = () => {
   const navigate = useNavigate();
+  const { network, updateNetwork } = useWalletContext();
+
+  const displayNetwork = network === 'mainnet' ? 'Mainnet' : 'Testnet';
 
   return (
     <div className="flex flex-col text-white bg-dark h-full px-4 pt-12 pb-[19px]">
@@ -17,7 +21,11 @@ export const AdvancedSettings: React.FC = () => {
         <div className="flex self-start my-2 h-[1px] w-full bg-background-5f" />
 
         <div className="flex flex-col mt-3 mb-3 w-full font-bold">
-          <NetworkSelector initialNetwork="Mainnet" options={['Mainnet', 'Testnet']} />
+          <NetworkSelector
+            initialNetwork={displayNetwork}
+            options={['Mainnet', 'Testnet']}
+            onChange={selected => updateNetwork(selected.toLowerCase() as 'mainnet' | 'testnet')}
+          />
         </div>
 
         <div className="flex self-start my-2 h-[1px] w-full bg-background-5f" />

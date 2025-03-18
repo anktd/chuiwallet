@@ -8,6 +8,7 @@ export interface AmountInputFieldProps {
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
   hasIcon: boolean;
   currency?: string;
+  disabled?: boolean;
 }
 
 export const AmountInputField: React.FC<AmountInputFieldProps> = ({
@@ -18,6 +19,7 @@ export const AmountInputField: React.FC<AmountInputFieldProps> = ({
   onChange,
   hasIcon,
   currency,
+  disabled,
 }) => {
   return (
     <div className="flex flex-col w-full">
@@ -32,6 +34,7 @@ export const AmountInputField: React.FC<AmountInputFieldProps> = ({
           className="p-3 w-full rounded-2xl border border-solid bg-input border-background-42 text-foreground-79 max-sm:p-2.5"
           style={{ paddingRight: '40px' }}
           value={value}
+          disabled={disabled}
           onChange={onChange}
         />
         {hasIcon && (

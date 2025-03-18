@@ -77,7 +77,7 @@ export const VerifySeed: React.FC = () => {
       return;
     }
 
-    createWallet(mnemonic, password, 'mainnet', 'p2pkh');
+    createWallet(mnemonic, password, 'mainnet', 'bech32');
 
     navigate('/onboard/complete');
   };

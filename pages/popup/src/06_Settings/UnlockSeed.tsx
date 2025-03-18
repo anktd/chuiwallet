@@ -49,7 +49,7 @@ export const UnlockSeed: React.FC = () => {
             password: password,
             mnemonic: decryptedMnemonic,
             network: storedAccount.network,
-            addressType: 'p2pkh',
+            addressType: 'bech32',
           });
 
           const seed = restoredWallet.recoverMnemonic(password);

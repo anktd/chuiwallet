@@ -9499,8 +9499,6 @@
   ]).default;
 });
 
-console.log('jsQR: ', window.jsQR);
-
 let isDragModeActive = false;
 let startX = 0;
 let startY = 0;

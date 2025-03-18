@@ -57,7 +57,7 @@ export const TransactionActivityList: React.FC<TransactionActivityListProps> = (
 
   return (
     <div
-      className={`flex flex-col gap-2 overflow-y-auto h-[236px] [&::-webkit-scrollbar]:w-2
+      className={`flex flex-col gap-2 overflow-y-auto h-[246px] [&::-webkit-scrollbar]:w-2
       [&::-webkit-scrollbar-track]:rounded-full
       [&::-webkit-scrollbar-track]:transparent
       [&::-webkit-scrollbar-thumb]:rounded-full
