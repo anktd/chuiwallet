@@ -1,0 +1,10 @@
+{
+  "extensionDescription": {
+    "description": "Extension description",
+    "message": "Chui Wallet simplifies bitcoin payments with speed, precision, and ease."
+  },
+  "extensionName": {
+    "description": "Extension name",
+    "message": "Chui Wallet"
+  }
+}

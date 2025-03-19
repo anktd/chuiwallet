@@ -1,0 +1,12 @@
+{
+  "electrum": {
+    "host": "btc.electroncash.dk",
+    "port": 50001,
+    "protocol": "tcp",
+    "version": ["1.2", "1.4"],
+    "retryPeriod": 2000
+  },
+  "fee": {
+    "apiUrl": "https://mempool.space/api/v1/fees/recommended"
+  }
+}
