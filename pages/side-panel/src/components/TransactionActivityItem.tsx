@@ -1,8 +1,8 @@
 import type * as React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
 import { formatNumber, timestampToTime, getStatusMeta } from '@src/utils';
 import type { TransactionActivityStatus, TransactionType } from '@extension/backend/src/modules/electrumService';
+import { useWalletContext } from '@src/context/WalletContext';
 
 export interface TransactionActivityItemProps {
   type: TransactionType;
@@ -20,9 +20,7 @@ export interface TransactionActivityItemProps {
 
 export const TransactionActivityItem: React.FC<TransactionActivityItemProps> = props => {
   const navigate = useNavigate();
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [loading, setLoading] = useState<boolean>(true);
+  const { selectedFiatCurrency } = useWalletContext();
 
   const isSent = props.type === 'SEND';
   const sign = isSent ? '-' : '+';
@@ -60,14 +58,29 @@ export const TransactionActivityItem: React.FC<TransactionActivityItemProps> = p
       </div>
 
       <div className="flex flex-col items-end gap-0.5">
-        <span className="text-sm text-white text-nowrap">
-          {sign}
-          {formatNumber(Math.abs(props.amountUsd))} USD
-        </span>
-        <span className="text-sm text-foreground-79 text-nowrap">
-          {sign}
-          {formatNumber(Math.abs(props.amountBtc), 6)} BTC
-        </span>
+        {selectedFiatCurrency === 'USD' ? (
+          <>
+            <span className="text-sm text-white text-nowrap">
+              {sign}
+              {formatNumber(Math.abs(props.amountUsd))} USD
+            </span>
+            <span className="text-sm text-foreground-79 text-nowrap">
+              {sign}
+              {formatNumber(Math.abs(props.amountBtc), 8)} BTC
+            </span>
+          </>
+        ) : (
+          <>
+            <span className="text-sm text-white text-nowrap">
+              {sign}
+              {formatNumber(Math.abs(props.amountBtc), 8)} BTC
+            </span>
+            <span className="text-sm text-foreground-79 text-nowrap">
+              {sign}
+              {formatNumber(Math.abs(props.amountUsd))} USD
+            </span>
+          </>
+        )}
       </div>
     </button>
   );

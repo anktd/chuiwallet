@@ -17,7 +17,7 @@ interface ActivityStates {
 export const Activity: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { wallet } = useWalletContext();
+  const { selectedFiatCurrency, wallet } = useWalletContext();
 
   const activityStates = location.state as ActivityStates;
   const { balance, balanceUsd } = activityStates;
@@ -70,14 +70,29 @@ export const Activity: React.FC = () => {
         <div className="flex gap-px justify-center items-center w-full text-lg">
           <div className="self-stretch my-auto">Total Balance</div>
         </div>
-        <div className="flex justify-center items-end mt-2 text-5xl font-bold uppercase cursor-pointer gap-[8px] flex-wrap max-w-[300px]">
-          <span>{balanceUsd ? formatNumber(balanceUsd) : '0'}</span>
-          <span className="text-xl">USD</span>
+        <div className="flex justify-center items-end mt-2 text-5xl font-bold uppercase cursor-pointer gap-[8px] flex-wrap max-w-[320px]">
+          <span>
+            {selectedFiatCurrency === 'USD'
+              ? balanceUsd != null
+                ? formatNumber(balanceUsd)
+                : '0'
+              : balance != null
+                ? formatNumber(balance / 1e8, 8)
+                : '0'}
+          </span>
+          <span className="text-xl">{selectedFiatCurrency}</span>
         </div>
       </div>
 
       <div className="mt-2 text-sm leading-none text-center text-white cursor-pointer">
-        {balance ? formatNumber(balance / 1e8, 8) : '0'} BTC
+        {selectedFiatCurrency === 'USD'
+          ? balanceUsd != null
+            ? formatNumber(balance / 1e8, 8)
+            : '0'
+          : balance != null
+            ? formatNumber(balanceUsd)
+            : '0'}{' '}
+        {selectedFiatCurrency === 'USD' ? 'BTC' : 'USD'}
       </div>
 
       <div className="flex gap-2.5 justify-between items-center mt-[44px] w-full text-lg font-medium leading-none text-center whitespace-nowrap max-w-[346px] text-foreground max-w-[600px] mx-auto">

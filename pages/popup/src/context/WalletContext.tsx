@@ -15,12 +15,14 @@ interface WalletContextType {
   password: string;
   selectedAccountIndex: number;
   totalAccounts: number;
+  selectedFiatCurrency: 'USD' | 'BTC';
   onboarded: boolean;
   isRestored: boolean;
   network: 'mainnet' | 'testnet';
   setWallet: (wallet: Wallet, password: string) => void;
   setSelectedAccountIndex: (index: number) => void;
   setTotalAccounts: (index: number) => void;
+  setSelectedFiatCurrency: (currency: 'USD' | 'BTC') => void;
   setOnboarded: (onboarded: boolean) => void;
   switchAccount: (index: number) => void;
   nextAccount: () => void;
@@ -38,6 +40,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [wallet, setWalletState] = useState<Wallet | null>(null);
   const [password, setPassword] = useState('');
   const [selectedAccountIndex, setSelectedAccountIndex] = useState<number>(0);
+  const [selectedFiatCurrency, setSelectedFiatCurrency] = useState<'USD' | 'BTC'>('USD');
   const [pendingNewAccountIndex, setPendingNewAccountIndex] = useState<number | null>(null);
   const [totalAccounts, setTotalAccounts] = useState<number>(0);
   const [onboarded, setOnboarded] = useState(false);
@@ -67,11 +70,19 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         if (storedAccount.walletOnboarded === true) {
           setOnboarded(true);
         }
+
         if (typeof storedAccount.selectedAccountIndex === 'number') {
           setSelectedAccountIndex(storedAccount.selectedAccountIndex);
         }
+
         if (typeof storedAccount.totalAccounts === 'number') {
           setTotalAccounts(storedAccount.totalAccounts);
+        }
+
+        if (!storedAccount.fiatCurrency) {
+          setSelectedFiatCurrency('USD');
+        } else {
+          setSelectedFiatCurrency(storedAccount.fiatCurrency);
         }
       }
     });
@@ -105,6 +116,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                 setPassword(storedPwd);
                 setSelectedAccountIndex(storedAccount.selectedAccountIndex);
                 setTotalAccounts(storedAccount.totalAccounts);
+                setSelectedFiatCurrency(storedAccount.fiatCurrency);
               } else {
                 console.error('Failed to recover seed with stored password.');
                 clearWallet();
@@ -214,6 +226,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         xpub: createdWallet.getXpub(),
         network: net,
         selectedAccountIndex: 0,
+        fiatCurrency: 'USD',
         totalAccounts: 1,
         isRestored: false,
         walletOnboarded: true,
@@ -255,6 +268,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         xpub: restoredWallet.getXpub(),
         network: net,
         selectedAccountIndex: 0,
+        fiatCurrency: 'USD',
         totalAccounts: 1,
         isRestored: true,
         walletOnboarded: true,
@@ -303,6 +317,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
               setSessionPassword(pwd);
               setSelectedAccountIndex(storedAccount.selectedAccountIndex);
               setTotalAccounts(storedAccount.totalAccounts);
+              setSelectedFiatCurrency(storedAccount.fiatCurrency);
             } else {
               console.error('Failed to recover seed with stored password.');
               clearWallet();
@@ -335,12 +350,14 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         password,
         selectedAccountIndex,
         totalAccounts,
+        selectedFiatCurrency,
         onboarded,
         isRestored,
         network,
         setWallet,
         setSelectedAccountIndex,
         setTotalAccounts,
+        setSelectedFiatCurrency,
         setOnboarded,
         switchAccount,
         nextAccount,

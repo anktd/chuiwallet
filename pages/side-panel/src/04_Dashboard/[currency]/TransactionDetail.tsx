@@ -1,6 +1,7 @@
 import type { TransactionActivityStatus, TransactionType } from '@extension/backend/src/modules/electrumService';
 import Header from '@src/components/Header';
 import LabelValue from '@src/components/LabelValue';
+import { useWalletContext } from '@src/context/WalletContext';
 import { formatNumber, formatTimestamp } from '@src/utils';
 import type * as React from 'react';
 import { useLocation } from 'react-router-dom';
@@ -20,6 +21,7 @@ export interface TransactionDetailStates {
 }
 
 export const TransactionDetail: React.FC = () => {
+  const { selectedFiatCurrency } = useWalletContext();
   const location = useLocation();
 
   const transactionDetailStates = location.state as TransactionDetailStates;
@@ -48,26 +50,49 @@ export const TransactionDetail: React.FC = () => {
           alt={status == 'CONFIRMED' ? (type == 'SEND' ? 'Sent' : 'Received') : 'Pending'}
           className="object-contain w-6"
         />
-        <div className="text-[35px] leading-[53.2px] font-bold text-center text-white uppercase text-nowrap">
-          {formatNumber(Math.abs(amountUsd))} <span className="text-xl">usd</span>
-        </div>
+
+        {selectedFiatCurrency === 'USD' ? (
+          <div className="text-[35px] leading-[53.2px] font-bold text-center text-white uppercase text-nowrap">
+            {formatNumber(Math.abs(amountUsd))} <span className="text-xl">USD</span>
+          </div>
+        ) : (
+          <div className="text-[35px] leading-[53.2px] font-bold text-center text-white uppercase text-nowrap">
+            {formatNumber(Math.abs(amountBtc), 8)} <span className="text-xl">BTC</span>
+          </div>
+        )}
+
         <div className="text-base font-bold leading-none text-white">
           {status == 'CONFIRMED' ? (type == 'SEND' ? 'Sent' : 'Received') : 'Pending'}
         </div>
-        <span className="text-xs leading-loose text-foreground">{formatNumber(Math.abs(amountBtc), 8)} BTC</span>
+
+        {selectedFiatCurrency === 'USD' ? (
+          <span className="text-xs leading-loose text-foreground">{formatNumber(Math.abs(amountBtc), 8)} BTC</span>
+        ) : (
+          <span className="text-xs leading-loose text-foreground">{formatNumber(Math.abs(amountUsd))} USD</span>
+        )}
       </div>
 
       <div className="flex flex-col w-full gap-6 pt-4 pb-6 mt-4 border-t-[1px] border-t-background-5f max-w-[600px] mx-auto">
         <LabelValue
           label="Amount"
-          value={`${formatNumber(Math.abs(amountBtc), 8)} BTC (${formatNumber(Math.abs(amountUsd))} USD)`}
+          value={
+            selectedFiatCurrency === 'USD'
+              ? `${formatNumber(Math.abs(amountUsd))} USD (${formatNumber(Math.abs(amountBtc), 8)} BTC)`
+              : `${formatNumber(Math.abs(amountBtc), 8)} BTC (${formatNumber(Math.abs(amountUsd))} USD)`
+          }
         />
-        {type == 'SEND' && (
+
+        {type === 'SEND' && (
           <LabelValue
             label="Fee"
-            value={`${formatNumber(Math.abs(feeBtc), 8)} BTC (${formatNumber(Math.abs(feeUsd))} USD)`}
+            value={
+              selectedFiatCurrency === 'USD'
+                ? `${formatNumber(Math.abs(feeUsd))} USD (${formatNumber(Math.abs(feeBtc), 8)} BTC)`
+                : `${formatNumber(Math.abs(feeBtc), 8)} BTC (${formatNumber(Math.abs(feeUsd))} USD)`
+            }
           />
         )}
+
         {status == 'CONFIRMED' && <LabelValue label="Date & Hour" value={formatTimestamp(timestamp)} />}
         <LabelValue
           label="Confirmations"

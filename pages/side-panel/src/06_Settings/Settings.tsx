@@ -10,7 +10,7 @@ export const Settings: React.FC = () => {
       <Header title="Settings" />
 
       <div className="flex flex-col justify-center mt-[40px] w-full gap-[8px] max-w-[600px] mx-auto">
-        <FiatCurrencySelector initialCurrency="USD" options={['USD', 'BTC']} />
+        <FiatCurrencySelector options={['USD', 'BTC']} />
 
         <div className="flex self-start my-2 h-[1px] w-full bg-background-5f" />
 

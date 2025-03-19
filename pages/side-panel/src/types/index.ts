@@ -10,6 +10,7 @@ export interface StoredAccount {
   encryptedMnemonic: string;
   xpub: string;
   network: 'mainnet' | 'testnet';
+  fiatCurrency: 'USD' | 'BTC';
   selectedAccountIndex: number;
   totalAccounts: number;
   isRestored: boolean;

@@ -95,11 +95,9 @@ export const SendOptions: React.FC = () => {
 
       const walletAddress = wallet ? wallet.generateAddress() : undefined;
       if (walletAddress) {
-        console.log('fetchCustomFee walletAddress');
         chrome.runtime.sendMessage(
           { action: 'getCustomFeeEstimates', from: walletAddress, to: states.destinationAddress, customSats },
           response => {
-            console.log('fetchCustomFee walletAddress getCustomFeeEstimates');
             if (response?.success) {
               setCustomFeeOption(response.customEstimate);
               setCustomFeeEstimatesLoading(false);
@@ -107,13 +105,10 @@ export const SendOptions: React.FC = () => {
               setError(response.error);
               setCustomFeeEstimatesLoading(false);
             }
-
-            console.log('fetchCustomFee walletAddress getCustomFeeEstimates false');
           },
         );
       } else {
         setCustomFeeEstimatesLoading(false);
-        console.log('setCustomFeeEstimatesLoading false');
       }
     }
 

@@ -10,10 +10,13 @@ import Skeleton from 'react-loading-skeleton';
 
 export const Accounts: React.FC = () => {
   const navigate = useNavigate();
-  const { addAccount, selectedAccountIndex, switchAccount, totalAccounts, wallet } = useWalletContext();
+  const { addAccount, selectedAccountIndex, selectedFiatCurrency, switchAccount, totalAccounts, wallet } =
+    useWalletContext();
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const [balances, setBalances] = useState<string[]>(Array(totalAccounts).fill('0 USD'));
+  const [balances, setBalances] = useState<string[]>(
+    Array(totalAccounts).fill(selectedFiatCurrency === 'USD' ? '0 USD' : '0 BTC'),
+  );
   const [loading, setLoading] = useState<boolean>(true);
 
   const accounts = useMemo(() => {
@@ -21,14 +24,14 @@ export const Accounts: React.FC = () => {
 
     return Array.from({ length: totalAccounts }, (_, i) => {
       const address = wallet.getAddress('bech32', i);
-      const balance = balances[i] || '0 USD';
+      const balance = balances[i] || (selectedFiatCurrency === 'USD' ? '0 USD' : '0 BTC');
       return {
         name: `Account ${i + 1}`,
         address,
         amount: balance,
       };
     });
-  }, [wallet, totalAccounts, balances]);
+  }, [wallet, totalAccounts, balances, selectedFiatCurrency]);
 
   useEffect(() => {
     if (!wallet) return;
@@ -41,9 +44,13 @@ export const Accounts: React.FC = () => {
         return new Promise<string>(resolve => {
           chrome.runtime.sendMessage({ action: 'getBalance', walletAddress: address }, response => {
             if (response?.success && response.balance !== undefined) {
-              resolve(`${formatNumber(response.balance.confirmedUsd, 2)} USD`);
+              if (selectedFiatCurrency === 'USD') {
+                resolve(`${formatNumber(response.balance.confirmedUsd)} USD`);
+              } else {
+                resolve(`${formatNumber(response.balance.confirmed / 1e8, 8)} BTC`);
+              }
             } else {
-              resolve('0 USD');
+              resolve(selectedFiatCurrency === 'USD' ? '0 USD' : '0 BTC');
             }
           });
         });
@@ -55,7 +62,7 @@ export const Accounts: React.FC = () => {
     };
 
     fetchBalances();
-  }, [wallet, totalAccounts]);
+  }, [wallet, totalAccounts, selectedFiatCurrency]);
 
   useEffect(() => {
     if (containerRef.current) {
