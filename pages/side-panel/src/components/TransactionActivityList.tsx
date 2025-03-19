@@ -1,6 +1,7 @@
 import type * as React from 'react';
 import { TransactionActivityItem } from './TransactionActivityItem';
 import type { TransactionActivity } from '@extension/backend/src/modules/electrumService';
+import { useEffect, useRef, useState } from 'react';
 
 interface TransactionActivityListProps {
   transactions: TransactionActivity[];
@@ -49,19 +50,32 @@ function formatDateLabel(date: Date): string {
 }
 
 export const TransactionActivityList: React.FC<TransactionActivityListProps> = ({ transactions }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isScrollable, setIsScrollable] = useState(false);
+
   const { pending, confirmed } = groupTransactions(transactions);
 
   const confirmedGroups = Object.entries(confirmed).sort((a, b) => {
     return new Date(b[0]).getTime() - new Date(a[0]).getTime();
   });
 
+  useEffect(() => {
+    const container = containerRef.current;
+    if (container) {
+      setIsScrollable(container.scrollHeight > container.clientHeight);
+    }
+  }, [transactions.length]);
+
   return (
     <div
-      className={`flex flex-col gap-2 overflow-y-auto h-full [&::-webkit-scrollbar]:w-2
-      [&::-webkit-scrollbar-track]:rounded-full
-      [&::-webkit-scrollbar-track]:transparent
-      [&::-webkit-scrollbar-thumb]:rounded-full
-      [&::-webkit-scrollbar-thumb]:bg-neutral-700 ${transactions.length > 2 ? 'mr-[-8px] overflow-x-visible' : ''}`}>
+      ref={containerRef}
+      className={`flex flex-col gap-2 overflow-y-auto h-[calc(100vh-356px)]
+        [&::-webkit-scrollbar]:w-2
+        [&::-webkit-scrollbar-track]:rounded-full
+        [&::-webkit-scrollbar-track]:transparent
+        [&::-webkit-scrollbar-thumb]:rounded-full
+        [&::-webkit-scrollbar-thumb]:bg-neutral-700
+        ${isScrollable ? 'mr-[-8px] overflow-x-visible' : 'w-full'}`}>
       {pending.length > 0 && (
         <div>
           <div className="text-gray-400 text-xs text-right pr-1 mb-2">Upcoming</div>

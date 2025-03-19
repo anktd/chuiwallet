@@ -13,6 +13,7 @@ export const Accounts: React.FC = () => {
   const { addAccount, selectedAccountIndex, selectedFiatCurrency, switchAccount, totalAccounts, wallet } =
     useWalletContext();
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isScrollable, setIsScrollable] = useState(false);
 
   const [balances, setBalances] = useState<string[]>(
     Array(totalAccounts).fill(selectedFiatCurrency === 'USD' ? '0 USD' : '0 BTC'),
@@ -70,16 +71,23 @@ export const Accounts: React.FC = () => {
     }
   }, [accounts.length]);
 
+  useEffect(() => {
+    const container = containerRef.current;
+    if (container) {
+      setIsScrollable(container.scrollHeight > container.clientHeight);
+    }
+  }, [accounts.length]);
+
   return (
     <div className="relative flex flex-col items-center text-white bg-dark h-full px-4 pt-12 pb-[19px]">
       <Header title="Accounts" />
       <div
         ref={containerRef}
-        className={`flex flex-col items-center w-full h-[452px] mt-2 overflow-y-auto gap-2 [&::-webkit-scrollbar]:w-2
+        className={`flex flex-col items-center w-full h-[calc(100vh-153px)] mt-2 overflow-y-auto gap-2 [&::-webkit-scrollbar]:w-2
           [&::-webkit-scrollbar-track]:rounded-full
           [&::-webkit-scrollbar-track]:transparent
           [&::-webkit-scrollbar-thumb]:rounded-full
-          [&::-webkit-scrollbar-thumb]:bg-neutral-700 ${accounts.length > 5 ? 'mr-[-12px] overflow-x-visible' : ''}`}>
+          [&::-webkit-scrollbar-thumb]:bg-neutral-700 ${isScrollable ? 'mr-[-8px] overflow-x-visible' : 'w-full'}`}>
         {accounts.map((account, index) => (
           <AccountItem
             key={index}
