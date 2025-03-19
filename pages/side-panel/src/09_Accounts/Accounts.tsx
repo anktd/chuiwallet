@@ -75,7 +75,7 @@ export const Accounts: React.FC = () => {
       <Header title="Accounts" />
       <div
         ref={containerRef}
-        className={`flex flex-col items-center w-full h-[452px] mt-2 overflow-y-auto gap-2 [&::-webkit-scrollbar]:w-2
+        className={`flex flex-col items-center w-full h-full mt-2 overflow-y-auto gap-2 [&::-webkit-scrollbar]:w-2
           [&::-webkit-scrollbar-track]:rounded-full
           [&::-webkit-scrollbar-track]:transparent
           [&::-webkit-scrollbar-thumb]:rounded-full
