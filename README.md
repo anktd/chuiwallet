@@ -21,9 +21,9 @@ The project is built with a modular, object-oriented approach using [bitcoinjs-l
    - Support for multiple wallets/accounts.
 
 2. **Wallet Balance/Transaction History:**  
-   - Communicates with Electrum servers/ElectrumX (with code references from [BlueWallet](https://github.com/BlueWallet/BlueWallet/blob/4e9bf7e44bd225bc6f1fea34d96c08583340e3da/class/wallets/abstract-hd-electrum-wallet.ts)) to fetch the latest balance and transaction history.  
+   - Communicates with Electrum servers/ElectrumX to fetch the latest balance and transaction history.  
    - Implements a 500 transaction gap limit to ensure high performance.  
-   - Displays balance in both Bitcoin and fiat currency (using APIs like CoinMarketCap or CoinGecko).
+   - Displays balance in both Bitcoin and fiat currency (using Blockonomics price API).
 
 3. **Receive Address Creation:**  
    - Automatically returns an unused receiving address.  
@@ -43,11 +43,7 @@ The project is built with a modular, object-oriented approach using [bitcoinjs-l
 7. **Wallet Connect Support:**  
    - Enables wallet connect functionality to provide xpub as needed.
 
-8. **Extensive Unit Tests:**  
-   - Includes comprehensive unit test cases to secure the codebase against inadvertent bugs, loopholes, or potential backdoors.  
-   - Automated test runs via GitHub Actions ensure continuous integration and security.
-
-9. **High Security Standards:**  
+8. **High Security Standards:**  
    - High emphasis on wallet security by following best practices and Chrome extension coding guidelines.
 
 Below is an improved Installation & Available Scripts section with detailed instructions for building, running, and publishing the extension, as well as steps for importing it into Chrome Developer Mode.
