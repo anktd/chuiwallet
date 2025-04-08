@@ -97,6 +97,11 @@ export const PasswordLock: React.FC = () => {
               id="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  handleUnlock();
+                }
+              }}
             />
 
             {errorMsg && <span className="mt-1 text-xs font-italic text-primary-red font-light">{errorMsg}</span>}
