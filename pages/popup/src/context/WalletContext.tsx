@@ -250,6 +250,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         totalAccounts: 1,
         isRestored: false,
         walletOnboarded: true,
+        gapLimit: 500,
       };
 
       chrome.storage.local.set(
@@ -292,6 +293,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         totalAccounts: 1,
         isRestored: true,
         walletOnboarded: true,
+        gapLimit: 500,
       };
 
       chrome.storage.local.set(
