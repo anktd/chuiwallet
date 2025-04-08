@@ -1,4 +1,3 @@
-import type React from 'react';
 import { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import Wallet from '@extension/backend/src/modules/wallet.js';
 import WalletManager from '@extension/backend/src/walletManager.js';
@@ -7,7 +6,7 @@ import {
   getSessionPassword,
   setSessionPassword,
 } from '@extension/backend/src/utils/sessionStorageHelper.js';
-import type { StoredAccount } from '@src/types';
+import type { BalanceData, StoredAccount, TransactionActivity } from '@src/types';
 import type { AddressType } from '@extension/backend/src/modules/wallet';
 
 interface WalletContextType {
@@ -32,8 +31,15 @@ interface WalletContextType {
   unlockWallet: (password: string) => void;
   clearWallet: () => void;
   updateNetwork: (newNetwork: 'mainnet' | 'testnet') => void;
+  cachedBalances: { [accountIndex: number]: BalanceData | null };
+  refreshBalance: (accountIndex: number) => void;
+  refreshAllBalances: () => void;
+  cachedTxHistories: { [accountIndex: number]: TransactionActivity[] | null };
+  refreshTxHistory: (accountIndex: number) => void;
+  logout: () => void;
   gapLimit: number;
   setGapLimit: (newLimit: number) => void;
+  getXpub: () => Promise<string>;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
@@ -48,9 +54,17 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [onboarded, setOnboarded] = useState(false);
   const [isRestored, setIsRestored] = useState(false);
   const [network, setNetwork] = useState<'mainnet' | 'testnet'>('mainnet');
-  const [gapLimit, setGapLimit] = useState<number>(500);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [_, forceUpdate] = useState(0);
+  const [cachedBalances, setCachedBalances] = useState<{
+    [accountIndex: number]: BalanceData | null;
+  }>({});
+  const [lastBalanceFetchMap, setLastBalanceFetchMap] = useState<{
+    [accountIndex: number]: number;
+  }>({});
+  const [cachedTxHistories, setCachedTxHistories] = useState<{ [accountIndex: number]: TransactionActivity[] | null }>(
+    {},
+  );
+  const [lastTxFetchMap, setLastTxFetchMap] = useState<{ [accountIndex: number]: number }>({});
+  const [gapLimit, setGapLimitState] = useState<number>(500);
 
   const manager = useMemo(() => new WalletManager(), []);
 
@@ -86,6 +100,10 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           setSelectedFiatCurrency('USD');
         } else {
           setSelectedFiatCurrency(storedAccount.fiatCurrency);
+        }
+
+        if (storedAccount && storedAccount.gapLimit !== undefined) {
+          setGapLimitState(storedAccount.gapLimit);
         }
       }
     });
@@ -233,6 +251,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         totalAccounts: 1,
         isRestored: false,
         walletOnboarded: true,
+        gapLimit: 500,
       };
 
       chrome.storage.local.set(
@@ -275,6 +294,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         totalAccounts: 1,
         isRestored: true,
         walletOnboarded: true,
+        gapLimit: 500,
       };
 
       chrome.storage.local.set(
@@ -346,6 +366,132 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     });
   };
 
+  const refreshBalance = useCallback(
+    (accountIndex: number) => {
+      const now = Date.now();
+      if (cachedBalances[accountIndex] && now - (lastBalanceFetchMap[accountIndex] || 0) < 300000) {
+        return;
+      }
+      if (wallet) {
+        const walletAddress = wallet.getAddress('bech32', accountIndex);
+        if (walletAddress) {
+          chrome.runtime.sendMessage({ action: 'getBalance', walletAddress }, response => {
+            if (response?.success && response.balance) {
+              setCachedBalances(prev => ({
+                ...prev,
+                [accountIndex]: response.balance,
+              }));
+              setLastBalanceFetchMap(prev => ({
+                ...prev,
+                [accountIndex]: now,
+              }));
+            }
+          });
+        }
+      }
+    },
+    [cachedBalances, lastBalanceFetchMap, wallet],
+  );
+
+  const refreshAllBalances = useCallback(() => {
+    for (let i = 0; i < totalAccounts; i++) {
+      refreshBalance(i);
+    }
+  }, [refreshBalance, totalAccounts]);
+
+  useEffect(() => {
+    if (wallet) {
+      refreshAllBalances();
+    }
+  }, [wallet, refreshAllBalances]);
+
+  const refreshTxHistory = useCallback(
+    (accountIndex: number) => {
+      const now = Date.now();
+      if (cachedTxHistories[accountIndex] && now - (lastTxFetchMap[accountIndex] || 0) < 60000) {
+        return;
+      }
+      if (wallet) {
+        const walletAddress = wallet.getAddress('bech32', accountIndex);
+        if (walletAddress) {
+          chrome.runtime.sendMessage({ action: 'getHistory', walletAddress }, response => {
+            if (response?.success && response.history) {
+              setCachedTxHistories(prev => ({
+                ...prev,
+                [accountIndex]: response.history,
+              }));
+              setLastTxFetchMap(prev => ({
+                ...prev,
+                [accountIndex]: now,
+              }));
+            }
+          });
+        }
+      }
+    },
+    [cachedTxHistories, lastTxFetchMap, wallet],
+  );
+
+  useEffect(() => {
+    if (wallet) {
+      refreshTxHistory(selectedAccountIndex);
+    }
+  }, [wallet, refreshTxHistory, selectedAccountIndex]);
+
+  useEffect(() => {
+    if (wallet) {
+      refreshAllBalances();
+      refreshTxHistory(selectedAccountIndex);
+    }
+  }, [wallet, refreshAllBalances, refreshTxHistory, selectedAccountIndex]);
+
+  const logout = () => {
+    chrome.runtime.sendMessage({ action: 'logout' }, response => {
+      if (response && response.success) {
+        /* empty */
+      } else {
+        console.warn('Logout failed.');
+      }
+    });
+
+    clearWallet();
+
+    chrome.storage.local.remove(['storedAccount'], () => {
+      console.log('Local stored account data cleared.');
+    });
+
+    setOnboarded(false);
+
+    setCachedBalances({});
+    setLastBalanceFetchMap({});
+    setCachedTxHistories({});
+    setLastTxFetchMap({});
+
+    setGapLimit(500);
+  };
+
+  const setGapLimit = useCallback((newLimit: number) => {
+    setGapLimitState(newLimit);
+    chrome.storage.local.get(['storedAccount'], result => {
+      const storedAccount = result.storedAccount;
+      if (storedAccount) {
+        const updatedAccount = { ...storedAccount, gapLimit: newLimit };
+        chrome.storage.local.set({ storedAccount: updatedAccount }, () => {
+          console.log('Persisted gapLimit to storedAccount:', newLimit);
+        });
+      } else {
+        console.warn('No storedAccount found; gapLimit not persisted.');
+      }
+    });
+  }, []);
+
+  const getXpub = useCallback(async (): Promise<string> => {
+    if (wallet && typeof wallet.getXpub === 'function') {
+      return wallet.getXpub();
+    }
+    throw new Error('Wallet not unlocked or getXpub function not available');
+  }, [wallet]);
+
   return (
     <WalletContext.Provider
       value={{
@@ -370,6 +516,15 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         unlockWallet,
         clearWallet,
         updateNetwork,
+        cachedBalances,
+        refreshBalance,
+        refreshAllBalances,
+        cachedTxHistories,
+        refreshTxHistory,
+        logout,
+        gapLimit,
+        setGapLimit,
+        getXpub,
       }}>
       {children}
     </WalletContext.Provider>

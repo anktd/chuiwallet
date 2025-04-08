@@ -83,6 +83,11 @@ export const Send: React.FC = () => {
           value={destinationAddress}
           onChange={handleAddressChange}
           onQRClick={handleQRCodeClick}
+          onKeyDown={e => {
+            if (e.key === 'Enter') {
+              handleNext();
+            }
+          }}
         />
         <p className="mt-2 text-xs text-primary-red font-normal h-[20px]">{error}</p>
       </div>

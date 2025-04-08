@@ -77,7 +77,6 @@ export const App: React.FC = () => {
       <Route path="/settings/advanced" element={<AdvancedSettings />} />
       <Route path="/settings/advanced/unlock-seed" element={<UnlockSeed />} />
       <Route path="/settings/advanced/reveal-seed" element={<RevealSeed />} />
-      <Route path="/settings/advanced/reveal-seed" element={<RevealSeed />} />
       <Route path="/settings/advanced/xpub" element={wallet ? <Xpub /> : <PasswordLock />} />
       <Route path="/accounts" element={<Accounts />} />
     </Routes>

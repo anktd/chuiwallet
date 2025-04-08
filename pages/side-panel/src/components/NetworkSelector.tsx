@@ -47,7 +47,7 @@ const NetworkSelector: React.FC<NetworkSelectorProps> = ({
         <button
           type="button"
           onClick={toggleDropdown}
-          className="flex gap-2.5 justify-center items-center px-10 py-3 w-full rounded-2xl bg-background-1d border border-background-42">
+          className="flex gap-2.5 justify-center items-center px-5 py-3 w-full rounded-2xl bg-background-1d border border-background-42">
           <span className="self-stretch my-auto w-full text-left text-foregrouund1 font-bold text-lg">
             {selectedNetwork}
           </span>
