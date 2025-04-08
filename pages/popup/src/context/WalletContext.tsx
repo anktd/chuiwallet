@@ -37,6 +37,8 @@ interface WalletContextType {
   cachedTxHistories: { [accountIndex: number]: TransactionActivity[] | null };
   refreshTxHistory: (accountIndex: number) => void;
   logout: () => void;
+  gapLimit: number;
+  setGapLimit: (newLimit: number) => void;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
@@ -61,6 +63,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     {},
   );
   const [lastTxFetchMap, setLastTxFetchMap] = useState<{ [accountIndex: number]: number }>({});
+  const [gapLimit, setGapLimitState] = useState<number>(500);
 
   const manager = useMemo(() => new WalletManager(), []);
 
@@ -96,6 +99,10 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           setSelectedFiatCurrency('USD');
         } else {
           setSelectedFiatCurrency(storedAccount.fiatCurrency);
+        }
+
+        if (storedAccount && storedAccount.gapLimit !== undefined) {
+          setGapLimitState(storedAccount.gapLimit);
         }
       }
     });
@@ -434,6 +441,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       refreshTxHistory(selectedAccountIndex);
     }
   }, [wallet, refreshAllBalances, refreshTxHistory, selectedAccountIndex]);
+
   const logout = () => {
     chrome.runtime.sendMessage({ action: 'logout' }, response => {
       if (response && response.success) {
@@ -450,7 +458,29 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     });
 
     setOnboarded(false);
+
+    setCachedBalances({});
+    setLastBalanceFetchMap({});
+    setCachedTxHistories({});
+    setLastTxFetchMap({});
+
+    setGapLimit(500);
   };
+
+  const setGapLimit = useCallback((newLimit: number) => {
+    setGapLimitState(newLimit);
+    chrome.storage.local.get(['storedAccount'], result => {
+      const storedAccount = result.storedAccount;
+      if (storedAccount) {
+        const updatedAccount = { ...storedAccount, gapLimit: newLimit };
+        chrome.storage.local.set({ storedAccount: updatedAccount }, () => {
+          console.log('Persisted gapLimit to storedAccount:', newLimit);
+        });
+      } else {
+        console.warn('No storedAccount found; gapLimit not persisted.');
+      }
+    });
+  }, []);
 
   return (
     <WalletContext.Provider
@@ -482,6 +512,8 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         cachedTxHistories,
         refreshTxHistory,
         logout,
+        gapLimit,
+        setGapLimit,
       }}>
       {children}
     </WalletContext.Provider>

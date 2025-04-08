@@ -4,10 +4,16 @@ import { GasLimitInputField } from '@src/components/GasLimitInputField';
 import Header from '@src/components/Header';
 import NetworkSelector from '@src/components/NetworkSelector';
 import { useWalletContext } from '@src/context/WalletContext';
+import { useEffect, useState } from 'react';
 
 export const AdvancedSettings: React.FC = () => {
   const navigate = useNavigate();
-  const { network, updateNetwork } = useWalletContext();
+  const { gapLimit, setGapLimit, network, updateNetwork } = useWalletContext();
+  const [localGap, setLocalGap] = useState<string>(gapLimit.toString());
+
+  useEffect(() => {
+    setLocalGap(gapLimit.toString());
+  }, [gapLimit]);
 
   const displayNetwork = network === 'mainnet' ? 'Mainnet' : 'Testnet';
 
@@ -16,7 +22,23 @@ export const AdvancedSettings: React.FC = () => {
       <Header title="Settings" />
 
       <main className="flex flex-col self-center mt-10 w-full max-w-[328px]">
-        <GasLimitInputField label="Gap limit" explanation="Explanation" showReset={true} onReset={() => {}} />
+        <GasLimitInputField
+          label="Gap limit"
+          value={localGap}
+          explanation="Explanation"
+          showReset={true}
+          onChange={(e: { target: { value: React.SetStateAction<string> } }) => {
+            setLocalGap(e.target.value);
+            const parsed = Number(e.target.value);
+            if (!isNaN(parsed)) {
+              setGapLimit(parsed);
+            }
+          }}
+          onReset={() => {
+            setLocalGap('500');
+            setGapLimit(500);
+          }}
+        />
 
         <div className="flex self-start my-2 h-[1px] w-full bg-background-5f" />
 

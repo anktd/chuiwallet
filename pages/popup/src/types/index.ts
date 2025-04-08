@@ -17,6 +17,7 @@ export interface StoredAccount {
   totalAccounts: number;
   isRestored: boolean;
   walletOnboarded: boolean;
+  gapLimit: number;
 }
 
 export interface BalanceData {
