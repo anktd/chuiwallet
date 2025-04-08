@@ -39,7 +39,7 @@ export const Settings: React.FC = () => {
         </button>
       </div>
 
-      <div className="flex gap-5 justify-between w-full text-xs leading-6 text-white max-w-[328px] mt-[286px]">
+      <div className="flex gap-5 justify-between w-full text-xs leading-6 text-white max-w-[328px] mt-[246px]">
         <div className="self-stretch">
           <a className="underline font-bold text-xs" href="https://www.blockonomics.co/privacy" target="_blank">
             Terms and services
