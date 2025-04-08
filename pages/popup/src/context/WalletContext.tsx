@@ -39,6 +39,7 @@ interface WalletContextType {
   logout: () => void;
   gapLimit: number;
   setGapLimit: (newLimit: number) => void;
+  getXpub: () => Promise<string>;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
@@ -484,6 +485,13 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     });
   }, []);
 
+  const getXpub = useCallback(async (): Promise<string> => {
+    if (wallet && typeof wallet.getXpub === 'function') {
+      return wallet.getXpub();
+    }
+    throw new Error('Wallet not unlocked or getXpub function not available');
+  }, [wallet]);
+
   return (
     <WalletContext.Provider
       value={{
@@ -516,6 +524,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         logout,
         gapLimit,
         setGapLimit,
+        getXpub,
       }}>
       {children}
     </WalletContext.Provider>
