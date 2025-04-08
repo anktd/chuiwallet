@@ -10,60 +10,48 @@ import Skeleton from 'react-loading-skeleton';
 
 export const Accounts: React.FC = () => {
   const navigate = useNavigate();
-  const { addAccount, selectedAccountIndex, selectedFiatCurrency, switchAccount, totalAccounts, wallet } =
-    useWalletContext();
+  const {
+    addAccount,
+    cachedBalances,
+    refreshBalance,
+    selectedAccountIndex,
+    selectedFiatCurrency,
+    switchAccount,
+    totalAccounts,
+    wallet,
+  } = useWalletContext();
   const containerRef = useRef<HTMLDivElement>(null);
   const [isScrollable, setIsScrollable] = useState(false);
 
-  const [balances, setBalances] = useState<string[]>(
-    Array(totalAccounts).fill(selectedFiatCurrency === 'USD' ? '0 USD' : '0 BTC'),
-  );
-  const [loading, setLoading] = useState<boolean>(true);
+  useEffect(() => {
+    if (wallet) {
+      for (let i = 0; i < totalAccounts; i++) {
+        refreshBalance(i);
+      }
+    }
+  }, [wallet, totalAccounts, refreshBalance]);
 
   const accounts = useMemo(() => {
     if (!wallet) return [];
-
     return Array.from({ length: totalAccounts }, (_, i) => {
       const address = wallet.getAddress('bech32', i);
-      const balance = balances[i] || (selectedFiatCurrency === 'USD' ? '0 USD' : '0 BTC');
+      const balanceObj = cachedBalances[i];
+      const balanceText = balanceObj
+        ? selectedFiatCurrency === 'USD'
+          ? `${formatNumber(balanceObj.confirmedUsd)} USD`
+          : `${formatNumber(balanceObj.confirmed / 1e8, 8)} BTC`
+        : selectedFiatCurrency === 'USD'
+          ? '0 USD'
+          : '0 BTC';
       return {
         name: `Account ${i + 1}`,
         address,
-        amount: balance,
+        amount: balanceText,
       };
     });
-  }, [wallet, totalAccounts, balances, selectedFiatCurrency]);
+  }, [wallet, totalAccounts, cachedBalances, selectedFiatCurrency]);
 
-  useEffect(() => {
-    if (!wallet) return;
-
-    const fetchBalances = async () => {
-      setLoading(true);
-
-      const balancePromises = Array.from({ length: totalAccounts }, (_, i) => {
-        const address = wallet.getAddress('bech32', i);
-        return new Promise<string>(resolve => {
-          chrome.runtime.sendMessage({ action: 'getBalance', walletAddress: address }, response => {
-            if (response?.success && response.balance !== undefined) {
-              if (selectedFiatCurrency === 'USD') {
-                resolve(`${formatNumber(response.balance.confirmedUsd)} USD`);
-              } else {
-                resolve(`${formatNumber(response.balance.confirmed / 1e8, 8)} BTC`);
-              }
-            } else {
-              resolve(selectedFiatCurrency === 'USD' ? '0 USD' : '0 BTC');
-            }
-          });
-        });
-      });
-
-      const newBalances = await Promise.all(balancePromises);
-      setBalances(newBalances);
-      setLoading(false);
-    };
-
-    fetchBalances();
-  }, [wallet, totalAccounts, selectedFiatCurrency]);
+  const isLoadingAccount = (index: number) => wallet && cachedBalances[index] == null;
 
   useEffect(() => {
     if (containerRef.current) {
@@ -94,7 +82,7 @@ export const Accounts: React.FC = () => {
             accountName={account.name}
             address={account.address}
             amount={account.amount}
-            isLoading={loading}
+            isLoading={isLoadingAccount(index)}
             selected={index === selectedAccountIndex}
             onClick={() => {
               switchAccount(index);
@@ -103,7 +91,7 @@ export const Accounts: React.FC = () => {
           />
         ))}
       </div>
-      {loading ? (
+      {accounts.length === 0 ? (
         <Skeleton className="absolute !w-[343px] !bottom-[-12px] !h-[58px] !rounded-[1rem]" />
       ) : (
         <>
