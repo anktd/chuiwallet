@@ -38,12 +38,14 @@ export default function makeManifestPlugin(config: { outDir: string }): PluginOp
       addRefreshContentScript(manifest);
     }
     addQRCodeContentScript(manifest);
+    addInjectedProviderContentScript(manifest);
 
     fs.writeFileSync(manifestPath, ManifestParser.convertManifestToString(manifest, isFirefox ? 'firefox' : 'chrome'));
     if (isDev) {
       fs.copyFileSync(refreshFile, resolve(to, 'refresh.js'));
     }
     fs.copyFileSync(scriptFile, resolve(to, 'script.js'));
+    fs.copyFileSync(scriptFile, resolve(to, 'injectedProvider.js'));
 
     colorLog(`Manifest file copy complete: ${manifestPath}`, 'success');
   }
@@ -76,5 +78,13 @@ function addQRCodeContentScript(manifest: Manifest) {
     matches: ['http://*/*', 'https://*/*', '<all_urls>'],
     js: ['script.js'],
     run_at: 'document_idle',
+  });
+}
+
+function addInjectedProviderContentScript(manifest: Manifest) {
+  manifest.content_scripts = manifest.content_scripts || [];
+  manifest.content_scripts.push({
+    matches: ['http://*/*', 'https://*/*', '<all_urls>'],
+    js: ['injectedProvider.js'],
   });
 }

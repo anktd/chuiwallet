@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import bip39 from 'bip39';
 import { InputField } from '@src/components/InputField';
 import { Button } from '@src/components/Button';
@@ -10,10 +10,14 @@ import encryption from '@extension/backend/src/utils/encryption';
 
 export const PasswordLock: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { unlockWallet } = useWalletContext();
   const [password, setPassword] = React.useState('');
   const [errorMsg, setErrorMsg] = React.useState('');
   const [loading, setLoading] = React.useState(false);
+
+  const params = new URLSearchParams(location.search);
+  const redirectToXpub = params.get('redirectToXpub') === 'true';
 
   const handleUnlock = async () => {
     setErrorMsg('');
@@ -53,7 +57,11 @@ export const PasswordLock: React.FC = () => {
           if (seed && bip39.validateMnemonic(seed)) {
             unlockWallet(password);
 
-            navigate('/dashboard');
+            if (redirectToXpub) {
+              navigate('/settings/advanced/xpub');
+            } else {
+              navigate('/dashboard');
+            }
           } else {
             setErrorMsg('Your password is incorrect.');
           }

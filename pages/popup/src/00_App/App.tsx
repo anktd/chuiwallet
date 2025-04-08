@@ -23,6 +23,7 @@ import { SendPreview } from '@src/08_Send/[currency]/SendPreview';
 import { SendStatus } from '@src/08_Send/[currency]/SendStatus';
 import { Accounts } from '@src/09_Accounts/Accounts';
 import { useWalletContext } from '@src/context/WalletContext';
+import Xpub from '@src/06_Settings/Xpub';
 
 export const App: React.FC = () => {
   const { onboarded, wallet } = useWalletContext();
@@ -76,6 +77,8 @@ export const App: React.FC = () => {
       <Route path="/settings/advanced" element={<AdvancedSettings />} />
       <Route path="/settings/advanced/unlock-seed" element={<UnlockSeed />} />
       <Route path="/settings/advanced/reveal-seed" element={<RevealSeed />} />
+      <Route path="/settings/advanced/reveal-seed" element={<RevealSeed />} />
+      <Route path="/settings/advanced/xpub" element={wallet ? <Xpub /> : <PasswordLock />} />
       <Route path="/accounts" element={<Accounts />} />
     </Routes>
   );
