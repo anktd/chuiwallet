@@ -17,4 +17,9 @@ export default class WalletManager {
   public getWallet(index: number = 0): Wallet {
     return this.wallets[index];
   }
+
+  public logout(): boolean {
+    this.wallets = [];
+    return true;
+  }
 }

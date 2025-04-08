@@ -32,6 +32,7 @@ interface WalletContextType {
   unlockWallet: (password: string) => void;
   clearWallet: () => void;
   updateNetwork: (newNetwork: 'mainnet' | 'testnet') => void;
+  logout: () => void;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
@@ -343,6 +344,24 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     });
   };
 
+  const logout = () => {
+    chrome.runtime.sendMessage({ action: 'logout' }, response => {
+      if (response && response.success) {
+        /* empty */
+      } else {
+        console.warn('Logout failed.');
+      }
+    });
+
+    clearWallet();
+
+    chrome.storage.local.remove(['storedAccount'], () => {
+      console.log('Local stored account data cleared.');
+    });
+
+    setOnboarded(false);
+  };
+
   return (
     <WalletContext.Provider
       value={{
@@ -367,6 +386,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         unlockWallet,
         clearWallet,
         updateNetwork,
+        logout,
       }}>
       {children}
     </WalletContext.Provider>
