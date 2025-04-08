@@ -21,7 +21,7 @@ export const GasLimitInputField: React.FC<GasLimitInputFieldProps> = ({
       {explanation && <div className="text-xs font-normal leading-[22px] text-foreground-e7">{explanation}</div>}
       <input
         type="number"
-        placeholder={'0'}
+        placeholder={'500'}
         className="p-3 w-full rounded-2xl border border-solid bg-input border-background-42 text-white max-sm:p-2.5 text-base placeholder:text-base"
         value={value}
       />

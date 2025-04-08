@@ -126,6 +126,7 @@ export default class ElectrumService {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private socket: any = null;
   private _requestId: number = 0;
+  private gapLimit: number = 500;
   private _callbacks: Map<number, Callback> = new Map();
 
   constructor(network: 'mainnet' | 'testnet' = 'mainnet') {
@@ -277,6 +278,10 @@ export default class ElectrumService {
     return reversedHash.toString('hex');
   }
 
+  public setGapLimit(newLimit: number): void {
+    this.gapLimit = newLimit;
+  }
+
   /**
    * Retrieve balance for a Bitcoin address.
    * Returns an object with 'confirmed' and 'unconfirmed' balances (in satoshis).
@@ -325,9 +330,29 @@ export default class ElectrumService {
    * Returns an array of transaction objects.
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public async getHistory(address: string): Promise<any[]> {
+  public async getHistory(address: string, sinceTimestamp?: number): Promise<any[]> {
     const scripthash = await this._addressToScriptHash(address);
-    return this.tryRpcRequest('blockchain.scripthash.get_history', [scripthash]);
+    let history = await this.tryRpcRequest('blockchain.scripthash.get_history', [scripthash]);
+
+    // Gap Limit Optimisation: if there are more than 500 transactions,
+    // sort confirmed transactions by height descending and keep only the most recent 500 items (including pending ones)
+    if (history.length > this.gapLimit) {
+      const confirmedTxs = history
+        .filter((tx: { height: number }) => tx.height > 0)
+        .sort((a: { height: number }, b: { height: number }) => b.height - a.height);
+      const pendingTxs = history.filter((tx: { height: number }) => tx.height === 0);
+      // Keep pending ones and as many confirmed as possible to not exceed 500 total items.
+      const limitedConfirmed = confirmedTxs.slice(0, Math.max(0, 500 - pendingTxs.length));
+      history = [...pendingTxs, ...limitedConfirmed];
+    }
+
+    // Incremental history: if sinceTimestamp is provided, return only transactions newer than that timestamp.
+    // Note: Electrum's raw history items may include a blocktime (or you can set it later in getDetailedHistory)
+    if (sinceTimestamp !== undefined) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      history = history.filter((tx: { blocktime: any }) => (tx.blocktime || 0) > sinceTimestamp);
+    }
+    return history;
   }
 
   // Add this helper method to fetch sender from a vin entry using its previous transaction.

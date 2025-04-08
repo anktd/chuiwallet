@@ -32,6 +32,8 @@ interface WalletContextType {
   unlockWallet: (password: string) => void;
   clearWallet: () => void;
   updateNetwork: (newNetwork: 'mainnet' | 'testnet') => void;
+  gapLimit: number;
+  setGapLimit: (newLimit: number) => void;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
@@ -46,6 +48,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [onboarded, setOnboarded] = useState(false);
   const [isRestored, setIsRestored] = useState(false);
   const [network, setNetwork] = useState<'mainnet' | 'testnet'>('mainnet');
+  const [gapLimit, setGapLimit] = useState<number>(500);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_, forceUpdate] = useState(0);
 
