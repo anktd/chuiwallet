@@ -53,8 +53,8 @@ export function SendPreview() {
               action: 'signAndSendTransaction',
               walletData,
               to: states.destinationAddress,
-              amount: states.amountBtc * 1e8,
-              feeRates: states.feeBtc * 1e8,
+              amount: Math.round(states.amountBtc * 1e8),
+              feeRates: Math.round(states.feeBtc * 1e8),
             },
             response => {
               if (response?.success) {
