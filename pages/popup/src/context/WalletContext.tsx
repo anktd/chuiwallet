@@ -36,6 +36,7 @@ interface WalletContextType {
   refreshAllBalances: () => void;
   cachedTxHistories: { [accountIndex: number]: TransactionActivity[] | null };
   refreshTxHistory: (accountIndex: number) => void;
+  logout: () => void;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
@@ -433,6 +434,23 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       refreshTxHistory(selectedAccountIndex);
     }
   }, [wallet, refreshAllBalances, refreshTxHistory, selectedAccountIndex]);
+  const logout = () => {
+    chrome.runtime.sendMessage({ action: 'logout' }, response => {
+      if (response && response.success) {
+        /* empty */
+      } else {
+        console.warn('Logout failed.');
+      }
+    });
+
+    clearWallet();
+
+    chrome.storage.local.remove(['storedAccount'], () => {
+      console.log('Local stored account data cleared.');
+    });
+
+    setOnboarded(false);
+  };
 
   return (
     <WalletContext.Provider
@@ -463,6 +481,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         refreshAllBalances,
         cachedTxHistories,
         refreshTxHistory,
+        logout,
       }}>
       {children}
     </WalletContext.Provider>
