@@ -4,7 +4,7 @@ import type React from 'react';
 import { useState, useRef, useEffect } from 'react';
 
 type FiatCurrencySelectorProps = {
-  options?: 'USD' | 'BTC'[];
+  options?: ('USD' | 'BTC')[];
   onSelect?: (currency: 'USD' | 'BTC') => void;
 };
 
@@ -52,8 +52,8 @@ const FiatCurrencySelector: React.FC<FiatCurrencySelectorProps> = ({ options, on
         <button
           type="button"
           onClick={toggleDropdown}
-          className="flex gap-2.5 justify-center items-center px-2.5 py-3 w-full rounded-2xl bg-background-1d border border-background-42">
-          <span className="self-stretch my-auto w-[213px] text-left text-foregrouund1 font-bold text-lg">
+          className="flex gap-2.5 justify-center items-center px-5 py-3 w-full rounded-2xl bg-background-1d border border-background-42">
+          <span className="self-stretch my-auto w-full text-left text-foregrouund1 font-bold text-lg">
             {selectedFiatCurrency}
           </span>
           <img
@@ -65,15 +65,16 @@ const FiatCurrencySelector: React.FC<FiatCurrencySelectorProps> = ({ options, on
         </button>
         {isOpen && (
           <div className="absolute flex flex-col z-10 mt-[60px] w-full bg-background-1d border border-background-42 rounded-2xl">
-            {options.map(opt => (
-              <button
-                key={opt}
-                type="button"
-                onClick={() => handleSelect(opt)}
-                className="self-stretch my-auto w-full text-left text-foregrouund1 hover:bg-background-42 font-bold text-lg px-[44px] py-2 rounded-lg">
-                {opt}
-              </button>
-            ))}
+            {options &&
+              options.map(opt => (
+                <button
+                  key={opt}
+                  type="button"
+                  onClick={() => handleSelect(opt)}
+                  className="self-stretch my-auto w-full text-left text-foregrouund1 hover:bg-background-42 font-bold text-lg px-[44px] py-2 rounded-lg">
+                  {opt}
+                </button>
+              ))}
           </div>
         )}
       </div>

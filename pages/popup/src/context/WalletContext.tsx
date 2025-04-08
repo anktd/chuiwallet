@@ -1,4 +1,3 @@
-import type React from 'react';
 import { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import Wallet from '@extension/backend/src/modules/wallet.js';
 import WalletManager from '@extension/backend/src/walletManager.js';
@@ -7,7 +6,7 @@ import {
   getSessionPassword,
   setSessionPassword,
 } from '@extension/backend/src/utils/sessionStorageHelper.js';
-import type { StoredAccount } from '@src/types';
+import type { BalanceData, StoredAccount, TransactionActivity } from '@src/types';
 import type { AddressType } from '@extension/backend/src/modules/wallet';
 
 interface WalletContextType {
@@ -32,6 +31,11 @@ interface WalletContextType {
   unlockWallet: (password: string) => void;
   clearWallet: () => void;
   updateNetwork: (newNetwork: 'mainnet' | 'testnet') => void;
+  cachedBalances: { [accountIndex: number]: BalanceData | null };
+  refreshBalance: (accountIndex: number) => void;
+  refreshAllBalances: () => void;
+  cachedTxHistories: { [accountIndex: number]: TransactionActivity[] | null };
+  refreshTxHistory: (accountIndex: number) => void;
   logout: () => void;
 }
 
@@ -47,8 +51,16 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [onboarded, setOnboarded] = useState(false);
   const [isRestored, setIsRestored] = useState(false);
   const [network, setNetwork] = useState<'mainnet' | 'testnet'>('mainnet');
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [_, forceUpdate] = useState(0);
+  const [cachedBalances, setCachedBalances] = useState<{
+    [accountIndex: number]: BalanceData | null;
+  }>({});
+  const [lastBalanceFetchMap, setLastBalanceFetchMap] = useState<{
+    [accountIndex: number]: number;
+  }>({});
+  const [cachedTxHistories, setCachedTxHistories] = useState<{ [accountIndex: number]: TransactionActivity[] | null }>(
+    {},
+  );
+  const [lastTxFetchMap, setLastTxFetchMap] = useState<{ [accountIndex: number]: number }>({});
 
   const manager = useMemo(() => new WalletManager(), []);
 
@@ -344,6 +356,84 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     });
   };
 
+  const refreshBalance = useCallback(
+    (accountIndex: number) => {
+      const now = Date.now();
+      if (cachedBalances[accountIndex] && now - (lastBalanceFetchMap[accountIndex] || 0) < 300000) {
+        return;
+      }
+      if (wallet) {
+        const walletAddress = wallet.getAddress('bech32', accountIndex);
+        if (walletAddress) {
+          chrome.runtime.sendMessage({ action: 'getBalance', walletAddress }, response => {
+            if (response?.success && response.balance) {
+              setCachedBalances(prev => ({
+                ...prev,
+                [accountIndex]: response.balance,
+              }));
+              setLastBalanceFetchMap(prev => ({
+                ...prev,
+                [accountIndex]: now,
+              }));
+            }
+          });
+        }
+      }
+    },
+    [cachedBalances, lastBalanceFetchMap, wallet],
+  );
+
+  const refreshAllBalances = useCallback(() => {
+    for (let i = 0; i < totalAccounts; i++) {
+      refreshBalance(i);
+    }
+  }, [refreshBalance, totalAccounts]);
+
+  useEffect(() => {
+    if (wallet) {
+      refreshAllBalances();
+    }
+  }, [wallet, refreshAllBalances]);
+
+  const refreshTxHistory = useCallback(
+    (accountIndex: number) => {
+      const now = Date.now();
+      if (cachedTxHistories[accountIndex] && now - (lastTxFetchMap[accountIndex] || 0) < 60000) {
+        return;
+      }
+      if (wallet) {
+        const walletAddress = wallet.getAddress('bech32', accountIndex);
+        if (walletAddress) {
+          chrome.runtime.sendMessage({ action: 'getHistory', walletAddress }, response => {
+            if (response?.success && response.history) {
+              setCachedTxHistories(prev => ({
+                ...prev,
+                [accountIndex]: response.history,
+              }));
+              setLastTxFetchMap(prev => ({
+                ...prev,
+                [accountIndex]: now,
+              }));
+            }
+          });
+        }
+      }
+    },
+    [cachedTxHistories, lastTxFetchMap, wallet],
+  );
+
+  useEffect(() => {
+    if (wallet) {
+      refreshTxHistory(selectedAccountIndex);
+    }
+  }, [wallet, refreshTxHistory, selectedAccountIndex]);
+
+  useEffect(() => {
+    if (wallet) {
+      refreshAllBalances();
+      refreshTxHistory(selectedAccountIndex);
+    }
+  }, [wallet, refreshAllBalances, refreshTxHistory, selectedAccountIndex]);
   const logout = () => {
     chrome.runtime.sendMessage({ action: 'logout' }, response => {
       if (response && response.success) {
@@ -386,6 +476,11 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         unlockWallet,
         clearWallet,
         updateNetwork,
+        cachedBalances,
+        refreshBalance,
+        refreshAllBalances,
+        cachedTxHistories,
+        refreshTxHistory,
         logout,
       }}>
       {children}

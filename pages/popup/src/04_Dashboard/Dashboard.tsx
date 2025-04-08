@@ -4,27 +4,15 @@ import { CryptoBalance } from '../components/CryptoBalance';
 import { CryptoButton } from '../components/CryptoButton';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWalletContext } from '@src/context/WalletContext';
-import { useEffect, useState } from 'react';
 import { formatNumber } from '@src/utils';
 import Skeleton from 'react-loading-skeleton';
 
-interface BalanceData {
-  confirmed: number;
-  unconfirmed: number;
-  confirmedUsd: number;
-  unconfirmedUsd: number;
-}
-
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { selectedAccountIndex, selectedFiatCurrency, wallet } = useWalletContext();
+  const { cachedBalances, refreshBalance, selectedAccountIndex, selectedFiatCurrency, wallet } = useWalletContext();
 
   const [showChooseReceiveCurrencySlide, setShowChooseReceiveCurrencySlide] = React.useState(false);
   const [showChooseSendCurrencySlide, setShowChooseSendCurrencySlide] = React.useState(false);
-  const [balance, setBalance] = useState<BalanceData | null>(null);
-  const [balanceLoading, setBalanceLoading] = useState<boolean>(true);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [error, setError] = useState<string | null>(null);
 
   const handleToggleChooseReceiveCurrencySlide = () => {
     setShowChooseReceiveCurrencySlide(!showChooseReceiveCurrencySlide);
@@ -34,31 +22,17 @@ export const Dashboard: React.FC = () => {
     setShowChooseSendCurrencySlide(!showChooseSendCurrencySlide);
   };
 
-  useEffect(() => {
-    const fetchWalletData = () => {
-      setBalanceLoading(true);
-
-      const walletAddress = wallet ? wallet.generateAddress() : undefined;
-      if (walletAddress) {
-        chrome.runtime.sendMessage({ action: 'getBalance', walletAddress }, response => {
-          if (response?.success) {
-            setBalance(response.balance);
-          } else {
-            setError(response.error);
-          }
-
-          setBalanceLoading(false);
-        });
-      }
-    };
-
+  React.useEffect(() => {
     if (wallet) {
-      fetchWalletData();
+      refreshBalance(selectedAccountIndex);
     }
-  }, [wallet]);
+  }, [wallet, refreshBalance, selectedAccountIndex]);
+
+  let balanceLoading = wallet && cachedBalances[selectedAccountIndex] == null;
+  balanceLoading = balanceLoading == null ? false : balanceLoading;
+  const balance = cachedBalances[selectedAccountIndex];
 
   return (
-    // <div className="relative flex overflow-hidden flex-col items-center h-full bg-dark">
     <div className="relative flex flex-col items-center text-white bg-dark h-full px-4 pb-[19px]">
       <div className="flex gap-10 justify-between items-center self-stretch py-3 w-full text-xs font-bold leading-6 bg-dark min-h-[48px] text-neutral-200">
         <button
