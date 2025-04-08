@@ -105,7 +105,6 @@ export const BackupSeed: React.FC = () => {
           <div className="text-2xl font-bold leading-loose text-white">Back up your seed phrase</div>
           <div className="mt-1 text-lg leading-none text-foreground">Write it down and keep it safe.</div>
         </div>
-        {/* loading => show skeleton loading */}
         <div className="flex gap-4 self-center mt-6 text-base leading-9 whitespace-nowrap min-h-[292px] text-foreground">
           <SeedColumn words={leftColumnWords} />
           <SeedColumn words={rightColumnWords} />

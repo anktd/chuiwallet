@@ -76,6 +76,7 @@ export const TransactionActivityList: React.FC<TransactionActivityListProps> = (
 
   return (
     <div
+      ref={containerRef}
       className={`flex flex-col gap-2 overflow-y-auto h-[calc(100vh-356px)]
       [&::-webkit-scrollbar]:w-2
       [&::-webkit-scrollbar-track]:rounded-full
