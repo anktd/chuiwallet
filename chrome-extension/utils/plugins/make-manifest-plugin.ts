@@ -9,6 +9,7 @@ import type { Manifest } from '@extension/dev-utils/dist/lib/manifest-parser/typ
 const rootDir = resolve(__dirname, '..', '..');
 const refreshFile = resolve(__dirname, '..', 'refresh.js');
 const scriptFile = resolve(__dirname, '..', 'script.js');
+const injectedProviderFile = resolve(__dirname, '..', 'injectedProvider.js');
 const manifestFile = resolve(rootDir, 'manifest.js');
 
 const getManifestWithCacheBurst = (): Promise<{ default: chrome.runtime.ManifestV3 }> => {
@@ -45,7 +46,7 @@ export default function makeManifestPlugin(config: { outDir: string }): PluginOp
       fs.copyFileSync(refreshFile, resolve(to, 'refresh.js'));
     }
     fs.copyFileSync(scriptFile, resolve(to, 'script.js'));
-    fs.copyFileSync(scriptFile, resolve(to, 'injectedProvider.js'));
+    fs.copyFileSync(injectedProviderFile, resolve(to, 'injectedProvider.js'));
 
     colorLog(`Manifest file copy complete: ${manifestPath}`, 'success');
   }
