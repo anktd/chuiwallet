@@ -1,9 +1,16 @@
 import Header from '@src/components/Header';
 import FiatCurrencySelector from '../components/FiatCurrencySelector';
 import { useNavigate } from 'react-router-dom';
+import { useWalletContext } from '@src/context/WalletContext';
 
 export const Settings: React.FC = () => {
   const navigate = useNavigate();
+  const { logout } = useWalletContext();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/onboard/set-password');
+  };
 
   return (
     <div className="flex flex-col items-center text-white bg-dark h-full px-4 pt-12 pb-[19px]">
@@ -24,9 +31,15 @@ export const Settings: React.FC = () => {
             className="object-contain shrink-0 w-6 aspect-square"
           />
         </button>
+
+        <button
+          className="flex gap-10 justify-between items-start py-2 w-full text-base leading-none text-white"
+          onClick={handleLogout}>
+          <span className="text-base text-primary-red font-bold">Logout</span>
+        </button>
       </div>
 
-      <div className="flex gap-5 justify-between w-full text-xs leading-6 text-white max-w-[328px] mt-[286px]">
+      <div className="flex gap-5 justify-between w-full text-xs leading-6 text-white max-w-[328px] mt-[246px]">
         <div className="self-stretch">
           <a className="underline font-bold text-xs" href="https://www.blockonomics.co/privacy" target="_blank">
             Terms and services

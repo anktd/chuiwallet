@@ -8,6 +8,7 @@ export interface AddressInputFieldProps {
   value?: string;
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onQRClick?: () => void;
+  onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
 }
 
 export const AddressInputField: React.FC<AddressInputFieldProps> = ({
@@ -19,6 +20,7 @@ export const AddressInputField: React.FC<AddressInputFieldProps> = ({
   onChange,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onQRClick,
+  onKeyDown,
 }) => {
   return (
     <div className="flex flex-col w-full">
@@ -34,6 +36,7 @@ export const AddressInputField: React.FC<AddressInputFieldProps> = ({
           style={{ paddingRight: '40px' }}
           value={value}
           onChange={onChange}
+          onKeyDown={onKeyDown}
         />
         {/* <button onClick={onQRClick} className="absolute right-3 top-1/2 transform -translate-y-1/2">
           <img loading="lazy" src={chrome.runtime.getURL('popup/qrcode_icon.svg')} alt="QR Code" className="w-6 h-6" />

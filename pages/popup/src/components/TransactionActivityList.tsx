@@ -66,8 +66,17 @@ export const TransactionActivityList: React.FC<TransactionActivityListProps> = (
     }
   }, [transactions.length]);
 
+  if (transactions.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-356px)] text-gray-400 text-base">
+        No transaction activities yet.
+      </div>
+    );
+  }
+
   return (
     <div
+      ref={containerRef}
       className={`flex flex-col gap-2 overflow-y-auto h-[calc(100vh-356px)]
       [&::-webkit-scrollbar]:w-2
       [&::-webkit-scrollbar-track]:rounded-full

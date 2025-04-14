@@ -79,6 +79,24 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           }
         });
         sendResponse({ started: true });
+      } else if (request.action === 'logout') {
+        const walletManager = new WalletManager();
+        const result = walletManager.logout();
+        sendResponse({ success: result });
+        return true;
+      } else if (request.action === 'openXpub') {
+        chrome.windows.create(
+          {
+            url: chrome.runtime.getURL('popup.html#/settings/advanced/xpub?redirectToXpub=true'),
+            type: 'popup',
+            width: 375,
+            height: 600,
+          },
+          () => {
+            sendResponse({ success: true });
+          },
+        );
+        return true;
       } else {
         sendResponse({ success: false, error: 'Unknown action' });
       }

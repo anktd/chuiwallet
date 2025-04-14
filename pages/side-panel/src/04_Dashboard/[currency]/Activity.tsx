@@ -2,10 +2,9 @@ import type * as React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { CryptoButton } from '../../components/CryptoButton';
 import { useWalletContext } from '@src/context/WalletContext';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { formatNumber } from '@src/utils';
 import TransactionActivityList from '@src/components/TransactionActivityList';
-import type { TransactionActivity } from '@extension/backend/src/modules/electrumService';
 import Header from '@src/components/Header';
 import Skeleton from 'react-loading-skeleton';
 
@@ -17,38 +16,17 @@ interface ActivityStates {
 export const Activity: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { selectedFiatCurrency, wallet } = useWalletContext();
+  const { cachedTxHistories, refreshTxHistory, selectedAccountIndex, selectedFiatCurrency } = useWalletContext();
 
   const activityStates = location.state as ActivityStates;
   const { balance, balanceUsd } = activityStates;
 
-  const [history, setHistory] = useState<TransactionActivity[]>([]);
-  const [historyLoading, setHistoryLoading] = useState<boolean>(true);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [error, setError] = useState<string | null>(null);
-
   useEffect(() => {
-    const fetchWalletData = () => {
-      setHistoryLoading(true);
+    refreshTxHistory(selectedAccountIndex);
+  }, [refreshTxHistory, selectedAccountIndex]);
 
-      const walletAddress = wallet ? wallet.generateAddress() : undefined;
-      if (walletAddress) {
-        chrome.runtime.sendMessage({ action: 'getHistory', walletAddress }, response => {
-          if (response?.success) {
-            setHistory(response.history);
-          } else {
-            setError(response.error);
-          }
-
-          setHistoryLoading(false);
-        });
-      }
-    };
-
-    if (wallet) {
-      fetchWalletData();
-    }
-  }, [wallet]);
+  const txHistory = cachedTxHistories[selectedAccountIndex];
+  const loading = txHistory == null;
 
   return (
     <div className="flex flex-col items-center text-white bg-dark h-full px-4 pt-12 pb-[19px]">
@@ -116,14 +94,14 @@ export const Activity: React.FC = () => {
             <span className="text-white text-sm font-bold">Activity</span>
             <span className="text-white text-sm">{formatNumber(history.length)} total</span>
           </div>
-          {historyLoading ? (
+          {loading ? (
             <>
               <Skeleton className="mt-6 !h-[66px]" />
               <Skeleton className="!h-[66px]" />
               <Skeleton className="!h-[66px]" />
             </>
           ) : (
-            <TransactionActivityList transactions={history} />
+            <TransactionActivityList transactions={txHistory} />
           )}
         </div>
       </div>

@@ -7,7 +7,7 @@ interface AccountItemProps {
   address: string;
   amount: string;
   selected: boolean;
-  isLoading?: boolean;
+  isLoading: boolean | null;
   onClick?: () => void;
 }
 
@@ -27,7 +27,7 @@ const AccountItem: React.FC<AccountItemProps> = ({
       onClick={onClick}>
       <div className="flex gap-3 items-center self-stretch my-auto min-w-[240px] w-[312px]">
         {isLoading ? (
-          <Skeleton circle={true} className="!w-[48px] !h-[48px]" />
+          <Skeleton circle={true} className="!w-[48px] !h-[46px]" />
         ) : (
           <Avvvatars value={address} style="shape" size={48} />
         )}

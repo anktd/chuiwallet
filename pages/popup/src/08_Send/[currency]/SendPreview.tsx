@@ -2,6 +2,7 @@ import Wallet from '@extension/backend/src/modules/wallet';
 import { getSessionPassword } from '@extension/backend/src/utils/sessionStorageHelper';
 import { Button } from '@src/components/Button';
 import Header from '@src/components/Header';
+import { useWalletContext } from '@src/context/WalletContext';
 import type { StoredAccount, Currencies } from '@src/types';
 import { currencyMapping } from '@src/types';
 import { formatNumber } from '@src/utils';
@@ -20,6 +21,7 @@ interface SendPreviewStates {
 export function SendPreview() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { refreshAllBalances, refreshTxHistory, selectedAccountIndex, wallet } = useWalletContext();
   const { currency } = useParams<{ currency: Currencies }>();
   const states = location.state as SendPreviewStates;
 
@@ -53,14 +55,19 @@ export function SendPreview() {
               action: 'signAndSendTransaction',
               walletData,
               to: states.destinationAddress,
-              amount: states.amountBtc * 1e8,
-              feeRates: states.feeBtc * 1e8,
+              amount: Math.round(states.amountBtc * 1e8),
+              feeRates: Math.round(states.feeBtc * 1e8),
             },
             response => {
               if (response?.success) {
                 const transactionHash = response.txid;
                 console.log(transactionHash);
                 if (transactionHash) {
+                  if (wallet) {
+                    refreshAllBalances();
+                    refreshTxHistory(selectedAccountIndex);
+                  }
+
                   navigate(`/send/${currency}/status`, {
                     state: {
                       status: 'success',
