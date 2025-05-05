@@ -29,6 +29,10 @@ const NetworkSelector: React.FC<NetworkSelectorProps> = ({
   };
 
   useEffect(() => {
+    setSelectedNetwork(initialNetwork);
+  }, [initialNetwork]);
+
+  useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false);
@@ -40,15 +44,13 @@ const NetworkSelector: React.FC<NetworkSelectorProps> = ({
 
   return (
     <div className="relative flex flex-col justify-center w-full gap-[2px]" ref={containerRef}>
-      <div className="text-base leading-[22px] text-white font-bold">Testnets</div>
-      <div className="text-xs leading-[22px] text-foreground-e1 font-normal">Switch to an available testnet</div>
       <div className="text-base leading-[22px] text-white font-bold mt-[8px]">BTC Network</div>
       <div className="flex flex-col w-full text-lg leading-8 whitespace-nowrap text-foreground-79">
         <button
           type="button"
           onClick={toggleDropdown}
           className="flex gap-2.5 justify-center items-center px-5 py-3 w-full rounded-2xl bg-background-1d border border-background-42">
-          <span className="self-stretch my-auto w-full text-left text-foregrouund1 font-bold text-lg">
+          <span className="self-stretch my-auto w-full text-left text-foreground-1 font-bold text-lg">
             {selectedNetwork}
           </span>
           <img

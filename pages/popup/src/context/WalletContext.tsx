@@ -117,6 +117,10 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           const storedAccount: StoredAccount | undefined = res.storedAccount;
           if (storedAccount) {
             try {
+              if (storedAccount?.network) {
+                setNetwork(storedAccount.network);
+              }
+
               const restoredMnemonic = Wallet.getDecryptedMnemonic(storedAccount.encryptedMnemonic, storedPwd);
               if (!restoredMnemonic) {
                 console.error('Failed to recover seed with stored password.');

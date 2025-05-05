@@ -40,8 +40,6 @@ export const AdvancedSettings: React.FC = () => {
           }}
         />
 
-        <div className="flex self-start my-2 h-[1px] w-full bg-background-5f" />
-
         <div className="flex flex-col mt-3 mb-3 w-full font-bold">
           <NetworkSelector
             initialNetwork={displayNetwork}

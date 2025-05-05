@@ -23,7 +23,7 @@ function initElectrum(network: Network = Network.Mainnet) {
 }
 
 chrome.storage.local.get(['storedAccount'], ({ storedAccount }) => {
-  initElectrum(storedAccount?.network || 'mainnet');
+  initElectrum(storedAccount?.network || Network.Mainnet);
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -124,6 +124,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === 'local' && changes.storedAccount) {
+    console.log('Network changing to', changes.storedAccount.newValue.network);
     initElectrum(changes.storedAccount.newValue.network);
     electrumService.autoSelectAndConnect().catch(err => {
       console.error('Failed to connect to Electrum server:', err);
