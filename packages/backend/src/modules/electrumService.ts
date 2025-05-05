@@ -2,47 +2,21 @@ import { createHash } from 'crypto';
 import * as bitcoin from 'bitcoinjs-lib';
 import axios from 'axios';
 import type Wallet from './wallet';
+import type {
+  ExtendedServerConfig,
+  FeeOptionSetting,
+  ServerConfig,
+  TransactionActivity,
+  TransactionActivityStatus,
+  TransactionType,
+} from '../types/electrum';
+import { DefaultPort, Network } from '../types/electrum';
 
 type Callback = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   resolve: (result: any) => void;
   reject: (error: Error) => void;
 };
-
-export type ServerConfig = {
-  host: string;
-  port: number;
-  useTls: boolean;
-  network: 'mainnet' | 'testnet';
-};
-export type TransactionActivityStatus = 'PENDING' | 'CONFIRMED';
-export type TransactionType = 'SEND' | 'RECEIVE';
-
-export interface FeeOptionSetting {
-  speed: string;
-  sats: number;
-  btcAmount: number;
-  usdAmount: number;
-}
-
-export interface TransactionActivity {
-  type: TransactionType;
-  status: TransactionActivityStatus;
-  amountBtc: number;
-  amountUsd: number;
-  feeBtc: number;
-  feeUsd: number;
-  timestamp: number;
-  confirmations: number;
-  transactionHash: string;
-  sender: string;
-  receiver: string;
-}
-
-interface ExtendedServerConfig extends ServerConfig {
-  latency?: number;
-  healthy?: boolean;
-}
 
 // Example function to measure latency by sending a simple RPC call.
 async function measureServerLatency(server: ExtendedServerConfig): Promise<number> {
@@ -104,24 +78,22 @@ async function selectBestServer(servers: ExtendedServerConfig[]): Promise<Extend
 
 export default class ElectrumService {
   private availableServerList: ServerConfig[] = [
-    { host: 'bitcoinserver.nl', port: 50004, useTls: true, network: 'mainnet' },
-    // { host: 'electrum.petrkr.net', port: 50004, useTls: true, network: 'mainnet' },
-    // { host: 'bitcoin.dragon.zone', port: 50004, useTls: true, network: 'mainnet' },
-    { host: 'btc.electroncash.dk', port: 60004, useTls: true, network: 'mainnet' },
-    // { host: 'electroncash.dk', port: 50004, useTls: true, network: 'mainnet' },
-    // { host: 'bch.imaginary.cash', port: 50004, useTls: true, network: 'mainnet' },
-    // { host: 'explorer.bch.ninja', port: 50004, useTls: true, network: 'mainnet' },
-    // { host: 'sv.usebsv.com', port: 50004, useTls: true, network: 'mainnet' },
-    // { host: 'electrum.peercoinexplorer.net', port: 50004, useTls: true, network: 'mainnet' },
-    { host: 'blackie.c3-soft.com', port: 60004, useTls: true, network: 'testnet' },
+    { host: 'bitcoinserver.nl', port: 50004, useTls: true, network: Network.Mainnet },
+    { host: 'btc.electroncash.dk', port: 60004, useTls: true, network: Network.Mainnet },
+    { host: 'node.xbt.eu', port: DefaultPort.TLS, useTls: true, network: Network.Mainnet },
+    { host: 'us11.einfachmalnettsein.de', port: DefaultPort.TLS, useTls: true, network: Network.Mainnet },
+    { host: 'b.1209k.com', port: DefaultPort.TLS, useTls: true, network: Network.Mainnet },
+    { host: 'blackie.c3-soft.com', port: 60004, useTls: true, network: Network.Testnet },
+    { host: 'testnet1.bauerj.eu', port: DefaultPort.TLS, useTls: true, network: Network.Testnet },
+    { host: '14.3.140.101', port: DefaultPort.TLS, useTls: true, network: Network.Testnet },
+    { host: 'testnet.hsmiths.com', port: 53012, useTls: true, network: Network.Testnet },
   ];
-
   private serverList: ServerConfig[] = [];
   private currentServerIndex: number = 0;
   private host: string;
   private port: number;
   private useTls: boolean;
-  private network: 'mainnet' | 'testnet';
+  private network: Network;
   private currentServer: ExtendedServerConfig | null = null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private socket: any = null;
@@ -132,7 +104,7 @@ export default class ElectrumService {
   private lastRateFetch: number = 0;
   private RATE_CACHE_DURATION = 300000; // 5 minutes in milliseconds
 
-  constructor(network: 'mainnet' | 'testnet' = 'mainnet') {
+  constructor(network: Network = Network.Mainnet) {
     this.serverList = this.availableServerList.filter(server => server.network === network);
     if (this.serverList.length === 0) {
       throw new Error(`No servers available for network ${network}`);
@@ -148,7 +120,7 @@ export default class ElectrumService {
    * Establish connection to the current Electrum RPC server.
    */
   public async connect(): Promise<void> {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       const protocol = this.useTls ? 'wss://' : 'ws://';
       const wsUrl = `${protocol}${this.host}:${this.port}`;
       console.log(`Connecting to Electrum WebSocket: ${wsUrl}`);

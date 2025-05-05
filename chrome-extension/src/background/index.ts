@@ -1,17 +1,29 @@
 import 'webextension-polyfill';
-import { walletThemeStorage } from '@extension/storage';
+// import { walletThemeStorage } from '@extension/storage';
 import ElectrumService from '@extension/backend/src/modules/electrumService';
 import WalletManager from '@extension/backend/src/walletManager';
+import { Network } from '@extension/backend/src/types/electrum';
 
-walletThemeStorage.get().then(theme => {
-  console.log('theme', theme);
-});
+// walletThemeStorage.get().then(theme => {
+//   console.log('theme', theme);
+// });
 
-const electrumService = new ElectrumService();
+let electrumService: ElectrumService;
+function initElectrum(network: Network = Network.Mainnet) {
+  // if we already have a connection, kill it first
+  if (electrumService && typeof electrumService.close === 'function') {
+    electrumService.close();
+  }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-electrumService.autoSelectAndConnect().catch((err: any) => {
-  console.error('Failed to connect to Electrum server:', err);
+  // create & connect a fresh instance
+  electrumService = new ElectrumService(network);
+  electrumService.autoSelectAndConnect().catch(err => {
+    console.error('Failed to connect to Electrum server:', err);
+  });
+}
+
+chrome.storage.local.get(['storedAccount'], ({ storedAccount }) => {
+  initElectrum(storedAccount?.network || 'mainnet');
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -108,4 +120,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   })();
 
   return true;
+});
+
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'local' && changes.storedAccount) {
+    initElectrum(changes.storedAccount.newValue.network);
+    electrumService.autoSelectAndConnect().catch(err => {
+      console.error('Failed to connect to Electrum server:', err);
+    });
+  }
 });
