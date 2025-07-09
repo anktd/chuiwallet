@@ -28,22 +28,22 @@ export interface WalletOptions {
   password: string;
   mnemonic?: string;
   xpriv?: string;
-  network?: 'mainnet' | 'testnet';
-  addressType?: AddressType;
+  network: 'mainnet' | 'testnet';
+  addressType: AddressType;
   accountIndex?: number;
 }
 
 export default class Wallet {
-  private mnemonic: string | null = null;
-  private seed: Buffer | null = null;
-  private root: BIP32Interface;
-  private account?: BIP32Interface;
-  private network: bitcoin.networks.Network;
+  private readonly seed: Buffer;
+  private readonly network: bitcoin.networks.Network;
+  private readonly xpub: string;
+  private readonly addressType: AddressType;
+  private readonly mnemonic: string | null = null;
   private encryptedMnemonic: string | null = null;
-  private xpub: string;
+  private root: BIP32Interface;
   private coin: number;
-  private addressType: AddressType;
   private accountIndex: number;
+  private account: BIP32Interface;
 
   constructor({
     password,
@@ -53,12 +53,10 @@ export default class Wallet {
     addressType = 'bech32',
     accountIndex = 0,
   }: WalletOptions) {
-    // Set network based on parameter.
     this.network = network === 'testnet' ? bitcoin.networks.testnet : bitcoin.networks.bitcoin;
-    // Use coin=1 for testnet, coin=0 for mainnet.
     this.coin = this.network === bitcoin.networks.testnet ? 1 : 0;
     this.addressType = addressType;
-    this.accountIndex = accountIndex;
+    this.accountIndex = accountIndex!;
 
     if (xpriv) {
       // Restore from an extended private key (non-HD mnemonic restoration).
@@ -74,22 +72,8 @@ export default class Wallet {
       }
       this.seed = bip39.mnemonicToSeedSync(this.mnemonic);
       this.root = bip32.fromSeed(this.seed, this.network);
-
-      // Choose derivation based on addressType:
-      // p2pkh -> BIP44: m/44'/coin'/accountIndex'
-      // p2sh   -> BIP49: m/49'/coin'/accountIndex'
-      // bech32 -> BIP84: m/84'/coin'/accountIndex'
-      // p2tr   -> BIP86: m/86'/coin'/accountIndex'
-      if (this.addressType === 'p2pkh') {
-        this.account = this.root.deriveHardened(44).deriveHardened(this.coin).deriveHardened(accountIndex);
-      } else if (this.addressType === 'p2sh') {
-        this.account = this.root.deriveHardened(49).deriveHardened(this.coin).deriveHardened(accountIndex);
-      } else if (this.addressType === 'p2tr') {
-        this.account = this.root.deriveHardened(86).deriveHardened(this.coin).deriveHardened(accountIndex);
-      } else {
-        this.account = this.root.deriveHardened(84).deriveHardened(this.coin).deriveHardened(accountIndex);
-      }
-      this.xpub = this.account.neutered().toBase58();
+      this.setAccount(accountIndex);
+      this.xpub = this.account!.neutered().toBase58();
       this.encryptedMnemonic = encryption.encrypt(this.mnemonic, password);
     }
   }
@@ -106,6 +90,14 @@ export default class Wallet {
    */
   public getEncryptedMnemonic(): string | null {
     return this.encryptedMnemonic;
+  }
+
+  /**
+   * Decrypt the mnemonic with password
+   */
+  public static getDecryptedMnemonic(encryptedMnemonic: string, password: string): string | null {
+    if (!encryptedMnemonic) return null;
+    return encryption.decrypt(encryptedMnemonic, password);
   }
 
   /**
@@ -126,7 +118,12 @@ export default class Wallet {
   /**
    * Sets the active account branch to the specified account index.
    */
-  public setAccountIndex(index: number): void {
+  public setAccount(index: number): void {
+    // Choose derivation based on addressType:
+    // p2pkh -> BIP44: m/44'/coin'/accountIndex'
+    // p2sh   -> BIP49: m/49'/coin'/accountIndex'
+    // bech32 -> BIP84: m/84'/coin'/accountIndex'
+    // p2tr   -> BIP86: m/86'/coin'/accountIndex'
     if (this.addressType === 'p2pkh') {
       this.account = this.root.deriveHardened(44).deriveHardened(this.coin).deriveHardened(index);
     } else if (this.addressType === 'p2sh') {
@@ -239,14 +236,14 @@ export default class Wallet {
    */
   public addAccount(newIndex?: number): void {
     const index = newIndex !== undefined ? newIndex : this.accountIndex + 1;
-    this.setAccountIndex(index);
+    this.setAccount(index);
   }
 
   /**
    * Switches to the specified account index.
    */
   public switchAccount(accountIndex: number): void {
-    this.setAccountIndex(accountIndex);
+    this.setAccount(accountIndex);
   }
 
   /**
@@ -273,10 +270,5 @@ export default class Wallet {
     }
     psbt.finalizeAllInputs();
     return psbt.extractTransaction().toHex();
-  }
-
-  public static getDecryptedMnemonic(encryptedMnemonic: string, password: string): string | null {
-    if (!encryptedMnemonic) return null;
-    return encryption.decrypt(encryptedMnemonic, password);
   }
 }

@@ -15,7 +15,7 @@ function withSidePanel(manifest) {
     side_panel: {
       default_path: 'side-panel/index.html',
     },
-    permissions: ['sidePanel'],
+    permissions: ['sidePanel', 'alarms'],
   });
 }
 
