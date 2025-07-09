@@ -27,7 +27,6 @@ import Xpub from '@src/06_Settings/Xpub';
 
 export const App: React.FC = () => {
   const { onboarded, wallet } = useWalletContext();
-
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {

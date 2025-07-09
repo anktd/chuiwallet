@@ -3,12 +3,16 @@ import 'webextension-polyfill';
 import ElectrumService from '@extension/backend/src/modules/electrumService';
 import WalletManager from '@extension/backend/src/walletManager';
 import { Network } from '@extension/backend/src/types/electrum';
+import type { Preferences } from '@extension/backend/src/modules/preferences';
+import { loadPreferences } from '@extension/backend/src/modules/preferences';
 
 // walletThemeStorage.get().then(theme => {
 //   console.log('theme', theme);
 // });
 
+let preferences: Preferences;
 let electrumService: ElectrumService;
+
 function initElectrum(network: Network = Network.Mainnet) {
   // if we already have a connection, kill it first
   if (electrumService && typeof electrumService.close === 'function') {
@@ -22,10 +26,14 @@ function initElectrum(network: Network = Network.Mainnet) {
   });
 }
 
-chrome.storage.local.get(['storedAccount'], ({ storedAccount }) => {
-  initElectrum(storedAccount?.network || Network.Mainnet);
-});
+async function init() {
+  preferences = await loadPreferences();
+  initElectrum(preferences?.network || Network.Mainnet);
+}
 
+init();
+
+// ON Meesage Command
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   (async () => {
     try {
@@ -115,13 +123,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error('Error handling message:', error);
-      sendResponse({ success: false, error: error.message });
+      sendResponse({ success: false, error: error?.message || '' });
     }
   })();
 
   return true;
 });
 
+// ON Network Change
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === 'local' && changes.storedAccount) {
     console.log('Network changing to', changes.storedAccount.newValue.network);

@@ -65,7 +65,6 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   );
   const [lastTxFetchMap, setLastTxFetchMap] = useState<{ [accountIndex: number]: number }>({});
   const [gapLimit, setGapLimitState] = useState<number>(500);
-
   const manager = useMemo(() => new WalletManager(), []);
 
   const setWallet = (newWallet: Wallet, newPassword: string) => {
@@ -80,35 +79,29 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     await deleteSessionPassword();
   };
 
+  // Hydrate settings (onboarded, accountIndex, totalAccounts, fiatCurrency & gapLimit)
   useEffect(() => {
     chrome.storage.local.get(['storedAccount'], res => {
       const storedAccount: StoredAccount | undefined = res.storedAccount;
       if (storedAccount) {
-        if (storedAccount.walletOnboarded === true) {
+        if (storedAccount.walletOnboarded) {
           setOnboarded(true);
         }
 
-        if (typeof storedAccount.selectedAccountIndex === 'number') {
-          setSelectedAccountIndex(storedAccount.selectedAccountIndex);
-        }
-
-        if (typeof storedAccount.totalAccounts === 'number') {
-          setTotalAccounts(storedAccount.totalAccounts);
-        }
+        setSelectedAccountIndex(storedAccount.selectedAccountIndex);
+        setTotalAccounts(storedAccount.totalAccounts);
+        setGapLimitState(storedAccount.gapLimit);
 
         if (!storedAccount.fiatCurrency) {
           setSelectedFiatCurrency('USD');
         } else {
           setSelectedFiatCurrency(storedAccount.fiatCurrency);
         }
-
-        if (storedAccount && storedAccount.gapLimit !== undefined) {
-          setGapLimitState(storedAccount.gapLimit);
-        }
       }
     });
   }, []);
 
+  // Restore wallets from storedAccount?
   useEffect(() => {
     (async () => {
       const storedPwd = await getSessionPassword();
@@ -152,11 +145,12 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           }
         });
       } else {
-        clearWallet();
+        await clearWallet();
       }
     })();
   }, [manager]);
 
+  // Security Watchdog
   useEffect(() => {
     const interval = setInterval(() => {
       const currentPwd = getSessionPassword();
@@ -176,7 +170,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         return;
       }
 
-      wallet.setAccountIndex(index);
+      wallet.setAccount(index);
       setSelectedAccountIndex(index);
 
       chrome.storage.local.get(['storedAccount'], res => {
@@ -223,6 +217,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     });
   };
 
+  // Watching for two state: new account index and the total number of accounts, so as soon as that account is added, switch over to it once. “enqueue” an account-switch (by setting pendingNewAccountIndex) and wait for the code that actually increases totalAccounts to finish before firing the switch.
   useEffect(() => {
     if (pendingNewAccountIndex !== null && pendingNewAccountIndex < totalAccounts) {
       switchAccount(pendingNewAccountIndex);
@@ -403,6 +398,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }, [refreshBalance, totalAccounts]);
 
+  //Refresh balances of all accounts when wallet chg or total account change
   useEffect(() => {
     if (wallet) {
       refreshAllBalances();
@@ -436,18 +432,19 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     [cachedTxHistories, lastTxFetchMap, wallet],
   );
 
-  useEffect(() => {
-    if (wallet) {
-      refreshTxHistory(selectedAccountIndex);
-    }
-  }, [wallet, refreshTxHistory, selectedAccountIndex]);
-
+  //On wallet init/replace: refresh balances only
   useEffect(() => {
     if (wallet) {
       refreshAllBalances();
+    }
+  }, [wallet, refreshAllBalances]);
+
+  //On selectedAccountIndex change (or wallet init): refresh just the history
+  useEffect(() => {
+    if (wallet) {
       refreshTxHistory(selectedAccountIndex);
     }
-  }, [wallet, refreshAllBalances, refreshTxHistory, selectedAccountIndex]);
+  }, [wallet, selectedAccountIndex, refreshTxHistory]);
 
   const logout = () => {
     chrome.runtime.sendMessage({ action: 'logout' }, response => {
