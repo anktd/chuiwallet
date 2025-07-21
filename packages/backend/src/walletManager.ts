@@ -4,6 +4,7 @@ import { wallet } from './modules/wallet';
 import type { CreateWalletOptions } from './modules/wallet';
 import type { Network } from './types/electrum';
 import type { Preferences } from './modules/preferences';
+import { Account } from './types/wallet';
 
 /**
  * Manages the wallet lifecycle, including initialization, restoration, creation,
@@ -47,7 +48,6 @@ export class WalletManager {
     );
 
     if (forceCreate || !hasDefaultAccount) {
-      console.log('Deriving default account (index 0)');
       const defaultAccount = wallet.deriveAccount(0);
       const activeAccountIndex = await accountManager.add(defaultAccount);
       this.preferences.activeAccountIndex = activeAccountIndex;
@@ -59,7 +59,7 @@ export class WalletManager {
    * Gets the index of the active account from preferences.
    * @returns {number} The active account index.
    */
-  getActiveAccountIndex(): number {
+  getActiveAccountListIndex(): number {
     return this.preferences.activeAccountIndex;
   }
 
@@ -69,6 +69,14 @@ export class WalletManager {
    */
   getActiveNetwork(): Network {
     return this.preferences.activeNetwork;
+  }
+
+  public getHighestAccountIndex(): number {
+    const networkAccounts = accountManager.accounts.filter(a => a.network === this.preferences.activeNetwork);
+    if (networkAccounts.length === 0) {
+      return -1;
+    }
+    return Math.max(...networkAccounts.map(a => a.index));
   }
 
   /**
@@ -84,6 +92,13 @@ export class WalletManager {
       password,
     } as CreateWalletOptions);
     await this.ensureDefaultAccount(true); // Force creation for new wallets
+  }
+
+  async deriveNextAccount() {
+    const account = wallet.deriveAccount(this.getHighestAccountIndex() + 1);
+    const activeAccountIndex = await accountManager.add(account);
+    this.preferences.activeAccountIndex = activeAccountIndex;
+    await updatePreferences({ activeAccountIndex: activeAccountIndex });
   }
 }
 

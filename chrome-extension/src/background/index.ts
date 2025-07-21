@@ -1,7 +1,7 @@
 import 'webextension-polyfill';
 import Electrum from '@extension/backend/src/modules/electrum';
 import { Network } from '@extension/backend/src/types/electrum';
-import { walletManager } from '@extension/backend/dist/walletManager';
+import { walletManager } from '@extension/backend/src/walletManager';
 import { getSessionPassword, setSessionPassword } from '@extension/backend/src/utils/sessionStorageHelper';
 import type { Preferences } from '@extension/backend/src/modules/preferences';
 import { loadPreferences } from '@extension/backend/src/modules/preferences';
@@ -23,10 +23,7 @@ async function initElectrum(network: Network = Network.Mainnet) {
 }
 
 async function init() {
-  preferences = await loadPreferences();
-  await setSessionPassword('11111111');
   const sessionPassword = await getSessionPassword();
-
   await walletManager.init();
   if (await walletManager.restoreIfPossible(sessionPassword)) {
     await initElectrum(preferences.activeNetwork);

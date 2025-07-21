@@ -7,7 +7,6 @@ import * as bitcoin from 'bitcoinjs-lib';
 import { Network } from '../types/electrum';
 import type { Account, Vault, WalletMeta } from '../types/wallet';
 import { ScriptType } from '../types/wallet';
-import { AccountManager } from '../accountManager';
 
 const bip32 = BIP32Factory(secp256k1);
 const WALLET_KEY = 'wallet';
@@ -89,17 +88,39 @@ export class Wallet {
     await this.save();
   }
 
-  public deriveAccount(index: number): Account {
+  public deriveAccount(index: number, scriptType: ScriptType = ScriptType.P2WPKH): Account {
     if (!this.root) {
       throw new Error('Wallet is not ready');
     }
+
+    const coin = this.network === bitcoin.networks.testnet ? 1 : 0;
+    let purpose: number;
+    switch (scriptType) {
+      case ScriptType.P2PKH:
+        purpose = 44;
+        break;
+      case ScriptType.P2SH_P2WPKH:
+        purpose = 49;
+        break;
+      case ScriptType.P2TR:
+        purpose = 86;
+        break;
+      case ScriptType.P2WPKH:
+        purpose = 84;
+        break;
+      default:
+        throw new Error('Unknown script type');
+    }
+
+    const accountNode = this.root.deriveHardened(purpose).deriveHardened(coin).deriveHardened(index);
+    const accountXpub = accountNode.neutered().toBase58(); // Neutered for safety
 
     return {
       name: `Account #${index + 1}`,
       index,
       network: this.network === bitcoin.networks.bitcoin ? Network.Mainnet : Network.Testnet,
-      xpub: 'abc',
-      scriptType: ScriptType.P2WPKH,
+      xpub: accountXpub,
+      scriptType: scriptType,
     };
   }
 
