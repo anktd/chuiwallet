@@ -1,25 +1,90 @@
-import type { WalletOptions } from './modules/wallet.js';
-import Wallet from './modules/wallet.js';
+import { loadPreferences, updatePreferences } from './modules/preferences';
+import { accountManager } from './accountManager';
+import { wallet } from './modules/wallet';
+import type { CreateWalletOptions } from './modules/wallet';
+import type { Network } from './types/electrum';
+import type { Preferences } from './modules/preferences';
 
-export default class WalletManager {
-  private wallets: Wallet[];
+/**
+ * Manages the wallet lifecycle, including initialization, restoration, creation,
+ * account management, and preferences synchronization.
+ */
+export class WalletManager {
+  private preferences: Preferences;
 
-  constructor() {
-    this.wallets = [];
+  /**
+   * Initializes the wallet manager by loading preferences and initializing the wallet.
+   * @returns {Promise<void>} A promise that resolves when initialization is complete.
+   */
+  async init(): Promise<void> {
+    this.preferences = await loadPreferences();
+    await wallet.init();
   }
 
-  public createWallet(options: WalletOptions): Wallet {
-    const wallet = new Wallet(options);
-    this.wallets.push(wallet);
-    return wallet;
-  }
+  /**
+   * Attempts to restore the wallet if possible using the provided session password.
+   * @param {string} sessionPassword - The password from session storage.
+   * @returns {Promise<boolean>} True if restoration was successful, false otherwise.
+   */
+  async restoreIfPossible(sessionPassword: string | null): Promise<boolean> {
+    if (!wallet.isRestorable() || !sessionPassword) {
+      return false;
+    }
 
-  public getWallet(index: number = 0): Wallet {
-    return this.wallets[index];
-  }
-
-  public logout(): boolean {
-    this.wallets = [];
+    await wallet.restore(this.preferences.activeNetwork, sessionPassword);
+    await this.ensureDefaultAccount();
     return true;
   }
+
+  /**
+   * Ensures a default account (index 0) exists for the active network, deriving and adding it if necessary.
+   * @param {boolean} [forceCreate=false] - If true, creates the account even if one exists.
+   * @private
+   */
+  private async ensureDefaultAccount(forceCreate: boolean = false): Promise<void> {
+    const hasDefaultAccount = accountManager.accounts.some(
+      a => a.index === 0 && a.network === this.preferences.activeNetwork,
+    );
+
+    if (forceCreate || !hasDefaultAccount) {
+      console.log('Deriving default account (index 0)');
+      const defaultAccount = wallet.deriveAccount(0);
+      const activeAccountIndex = await accountManager.add(defaultAccount);
+      this.preferences.activeAccountIndex = activeAccountIndex;
+      await updatePreferences({ activeAccountIndex: activeAccountIndex });
+    }
+  }
+
+  /**
+   * Gets the index of the active account from preferences.
+   * @returns {number} The active account index.
+   */
+  getActiveAccountIndex(): number {
+    return this.preferences.activeAccountIndex;
+  }
+
+  /**
+   * Gets the active network from preferences.
+   * @returns {Network} The active network.
+   */
+  getActiveNetwork(): Network {
+    return this.preferences.activeNetwork;
+  }
+
+  /**
+   * Creates a new wallet with the provided mnemonic and password, and ensures a default account.
+   * @param {string} mnemonic - The mnemonic phrase for the new wallet.
+   * @param {string} password - The password to encrypt the vault.
+   * @returns {Promise<void>} A promise that resolves when creation is complete.
+   */
+  async createWallet(mnemonic: string, password: string): Promise<void> {
+    await wallet.create({
+      network: this.preferences.activeNetwork,
+      mnemonic,
+      password,
+    } as CreateWalletOptions);
+    await this.ensureDefaultAccount(true); // Force creation for new wallets
+  }
 }
+
+export const walletManager = new WalletManager();

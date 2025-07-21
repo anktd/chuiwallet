@@ -4,16 +4,18 @@ export interface Preferences {
   gapLimitReceive: number;
   gapLimitChange: number;
   locale: string;
-  network: Network;
-  activeAccount: number;
+  fiatCurrency: string;
+  activeAccountIndex: number;
+  activeNetwork: Network;
 }
 
 export const defaultPreferences: Preferences = {
   gapLimitReceive: 500,
   gapLimitChange: 20,
   locale: 'en',
-  network: Network.Mainnet,
-  activeAccount: 0,
+  fiatCurrency: 'USD',
+  activeAccountIndex: -1,
+  activeNetwork: Network.Mainnet,
 };
 
 const STORAGE_KEY = 'preferences';

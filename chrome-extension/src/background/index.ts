@@ -1,73 +1,76 @@
 import 'webextension-polyfill';
-// import { walletThemeStorage } from '@extension/storage';
-import ElectrumService from '@extension/backend/src/modules/electrumService';
-import WalletManager from '@extension/backend/src/walletManager';
+import Electrum from '@extension/backend/src/modules/electrum';
 import { Network } from '@extension/backend/src/types/electrum';
+import { walletManager } from '@extension/backend/dist/walletManager';
+import { getSessionPassword, setSessionPassword } from '@extension/backend/src/utils/sessionStorageHelper';
 import type { Preferences } from '@extension/backend/src/modules/preferences';
 import { loadPreferences } from '@extension/backend/src/modules/preferences';
 
-// walletThemeStorage.get().then(theme => {
-//   console.log('theme', theme);
-// });
-
 let preferences: Preferences;
-let electrumService: ElectrumService;
+let electrum: Electrum;
 
-function initElectrum(network: Network = Network.Mainnet) {
+async function initElectrum(network: Network = Network.Mainnet) {
   // if we already have a connection, kill it first
-  if (electrumService && typeof electrumService.close === 'function') {
-    electrumService.close();
+  if (electrum && typeof electrum.close === 'function') {
+    electrum.close();
   }
 
   // create & connect a fresh instance
-  electrumService = new ElectrumService(network);
-  electrumService.autoSelectAndConnect().catch(err => {
+  electrum = new Electrum(network);
+  await electrum.autoSelectAndConnect().catch(err => {
     console.error('Failed to connect to Electrum server:', err);
   });
 }
 
 async function init() {
   preferences = await loadPreferences();
-  initElectrum(preferences?.network || Network.Mainnet);
+  await setSessionPassword('11111111');
+  const sessionPassword = await getSessionPassword();
+
+  await walletManager.init();
+  if (await walletManager.restoreIfPossible(sessionPassword)) {
+    await initElectrum(preferences.activeNetwork);
+    // await initScanManager();
+  } else {
+    // Nothing / Unable to restore
+  }
 }
 
-init();
+init().catch(error => {
+  console.error(error);
+});
 
 // ON Meesage Command
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   (async () => {
     try {
       if (request.action === 'getBalance') {
-        const balance = await electrumService.getBalanceWithUsd(request.walletAddress);
+        const balance = await electrum.getBalanceWithUsd(request.walletAddress);
         sendResponse({ success: true, balance });
       } else if (request.action === 'getHistory') {
-        const history = await electrumService.getDetailedHistory(request.walletAddress);
+        const history = await electrum.getDetailedHistory(request.walletAddress);
         sendResponse({ success: true, history: history });
       } else if (request.action === 'getFeeEstimates') {
-        const estimates = await electrumService.getFeeEstimates(request.from, request.to);
+        const estimates = await electrum.getFeeEstimates(request.from, request.to);
         sendResponse({ success: true, estimates });
       } else if (request.action === 'getCustomFeeEstimates') {
-        const customEstimate = await electrumService.getCustomFeeEstimates(
-          request.from,
-          request.to,
-          request.customSats,
-        );
+        const customEstimate = await electrum.getCustomFeeEstimates(request.from, request.to, request.customSats);
         sendResponse({ success: true, customEstimate });
       } else if (request.action === 'sendTransaction') {
-        const txid = await electrumService.sendTransaction(request.rawTxHex);
+        const txid = await electrum.sendTransaction(request.rawTxHex);
         sendResponse({ success: true, txid });
       } else if (request.action === 'signAndSendTransaction') {
-        const walletData = request.walletData;
-        const walletManager = new WalletManager();
-        const wallet = walletManager.createWallet({
-          password: walletData.password,
-          mnemonic: walletData.mnemonic,
-          network: walletData.network,
-          addressType: walletData.addressType,
-          accountIndex: walletData.accountIndex,
-        });
-        const txid = await electrumService.signAndSendTransaction(wallet, request.to, request.amount, request.feeRates);
-        sendResponse({ success: true, txid });
+        // const walletData = request.walletData;
+        // const walletManager = new WalletManager();
+        // const wallet = walletManager.createWallet({
+        //   password: walletData.password,
+        //   mnemonic: walletData.mnemonic,
+        //   network: walletData.network,
+        //   addressType: walletData.addressType,
+        //   accountIndex: walletData.accountIndex,
+        // });
+        // const txid = await electrum.signAndSendTransaction(wallet, request.to, request.amount, request.feeRates);
+        // sendResponse({ success: true, txid });
       } else if (request.action === 'captureScreenshot') {
         chrome.tabs.captureVisibleTab({ format: 'png' }, (dataUrl: string | undefined) => {
           if (chrome.runtime.lastError || !dataUrl) {
@@ -100,10 +103,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         });
         sendResponse({ started: true });
       } else if (request.action === 'logout') {
-        const walletManager = new WalletManager();
-        const result = walletManager.logout();
-        sendResponse({ success: result });
-        return true;
+        // const walletManager = new WalletManager();
+        // const result = walletManager.logout();
+        // sendResponse({ success: result });
+        // return true;
       } else if (request.action === 'openXpub') {
         chrome.windows.create(
           {
@@ -135,7 +138,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
   if (area === 'local' && changes.storedAccount) {
     console.log('Network changing to', changes.storedAccount.newValue.network);
     initElectrum(changes.storedAccount.newValue.network);
-    electrumService.autoSelectAndConnect().catch(err => {
+    electrum.autoSelectAndConnect().catch(err => {
       console.error('Failed to connect to Electrum server:', err);
     });
   }
