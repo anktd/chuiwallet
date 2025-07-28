@@ -4,7 +4,6 @@ import { wallet } from './modules/wallet';
 import type { CreateWalletOptions } from './modules/wallet';
 import type { Network } from './types/electrum';
 import type { Preferences } from './modules/preferences';
-import { Account } from './types/wallet';
 
 /**
  * Manages the wallet lifecycle, including initialization, restoration, creation,
@@ -56,6 +55,22 @@ export class WalletManager {
   }
 
   /**
+   * Derive new receiving address for the active account
+   * @param chain
+   * @param index
+   */
+  public deriveAddress(chain: number, index: number): string {
+    const activeIndex = this.getActiveAccountListIndex();
+    const activeAccount = accountManager.accounts[activeIndex];
+    if (!activeAccount) {
+      throw new Error('No active account available');
+    }
+    // Todo: (Optional) Check if wallet is restored/unlocked
+
+    return wallet.deriveAddress(activeAccount, chain, index);
+  }
+
+  /**
    * Gets the index of the active account from preferences.
    * @returns {number} The active account index.
    */
@@ -94,6 +109,9 @@ export class WalletManager {
     await this.ensureDefaultAccount(true); // Force creation for new wallets
   }
 
+  /**
+   * Derive and set the next account as active
+   */
   async deriveNextAccount() {
     const account = wallet.deriveAccount(this.getHighestAccountIndex() + 1);
     const activeAccountIndex = await accountManager.add(account);

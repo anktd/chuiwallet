@@ -23,13 +23,14 @@ async function initElectrum(network: Network = Network.Mainnet) {
 }
 
 async function init() {
+  preferences = await loadPreferences();
   const sessionPassword = await getSessionPassword();
   await walletManager.init();
   if (await walletManager.restoreIfPossible(sessionPassword)) {
     await initElectrum(preferences.activeNetwork);
     // await initScanManager();
   } else {
-    // Nothing / Unable to restore
+    // Unable or nothing to restore
   }
 }
 

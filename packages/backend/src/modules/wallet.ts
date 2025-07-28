@@ -5,8 +5,9 @@ import * as bip39 from 'bip39';
 import * as secp256k1 from '@bitcoinerlab/secp256k1';
 import * as bitcoin from 'bitcoinjs-lib';
 import { Network } from '../types/electrum';
-import type { Account, Vault, WalletMeta } from '../types/wallet';
 import { ScriptType } from '../types/wallet';
+import type { Payment } from 'bitcoinjs-lib';
+import type { Account, Vault, WalletMeta } from '../types/wallet';
 
 const bip32 = BIP32Factory(secp256k1);
 const WALLET_KEY = 'wallet';
@@ -15,7 +16,6 @@ const WALLET_KEY = 'wallet';
  * CreateWalletOptions specify how to restore or create a wallet.
  * - If xpriv is provided, the wallet will be restored from the extended private key.
  * - If a mnemonic is provided (and valid), the wallet is restored from that mnemonic.
- * - Otherwise, a new mnemonic (and wallet) is generated.
  *
  * The network option determines whether the wallet is on "mainnet" or "testnet".
  */
@@ -88,6 +88,44 @@ export class Wallet {
     await this.save();
   }
 
+  /**
+   * Derive an address for based on account, chain & index provide
+   * @param account
+   * @param chain
+   * @param index
+   */
+  public deriveAddress(account: Account, chain: number, index: number): string {
+    if (!account.xpub) {
+      throw new Error('Account missing xpub');
+    }
+
+    const network = account.network === Network.Mainnet ? bitcoin.networks.bitcoin : bitcoin.networks.testnet;
+    const accountNode = bip32.fromBase58(account.xpub, network);
+    const childNode = accountNode.derive(chain).derive(index);
+    const publicKey = Buffer.from(childNode.publicKey);
+
+    switch (account.scriptType) {
+      case ScriptType.P2PKH:
+        return bitcoin.payments.p2pkh({ pubkey: publicKey, network } as Payment).address;
+      case ScriptType.P2SH_P2WPKH:
+        return bitcoin.payments.p2sh({
+          redeem: bitcoin.payments.p2wpkh({ pubkey: publicKey, network } as Payment),
+          network,
+        }).address;
+      case ScriptType.P2WPKH:
+        return bitcoin.payments.p2wpkh({ pubkey: publicKey, network } as Payment).address;
+      case ScriptType.P2TR:
+        return bitcoin.payments.p2tr({ internalPubkey: publicKey.slice(1), network } as Payment).address; // Taproot uses x-only pubkey
+      default:
+        throw new Error('Unsupported script type');
+    }
+  }
+
+  /**
+   * Derive an account based on index provided
+   * @param index
+   * @param scriptType
+   */
   public deriveAccount(index: number, scriptType: ScriptType = ScriptType.P2WPKH): Account {
     if (!this.root) {
       throw new Error('Wallet is not ready');
