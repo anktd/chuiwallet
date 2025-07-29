@@ -1,12 +1,12 @@
-import 'webextension-polyfill';
+import browser from 'webextension-polyfill';
 import Electrum from '@extension/backend/src/modules/electrum';
 import { Network } from '@extension/backend/src/types/electrum';
+import { preferenceManager } from '@extension/backend/src/preferenceManager';
 import { walletManager } from '@extension/backend/src/walletManager';
+import { accountManager } from '@extension/backend/src/accountManager';
+import { scanManager } from '@extension/backend/src/scanManager';
 import { getSessionPassword, setSessionPassword } from '@extension/backend/src/utils/sessionStorageHelper';
-import type { Preferences } from '@extension/backend/src/modules/preferences';
-import { loadPreferences } from '@extension/backend/src/modules/preferences';
 
-let preferences: Preferences;
 let electrum: Electrum;
 
 async function initElectrum(network: Network = Network.Mainnet) {
@@ -23,12 +23,13 @@ async function initElectrum(network: Network = Network.Mainnet) {
 }
 
 async function init() {
-  preferences = await loadPreferences();
-  const sessionPassword = await getSessionPassword();
+  await preferenceManager.init();
   await walletManager.init();
+  const sessionPassword = await getSessionPassword();
   if (await walletManager.restoreIfPossible(sessionPassword)) {
-    await initElectrum(preferences.activeNetwork);
-    // await initScanManager();
+    await initElectrum(preferenceManager.get().activeNetwork);
+    await accountManager.init(preferenceManager.get().activeAccountIndex);
+    await scanManager.init(accountManager.accounts[accountManager.activeAccountIndex]);
   } else {
     // Unable or nothing to restore
   }

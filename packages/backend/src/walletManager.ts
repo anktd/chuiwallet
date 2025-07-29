@@ -1,23 +1,19 @@
-import { loadPreferences, updatePreferences } from './modules/preferences';
 import { accountManager } from './accountManager';
 import { wallet } from './modules/wallet';
 import type { CreateWalletOptions } from './modules/wallet';
 import type { Network } from './types/electrum';
-import type { Preferences } from './modules/preferences';
+import { preferenceManager } from './preferenceManager';
 
 /**
  * Manages the wallet lifecycle, including initialization, restoration, creation,
  * account management, and preferences synchronization.
  */
 export class WalletManager {
-  private preferences: Preferences;
-
   /**
    * Initializes the wallet manager by loading preferences and initializing the wallet.
    * @returns {Promise<void>} A promise that resolves when initialization is complete.
    */
   async init(): Promise<void> {
-    this.preferences = await loadPreferences();
     await wallet.init();
   }
 
@@ -31,7 +27,7 @@ export class WalletManager {
       return false;
     }
 
-    await wallet.restore(this.preferences.activeNetwork, sessionPassword);
+    await wallet.restore(preferenceManager.get().activeNetwork, sessionPassword);
     await this.ensureDefaultAccount();
     return true;
   }
@@ -43,14 +39,14 @@ export class WalletManager {
    */
   private async ensureDefaultAccount(forceCreate: boolean = false): Promise<void> {
     const hasDefaultAccount = accountManager.accounts.some(
-      a => a.index === 0 && a.network === this.preferences.activeNetwork,
+      a => a.index === 0 && a.network === preferenceManager.get().activeNetwork,
     );
 
     if (forceCreate || !hasDefaultAccount) {
       const defaultAccount = wallet.deriveAccount(0);
       const activeAccountIndex = await accountManager.add(defaultAccount);
-      this.preferences.activeAccountIndex = activeAccountIndex;
-      await updatePreferences({ activeAccountIndex: activeAccountIndex });
+      preferenceManager.get().activeAccountIndex = activeAccountIndex;
+      await preferenceManager.update({ activeAccountIndex: activeAccountIndex });
     }
   }
 
@@ -71,21 +67,24 @@ export class WalletManager {
   }
 
   /**
-   * Gets the index of the active account from preferences.
-   * @returns {number} The active account index.
-   */
-  getActiveAccountListIndex(): number {
-    return this.preferences.activeAccountIndex;
-  }
-
-  /**
    * Gets the active network from preferences.
    * @returns {Network} The active network.
    */
-  getActiveNetwork(): Network {
+  public getActiveNetwork(): Network {
     return this.preferences.activeNetwork;
   }
 
+  /**
+   * Gets the index of the active account from preferences.
+   * @returns {number} The active account index.
+   */
+  public getActiveAccountListIndex(): number {
+    return preferenceManager.get().activeAccountIndex;
+  }
+
+  /**
+   * Gets the highest account index
+   */
   public getHighestAccountIndex(): number {
     const networkAccounts = accountManager.accounts.filter(a => a.network === this.preferences.activeNetwork);
     if (networkAccounts.length === 0) {
@@ -100,9 +99,9 @@ export class WalletManager {
    * @param {string} password - The password to encrypt the vault.
    * @returns {Promise<void>} A promise that resolves when creation is complete.
    */
-  async createWallet(mnemonic: string, password: string): Promise<void> {
+  public async createWallet(mnemonic: string, password: string): Promise<void> {
     await wallet.create({
-      network: this.preferences.activeNetwork,
+      network: preferenceManager.get().activeNetwork,
       mnemonic,
       password,
     } as CreateWalletOptions);
@@ -112,11 +111,11 @@ export class WalletManager {
   /**
    * Derive and set the next account as active
    */
-  async deriveNextAccount() {
+  public async deriveNextAccount() {
     const account = wallet.deriveAccount(this.getHighestAccountIndex() + 1);
     const activeAccountIndex = await accountManager.add(account);
-    this.preferences.activeAccountIndex = activeAccountIndex;
-    await updatePreferences({ activeAccountIndex: activeAccountIndex });
+    preferenceManager.get().activeAccountIndex = activeAccountIndex;
+    await preferenceManager.update({ activeAccountIndex: activeAccountIndex });
   }
 }
 
