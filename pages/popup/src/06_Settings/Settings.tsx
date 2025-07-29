@@ -12,6 +12,11 @@ export const Settings: React.FC = () => {
     navigate('/onboard/set-password');
   };
 
+  const handleLockWallet = () => {
+    // TODO: Implement lock wallet functionality
+    console.log('lock wallet clicked');
+  };
+
   return (
     <div className="flex flex-col items-center text-white bg-dark h-full px-4 pt-12 pb-[19px]">
       <Header title="Settings" />
@@ -30,6 +35,20 @@ export const Settings: React.FC = () => {
             alt=""
             className="object-contain shrink-0 w-6 aspect-square"
           />
+        </button>
+
+        <button
+          className="flex gap-10 justify-between items-start py-2 w-full text-base leading-none text-white"
+          onClick={handleLockWallet}>
+          <div className="flex items-center gap-2">
+            <img
+              loading="lazy"
+              src={chrome.runtime.getURL('popup/lock_icon.svg')}
+              alt=""
+              className="object-contain shrink-0 w-4 h-4"
+            />
+            <span className="text-base font-bold">Lock Chui</span>
+          </div>
         </button>
 
         <button
