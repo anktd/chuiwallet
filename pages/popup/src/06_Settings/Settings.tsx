@@ -5,16 +5,19 @@ import { useWalletContext } from '@src/context/WalletContext';
 
 export const Settings: React.FC = () => {
   const navigate = useNavigate();
-  const { logout } = useWalletContext();
+  const { logout, lockWallet } = useWalletContext();
 
   const handleLogout = () => {
     logout();
     navigate('/onboard/set-password');
   };
 
-  const handleLockWallet = () => {
-    // TODO: Implement lock wallet functionality
-    console.log('lock wallet clicked');
+  const handleLockWallet = async () => {
+    try {
+      await lockWallet();
+    } catch (err) {
+      console.error('Error locking wallet:', err);
+    }
   };
 
   return (
