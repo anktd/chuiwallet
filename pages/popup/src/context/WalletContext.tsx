@@ -360,6 +360,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
               setSelectedAccountIndex(storedAccount.selectedAccountIndex);
               setTotalAccounts(storedAccount.totalAccounts);
               setSelectedFiatCurrency(storedAccount.fiatCurrency);
+              setOnboarded(true);
               setIsLocked(false);
               chrome.storage.local.remove('walletLocked');
             } else {
