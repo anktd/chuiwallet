@@ -118,7 +118,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   // Restore wallets from storedAccount? - only after initialization and if not locked
   useEffect(() => {
-    if (!isInitialized || isLocked === null || isLocked === true) {
+    if (!isInitialized || isLocked === null || isLocked || wallet) {
       return;
     }
     (async () => {
