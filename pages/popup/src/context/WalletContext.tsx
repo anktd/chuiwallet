@@ -18,7 +18,7 @@ interface WalletContextType {
   onboarded: boolean;
   isRestored: boolean;
   network: 'mainnet' | 'testnet';
-  isLocked: boolean | false;
+  isLocked: boolean | null;
   isInitialized: boolean;
   setWallet: (wallet: Wallet, password: string) => void;
   setSelectedAccountIndex: (index: number) => void;
