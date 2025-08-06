@@ -71,7 +71,7 @@ export class WalletManager {
    * @returns {Network} The active network.
    */
   public getActiveNetwork(): Network {
-    return this.preferences.activeNetwork;
+    return preferenceManager.get().activeNetwork;
   }
 
   /**
@@ -86,7 +86,7 @@ export class WalletManager {
    * Gets the highest account index
    */
   public getHighestAccountIndex(): number {
-    const networkAccounts = accountManager.accounts.filter(a => a.network === this.preferences.activeNetwork);
+    const networkAccounts = accountManager.accounts.filter(a => a.network === preferenceManager.get().activeNetwork);
     if (networkAccounts.length === 0) {
       return -1;
     }
