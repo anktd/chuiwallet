@@ -1,35 +1,24 @@
 import browser from 'webextension-polyfill';
-import Electrum from '@extension/backend/src/modules/electrum';
-import { Network } from '@extension/backend/src/types/electrum';
+import { getSessionPassword, setSessionPassword } from '@extension/backend/src/utils/sessionStorageHelper';
 import { preferenceManager } from '@extension/backend/src/preferenceManager';
 import { walletManager } from '@extension/backend/src/walletManager';
 import { accountManager } from '@extension/backend/src/accountManager';
-import { scanManager } from '@extension/backend/src/scanManager';
-import { getSessionPassword, setSessionPassword } from '@extension/backend/src/utils/sessionStorageHelper';
-
-let electrum: Electrum;
-
-async function initElectrum(network: Network = Network.Mainnet) {
-  // if we already have a connection, kill it first
-  if (electrum && typeof electrum.close === 'function') {
-    electrum.close();
-  }
-
-  // create & connect a fresh instance
-  electrum = new Electrum(network);
-  await electrum.autoSelectAndConnect().catch(err => {
-    console.error('Failed to connect to Electrum server:', err);
-  });
-}
+import { ChangeType, scanManager } from '@extension/backend/src/scanManager';
+import { electrumService } from '@extension/backend/src/modules/electrumService';
 
 async function init() {
   await preferenceManager.init();
   await walletManager.init();
+  await setSessionPassword('11111111');
   const sessionPassword = await getSessionPassword();
   if (await walletManager.restoreIfPossible(sessionPassword)) {
-    await initElectrum(preferenceManager.get().activeNetwork);
+    console.log('Restoring...');
+    await electrumService.init(preferenceManager.get().activeNetwork);
     await accountManager.init(preferenceManager.get().activeAccountIndex);
-    await scanManager.init(accountManager.accounts[accountManager.activeAccountIndex]);
+    await scanManager.init();
+    await scanManager.forwardScan();
+    await scanManager.forwardScan(ChangeType.Internal);
+    // await scanManager.addHistory();
   } else {
     // Unable or nothing to restore
   }

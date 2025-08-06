@@ -9,7 +9,7 @@ const ACCOUNTS_KEY = 'accounts';
  */
 export class AccountManager {
   public accounts: Account[] = [];
-  public activeAccountIndex: number;
+  public activeAccountIndex: number = -1;
 
   /**
    * Initialize by loading accounts and set active account index.
@@ -40,6 +40,16 @@ export class AccountManager {
     await this.save();
 
     return this.activeAccountIndex;
+  }
+
+  /**
+   * Get the currently active account
+   */
+  public getActiveAccount(): Account {
+    if (this.activeAccountIndex < 0 || this.activeAccountIndex >= this.accounts.length) {
+      throw new Error('No active account');
+    }
+    return this.accounts[this.activeAccountIndex];
   }
 
   /**

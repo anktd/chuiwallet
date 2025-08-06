@@ -1,8 +1,8 @@
 import { accountManager } from './accountManager';
 import { wallet } from './modules/wallet';
+import { preferenceManager } from './preferenceManager';
 import type { CreateWalletOptions } from './modules/wallet';
 import type { Network } from './types/electrum';
-import { preferenceManager } from './preferenceManager';
 
 /**
  * Manages the wallet lifecycle, including initialization, restoration, creation,

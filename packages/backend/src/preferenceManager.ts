@@ -22,7 +22,7 @@ export const defaultPreferences: Preferences = {
 const STORAGE_KEY = 'preferences';
 
 export class PreferenceManager {
-  private preferences: Preferences;
+  private preferences: Preferences | undefined;
 
   public async init(): Promise<void> {
     if (this.preferences) return;
@@ -30,7 +30,7 @@ export class PreferenceManager {
   }
 
   public get(): Preferences {
-    if (this.preferences) {
+    if (!this.preferences) {
       throw new Error('Preference manager not initialised');
     }
 
