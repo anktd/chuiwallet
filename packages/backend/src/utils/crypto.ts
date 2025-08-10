@@ -1,4 +1,6 @@
 import * as bitcoin from 'bitcoinjs-lib';
+import { Network } from '../types/electrum';
+import { Buffer } from 'buffer';
 
 /**
  * Convert bitcoin address to an Electrum script hash.
@@ -14,10 +16,22 @@ export async function addressToScriptHash(address: string, network: bitcoin.Netw
   return reversedHash.toString('hex');
 }
 
+export function addressToScriptPubKey(address: string, network: bitcoin.Network) {
+  return bitcoin.address.toOutputScript(address, network).toString('hex');
+}
+
 /**
  * Compute SHA-256 hash.
  */
 export async function sha256(data: Buffer): Promise<Buffer> {
-  const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   return Buffer.from(new Uint8Array(hashBuffer));
+}
+
+/**
+ * Convert Network type to Bitcoin networks
+ * @param network
+ */
+export function toBitcoinNetwork(network: Network) {
+  return network == Network.Mainnet ? bitcoin.networks.bitcoin : bitcoin.networks.testnet;
 }
