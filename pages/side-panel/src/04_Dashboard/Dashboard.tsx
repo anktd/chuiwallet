@@ -11,16 +11,17 @@ export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { cachedBalances, refreshBalance, selectedAccountIndex, selectedFiatCurrency, wallet } = useWalletContext();
 
-  const [showChooseReceiveCurrencySlide, setShowChooseReceiveCurrencySlide] = React.useState(false);
-  const [showChooseSendCurrencySlide, setShowChooseSendCurrencySlide] = React.useState(false);
+  // TODO: uncomment when multiple currency supported
+  // const [showChooseReceiveCurrencySlide, setShowChooseReceiveCurrencySlide] = React.useState(false);
+  // const [showChooseSendCurrencySlide, setShowChooseSendCurrencySlide] = React.useState(false);
 
-  const handleToggleChooseReceiveCurrencySlide = () => {
-    setShowChooseReceiveCurrencySlide(!showChooseReceiveCurrencySlide);
-  };
+  // const handleToggleChooseReceiveCurrencySlide = () => {
+  //   setShowChooseReceiveCurrencySlide(!showChooseReceiveCurrencySlide);
+  // };
 
-  const handleToggleChooseSendCurrencySlide = () => {
-    setShowChooseSendCurrencySlide(!showChooseSendCurrencySlide);
-  };
+  // const handleToggleChooseSendCurrencySlide = () => {
+  //   setShowChooseSendCurrencySlide(!showChooseSendCurrencySlide);
+  // };
 
   React.useEffect(() => {
     if (wallet) {
@@ -104,12 +105,18 @@ export const Dashboard: React.FC = () => {
           </>
         ) : (
           <>
+            <CryptoButton icon="popup/receive_icon.svg" label="Receive" onClick={() => navigate('/receive/btc')} />
             <CryptoButton
-              icon="popup/receive_icon.svg"
-              label="Receive"
-              onClick={handleToggleChooseReceiveCurrencySlide}
+              icon="popup/send_icon.svg"
+              label="Send"
+              onClick={() =>
+                navigate('/send/btc', {
+                  state: {
+                    balance: balance ? balance.confirmed / 1e8 : 0,
+                  },
+                })
+              }
             />
-            <CryptoButton icon="popup/send_icon.svg" label="Send" onClick={handleToggleChooseSendCurrencySlide} />
           </>
         )}
       </div>
@@ -146,7 +153,8 @@ export const Dashboard: React.FC = () => {
             })
           }
         />
-        <CryptoBalance
+        {/* TODO: uncomment when BCH support is added */}
+        {/* <CryptoBalance
           cryptoName="Bitcoin Cash"
           cryptoAmount={selectedFiatCurrency === 'USD' ? `0 USD` : `0 BCH`}
           usdAmount={selectedFiatCurrency === 'USD' ? `0 BCH` : `0 USD`}
@@ -154,8 +162,9 @@ export const Dashboard: React.FC = () => {
           isLoading={balanceLoading}
           disabled={true}
           onClick={() => navigate('/dashboard/bch/activity')}
-        />
-        <CryptoBalance
+        /> */}
+        {/* TODO: uncomment when USDT support is added */}
+        {/* <CryptoBalance
           cryptoName="USDT"
           cryptoAmount={selectedFiatCurrency === 'USD' ? `0 USD` : `0 USDT`}
           usdAmount={selectedFiatCurrency === 'USD' ? `0 USDT` : `0 USD`}
@@ -163,10 +172,11 @@ export const Dashboard: React.FC = () => {
           isLoading={balanceLoading}
           disabled={true}
           onClick={() => navigate('/dashboard/usdt/activity')}
-        />
+        /> */}
       </div>
 
-      <AnimatePresence>
+      {/* TODO: when multiple cryptos supported -> uncomment currency selection modals */}
+      {/* <AnimatePresence>
         {showChooseReceiveCurrencySlide && (
           <motion.div
             className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50 flex items-end justify-center"
@@ -300,7 +310,7 @@ export const Dashboard: React.FC = () => {
             </motion.div>
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence> */}
     </div>
   );
 };
