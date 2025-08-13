@@ -75,7 +75,7 @@ export const RevealSeed: React.FC = () => {
 
       <div className="w-full flex justify-center max-w-[600px] mx-auto">
         <button
-          className="relative text-xs font-bold leading-5 text-primary-yellow whitespace-nowrap rounded-2xl flex gap-1"
+          className="relative text-xs font-bold leading-5 text-primary-yellow whitespace-nowrap rounded-2xl flex items-center gap-1"
           tabIndex={0}
           onClick={handleCopyToClipboard}>
           <span>Copy</span>
