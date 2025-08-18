@@ -5,6 +5,7 @@ import { accountManager } from './accountManager';
 import { walletManager } from './walletManager';
 import { preferenceManager } from './preferenceManager';
 import { electrumService } from './modules/electrumService';
+import { logger } from './utils/logger';
 
 export enum CacheType {
   Address = 'address',
@@ -20,6 +21,7 @@ export enum ChangeType {
 export interface ScanManagerConfig {
   externalGapLimit: number;
   internalGapLimit: number;
+  forwardExtendMaxPasses: number;
   staleBatchSize: number;
   electrumBatchSize: number;
   pruneThresholdDays: number;
@@ -28,12 +30,13 @@ export interface ScanManagerConfig {
 export const defaultScanConfig: ScanManagerConfig = {
   externalGapLimit: 500,
   internalGapLimit: 20,
+  forwardExtendMaxPasses: 10,
   staleBatchSize: 50,
-  electrumBatchSize: 10,
+  electrumBatchSize: 20,
   pruneThresholdDays: 7,
 };
 
-export default class ScanManager {
+export class ScanManager {
   private config: ScanManagerConfig;
   private addressCacheReceive = new Map<number, AddressEntry>();
   private addressCacheChange = new Map<number, AddressEntry>();
@@ -45,9 +48,8 @@ export default class ScanManager {
   private highestScannedChange = -1;
   private highestUsedReceive = -1;
   private highestUsedChange = -1;
-  // nextReceiveIndex = 0;
-  // nextChangeIndex = 0;
-  public isScanning = false;
+  nextReceiveIndex = 0;
+  nextChangeIndex = 0;
 
   constructor(config: ScanManagerConfig = defaultScanConfig) {
     this.config = { ...config };
@@ -57,50 +59,78 @@ export default class ScanManager {
     await this.loadAddress();
     await this.loadHistory();
     await this.loadUtxo();
-    this.setHighestScanned();
-    this.setHighestUsed();
+    this.initHighestScanned();
+    this.initHighestUsed();
     console.log(`Highest Scanned (Receive|Change): ${this.highestScannedReceive} | ${this.highestScannedChange}`);
     console.log(`Highest Used (Receive|Change): ${this.highestUsedReceive} | ${this.highestUsedChange}`);
   }
 
-  public async addHistory() {
-    console.log('Setting history');
-    const index = 2;
-    this.historyCacheReceive.set(index, {
-      lastChecked: Date.now(),
-      txs: [['txid', 0]],
-    });
+  /**
+   * Forward scan the address chain by deriving to gapLimit
+   * @param changeType
+   */
+  public async forwardScan(changeType: ChangeType = ChangeType.External) {
+    let passes = 0;
+    while (passes < this.config.forwardExtendMaxPasses) {
+      const gapLimit = this.selectByChain(this.config.externalGapLimit, this.config.internalGapLimit, changeType);
+      const highestUsed = this.selectByChain(this.highestUsedReceive, this.highestUsedChange, changeType);
+      const highestScanned = this.selectByChain(this.highestScannedReceive, this.highestScannedChange, changeType);
+      const windowToScan = Math.max(0, highestUsed) + gapLimit - highestScanned - 1;
+      if (windowToScan <= 0) {
+        logger.log(`Forward scan up-to-date (used=${highestUsed}, scanned=${highestScanned}, gap=${gapLimit})`);
+        break;
+      }
 
-    this.highestUsedReceive = index;
-    await this.saveHistory();
-    console.log(this.historyCacheReceive);
+      const startIndex = highestScanned + 1;
+      const endIndex = startIndex + windowToScan - 1;
+
+      // derive missing first
+      await this.derive(startIndex, endIndex, changeType);
+
+      // Build indices to scan
+      const indices = [];
+      for (let i = startIndex; i <= endIndex; i++) {
+        indices.push(i);
+      }
+      await this.scan(indices, changeType);
+      passes++;
+    }
   }
 
-  public async forwardScan(changeType: ChangeType = ChangeType.External) {
-    const gapLimit = changeType === ChangeType.External ? this.config.externalGapLimit : this.config.internalGapLimit;
-    const highestUsed = changeType === ChangeType.External ? this.highestUsedReceive : this.highestUsedChange;
-    const highestScanned = changeType === ChangeType.External ? this.highestScannedReceive : this.highestScannedChange;
-    const unusedDelta = Math.max(0, highestScanned - highestUsed);
-    const windowToScan = gapLimit - unusedDelta;
-    if (windowToScan <= 0) {
-      console.log('No scanning needed as unused range still within gap limit');
-      return;
+  /**
+   * Backfill scan continuously scan unused derived addresses within threshold limit (days) order by staleness, in batch of staleBatchSize
+   * @param changeType
+   */
+  public async backfillScan(changeType: ChangeType = ChangeType.External) {
+    const gapLimit = this.selectByChain(this.config.externalGapLimit, this.config.internalGapLimit, changeType);
+    const highestUsed = this.selectByChain(this.highestUsedReceive, this.highestUsedChange, changeType);
+    const highestScanned = this.selectByChain(this.highestScannedReceive, this.highestScannedChange, changeType);
+    const addressCache = this.selectByChain(this.addressCacheReceive, this.addressCacheChange, changeType);
+
+    // Nothing derived yet
+    if (highestScanned < 0) return;
+
+    // Backfill window: only within derived space, bounded by highestUsed + gap
+    const windowEnd = Math.min(highestScanned, Math.max(0, highestUsed) + gapLimit);
+
+    // Pick stale candidates: UNUSED only, oldest lastChecked first
+    const candidates: Array<{ index: number; lastChecked: number }> = [];
+    for (let idx = 0; idx <= windowEnd; idx++) {
+      const addressEntry = addressCache.get(idx);
+      if (!addressEntry) continue;
+      if (addressEntry.everUsed) continue; // backfill is for "unused" addresses
+      candidates.push({ index: idx, lastChecked: addressEntry.lastChecked || 0 });
     }
 
-    this.isScanning = true;
-    try {
-      const startIndex = highestScanned + 1;
-      const endIndex = startIndex + windowToScan - 1; // Todo: Handle extension when new history found during scan
-      await this.derive(startIndex, endIndex, changeType);
-      await this.scan(startIndex, endIndex, changeType);
-      await this.saveAddress();
-    } finally {
-      this.isScanning = false;
-    }
+    if (candidates.length === 0) return;
+
+    candidates.sort((a, b) => a.lastChecked - b.lastChecked);
+    const indicesToScan = candidates.slice(0, this.config.staleBatchSize).map(c => c.index);
+    await this.scan(indicesToScan, changeType);
   }
 
   private async derive(startIndex: number, endIndex: number, changeType: ChangeType = ChangeType.External) {
-    console.log(`Scanning from ${startIndex} to ${endIndex} (${endIndex - startIndex} Indexes)`);
+    logger.log(`Scanning from ${startIndex} to ${endIndex} (${endIndex - startIndex} Indexes)`);
     const addressCache = changeType === ChangeType.External ? this.addressCacheReceive : this.addressCacheChange;
     for (let index = startIndex; index <= endIndex; index++) {
       if (!addressCache.has(index)) {
@@ -113,33 +143,24 @@ export default class ScanManager {
           everUsed: false,
         };
         addressCache.set(index, entry);
-        // console.log(`Derived address for ${index}: ${address}`);
       }
     }
-
-    if (changeType === ChangeType.External) {
-      this.highestScannedReceive = Math.max(this.highestScannedReceive, endIndex);
-    } else {
-      this.highestScannedChange = Math.max(this.highestScannedChange, endIndex);
-    }
+    this.bumpHighestScanned(endIndex, changeType);
+    await this.saveAddress();
   }
 
-  private async scan(startIndex: number, endIndex: number, changeType: ChangeType = ChangeType.External) {
-    console.log(`Scanning history/UTXO from ${startIndex} to ${endIndex}`);
+  private async scan(indices: number[], changeType: ChangeType = ChangeType.External) {
     const bitcoinNetwork = toBitcoinNetwork(preferenceManager.get().activeNetwork);
     const addressCache = changeType === ChangeType.External ? this.addressCacheReceive : this.addressCacheChange;
     const historyCache = changeType === ChangeType.External ? this.historyCacheReceive : this.historyCacheChange;
     const utxoCache = changeType === ChangeType.External ? this.utxoCacheReceive : this.utxoCacheChange; // Assume added
-    const indices = [];
-    for (let i = startIndex; i <= endIndex; i++) {
-      indices.push(i);
-    }
 
     // Batch in groups for concurrency (adjust based on Electrum limits)
     for (let i = 0; i < indices.length; i += this.config.electrumBatchSize) {
       // Bootstrap for batch scanning
       const batchTimestamp = Date.now();
       const batch = indices.slice(i, i + this.config.electrumBatchSize);
+      logger.log(`Scanning ${changeType} addresses ${batch} `);
       const scriptHashesPromises = batch.map(async index => {
         const entry = addressCache.get(index);
         if (!entry) return undefined;
@@ -158,16 +179,11 @@ export default class ScanManager {
         if (!entry) continue;
 
         entry.lastChecked = batchTimestamp;
-
         const history = histories[batchIndex] ?? [];
         if (history.length > 0) {
           entry.everUsed = true;
           this.upsertHistoryIfUsed(historyCache, hdIndex, batchTimestamp, history);
-          if (changeType === ChangeType.External) {
-            this.highestUsedReceive = Math.max(this.highestUsedReceive, hdIndex);
-          } else {
-            this.highestUsedChange = Math.max(this.highestUsedChange, hdIndex);
-          }
+          this.bumpHighestUsed(hdIndex, changeType);
         }
       }
       await this.saveHistory();
@@ -190,17 +206,13 @@ export default class ScanManager {
           scriptPubKey,
         }));
         utxoCache.set(hdIndex, { lastChecked: batchTimestamp, utxos });
-
         if (utxos.length > 0) {
           entry.everUsed = true;
-          if (changeType === ChangeType.External) {
-            this.highestUsedReceive = Math.max(this.highestUsedReceive, hdIndex);
-          } else {
-            this.highestUsedChange = Math.max(this.highestUsedChange, hdIndex);
-          }
+          this.bumpHighestUsed(hdIndex, changeType);
         }
       }
       await this.saveUtxo();
+      await this.saveAddress();
     }
   }
 
@@ -210,19 +222,37 @@ export default class ScanManager {
     ts: number,
     history: { tx_hash: string; height: number }[],
   ) {
-    if (!history || history.length === 0) return; // ← no empty entries
+    if (!history || history.length === 0) return; // no empty entries
     cache.set(hdIndex, {
       lastChecked: ts,
       txs: history.map(tx => [tx.tx_hash, tx.height] as [string, number]),
     });
   }
 
-  private setHighestScanned() {
+  private bumpHighestScanned(endIndex: number, changeType: ChangeType) {
+    if (changeType === ChangeType.External) {
+      this.highestScannedReceive = Math.max(this.highestScannedReceive, endIndex);
+    } else {
+      this.highestScannedChange = Math.max(this.highestScannedChange, endIndex);
+    }
+  }
+
+  private bumpHighestUsed(index: number, changeType: ChangeType) {
+    if (changeType === ChangeType.External) {
+      this.highestUsedReceive = Math.max(this.highestUsedReceive, index);
+      this.nextReceiveIndex = this.highestUsedReceive + 1;
+    } else {
+      this.highestUsedChange = Math.max(this.highestUsedChange, index);
+      this.nextChangeIndex = this.highestUsedChange + 1;
+    }
+  }
+
+  private initHighestScanned() {
     this.highestScannedReceive = this.getHighestIndex(this.addressCacheReceive);
     this.highestScannedChange = this.getHighestIndex(this.addressCacheChange);
   }
 
-  private setHighestUsed() {
+  private initHighestUsed() {
     this.highestUsedReceive = this.getHighestIndex(this.historyCacheReceive);
     this.highestUsedChange = this.getHighestIndex(this.historyCacheChange);
   }
@@ -234,6 +264,10 @@ export default class ScanManager {
       max = Math.max(max, k);
     }
     return max;
+  }
+
+  private selectByChain<T>(external: T, internal: T, changeType: ChangeType): T {
+    return changeType === ChangeType.External ? external : internal;
   }
 
   private getCacheKey(type: string = CacheType.Address, chain: string = ChangeType.External): string {
