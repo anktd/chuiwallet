@@ -1,6 +1,6 @@
 import type { AddressEntry, HistoryEntry, UtxoEntry } from './types/cache';
 import browser from 'webextension-polyfill';
-import { addressToScriptHash, addressToScriptPubKey, toBitcoinNetwork } from './utils/crypto';
+import { addressToScriptHash, toBitcoinNetwork } from './utils/crypto';
 import { accountManager } from './accountManager';
 import { walletManager } from './walletManager';
 import { preferenceManager } from './preferenceManager';
@@ -195,19 +195,10 @@ export class ScanManager {
         const entry = addressCache.get(hdIndex);
         if (!entry) continue;
 
-        const utxosRaw = utxosByIndex[batchIndex] ?? [];
-        const scriptPubKey = addressToScriptPubKey(entry.address, bitcoinNetwork);
-        const utxos = utxosRaw.map(utxo => ({
-          txid: utxo.tx_hash,
-          vout: utxo.tx_pos,
-          value: utxo.value,
-          height: utxo.height, // 0 means mempool
-          address: entry.address,
-          scriptPubKey,
-        }));
-        utxoCache.set(hdIndex, { lastChecked: batchTimestamp, utxos });
+        const utxos = utxosByIndex[batchIndex] ?? [];
         if (utxos.length > 0) {
-          entry.everUsed = true;
+          entry.lastChecked = batchTimestamp;
+          this.upsertUtxoIfAny(utxoCache, hdIndex, batchTimestamp, utxos);
           this.bumpHighestUsed(hdIndex, changeType);
         }
       }
@@ -222,10 +213,28 @@ export class ScanManager {
     ts: number,
     history: { tx_hash: string; height: number }[],
   ) {
-    if (!history || history.length === 0) return; // no empty entries
+    if (!history || history.length === 0) return;
     cache.set(hdIndex, {
       lastChecked: ts,
       txs: history.map(tx => [tx.tx_hash, tx.height] as [string, number]),
+    });
+  }
+
+  private upsertUtxoIfAny(
+    cache: Map<number, UtxoEntry>,
+    hdIndex: number,
+    ts: number,
+    utxos: { tx_hash: string; tx_pos: number; value: number; height: number }[],
+  ) {
+    if (!utxos || utxos.length === 0) return;
+    cache.set(hdIndex, {
+      lastChecked: ts,
+      utxos: utxos.map(utxo => ({
+        txid: utxo.tx_hash,
+        vout: utxo.tx_pos,
+        value: utxo.value,
+        height: utxo.height,
+      })),
     });
   }
 
