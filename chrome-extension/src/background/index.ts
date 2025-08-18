@@ -1,10 +1,13 @@
-import browser from 'webextension-polyfill';
+import { handle } from './router';
 import { getSessionPassword, setSessionPassword } from '@extension/backend/src/utils/sessionStorageHelper';
 import { preferenceManager } from '@extension/backend/src/preferenceManager';
 import { walletManager } from '@extension/backend/src/walletManager';
 import { accountManager } from '@extension/backend/src/accountManager';
-import { ChangeType, scanManager } from '@extension/backend/src/scanManager';
 import { electrumService } from '@extension/backend/src/modules/electrumService';
+import { logger } from '@extension/backend/src/utils/logger';
+import { ChangeType, scanManager } from '@extension/backend/src/scanManager';
+import browser, { Runtime } from 'webextension-polyfill';
+import MessageSender = Runtime.MessageSender;
 
 async function init() {
   await preferenceManager.init();
@@ -12,122 +15,64 @@ async function init() {
   await setSessionPassword('11111111');
   const sessionPassword = await getSessionPassword();
   if (await walletManager.restoreIfPossible(sessionPassword)) {
-    console.log('Restoring...');
     await electrumService.init(preferenceManager.get().activeNetwork);
     await accountManager.init(preferenceManager.get().activeAccountIndex);
     await scanManager.init();
     await scanManager.forwardScan();
     await scanManager.forwardScan(ChangeType.Internal);
-    // await scanManager.addHistory();
   } else {
     // Unable or nothing to restore
   }
 }
 
 init().catch(error => {
-  console.error(error);
+  logger.error(error);
 });
 
-// ON Meesage Command
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  (async () => {
-    try {
-      if (request.action === 'getBalance') {
-        const balance = await electrum.getBalanceWithUsd(request.walletAddress);
-        sendResponse({ success: true, balance });
-      } else if (request.action === 'getHistory') {
-        const history = await electrum.getDetailedHistory(request.walletAddress);
-        sendResponse({ success: true, history: history });
-      } else if (request.action === 'getFeeEstimates') {
-        const estimates = await electrum.getFeeEstimates(request.from, request.to);
-        sendResponse({ success: true, estimates });
-      } else if (request.action === 'getCustomFeeEstimates') {
-        const customEstimate = await electrum.getCustomFeeEstimates(request.from, request.to, request.customSats);
-        sendResponse({ success: true, customEstimate });
-      } else if (request.action === 'sendTransaction') {
-        const txid = await electrum.sendTransaction(request.rawTxHex);
-        sendResponse({ success: true, txid });
-      } else if (request.action === 'signAndSendTransaction') {
-        // const walletData = request.walletData;
-        // const walletManager = new WalletManager();
-        // const wallet = walletManager.createWallet({
-        //   password: walletData.password,
-        //   mnemonic: walletData.mnemonic,
-        //   network: walletData.network,
-        //   addressType: walletData.addressType,
-        //   accountIndex: walletData.accountIndex,
-        // });
-        // const txid = await electrum.signAndSendTransaction(wallet, request.to, request.amount, request.feeRates);
-        // sendResponse({ success: true, txid });
-      } else if (request.action === 'captureScreenshot') {
-        chrome.tabs.captureVisibleTab({ format: 'png' }, (dataUrl: string | undefined) => {
-          if (chrome.runtime.lastError || !dataUrl) {
-            sendResponse({
-              success: false,
-              error: chrome.runtime.lastError?.message || 'No dataUrl',
-            });
-            return;
-          }
-          sendResponse({
-            success: true,
-            dataUrl,
-          });
-        });
-      } else if (request.action === 'startDragQR') {
-        chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
-          if (tabs && tabs[0]?.id !== undefined) {
-            chrome.scripting.executeScript(
-              {
-                target: { tabId: tabs[0].id },
-                files: ['script.js'],
-              },
-              () => {
-                if (tabs && tabs[0]?.id !== undefined) {
-                  chrome.tabs.sendMessage(tabs[0].id, { action: 'startDragQR' });
-                }
-              },
-            );
-          }
-        });
-        sendResponse({ started: true });
-      } else if (request.action === 'logout') {
-        // const walletManager = new WalletManager();
-        // const result = walletManager.logout();
-        // sendResponse({ success: result });
-        // return true;
-      } else if (request.action === 'openXpub') {
-        chrome.windows.create(
-          {
-            url: chrome.runtime.getURL('popup.html#/settings/advanced/xpub?redirectToXpub=true'),
-            type: 'popup',
-            width: 375,
-            height: 600,
-          },
-          () => {
-            sendResponse({ success: true });
-          },
-        );
-        return true;
-      } else {
-        sendResponse({ success: false, error: 'Unknown action' });
-      }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      console.error('Error handling message:', error);
-      sendResponse({ success: false, error: error?.message || '' });
-    }
-  })();
+async function allScan() {
+  await scanManager.forwardScan();
+  await scanManager.forwardScan(ChangeType.Internal);
+  await scanManager.backfillScan();
+  await scanManager.backfillScan(ChangeType.Internal);
+}
 
-  return true;
+// Message Action Router
+browser.runtime.onMessage.addListener((message: unknown, sender: MessageSender) => {
+  if (!message || typeof message !== 'object' || !('action' in (message as never))) {
+    return Promise.resolve({ status: 'error', error: { code: 'BAD_REQUEST', message: 'Invalid message' } });
+  }
+  return handle(message as never, sender);
 });
 
 // ON Network Change
-chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === 'local' && changes.storedAccount) {
-    console.log('Network changing to', changes.storedAccount.newValue.network);
-    initElectrum(changes.storedAccount.newValue.network);
-    electrum.autoSelectAndConnect().catch(err => {
-      console.error('Failed to connect to Electrum server:', err);
-    });
+// chrome.storage.onChanged.addListener((changes, area) => {
+//   if (area === 'local' && changes.storedAccount) {
+//     console.log('Network changing to', changes.storedAccount.newValue.network);
+//     initElectrum(changes.storedAccount.newValue.network);
+//     electrum.autoSelectAndConnect().catch(err => {
+//       console.error('Failed to connect to Electrum server:', err);
+//     });
+//   }
+// });
+
+chrome.runtime.onInstalled.addListener(() => {
+  console.log('oninstall');
+  setupAlarms();
+});
+
+chrome.runtime.onStartup.addListener(() => {
+  console.log('start your engine');
+});
+
+function setupAlarms() {
+  chrome.alarms.create('forwardScan', { periodInMinutes: 1 });
+  chrome.alarms.create('backfillScan', { periodInMinutes: 5 });
+}
+
+browser.alarms.onAlarm.addListener(async alarm => {
+  console.log(alarm);
+  if (alarm.name === 'forwardScan') {
+    //Todo: move scan queue to scan manager
+    await allScan();
   }
 });

@@ -32,6 +32,10 @@ export class WalletManager {
     return true;
   }
 
+  public getMnemonic(password: string) {
+    return wallet.getMnemonic(password);
+  }
+
   /**
    * Ensures a default account (index 0) exists for the active network, deriving and adding it if necessary.
    * @param {boolean} [forceCreate=false] - If true, creates the account even if one exists.
@@ -64,14 +68,6 @@ export class WalletManager {
     // Todo: (Optional) Check if wallet is restored/unlocked
 
     return wallet.deriveAddress(activeAccount, chain, index);
-  }
-
-  /**
-   * Gets the active network from preferences.
-   * @returns {Network} The active network.
-   */
-  public getActiveNetwork(): Network {
-    return preferenceManager.get().activeNetwork;
   }
 
   /**

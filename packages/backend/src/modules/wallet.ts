@@ -1,4 +1,6 @@
 import type { BIP32Interface } from 'bip32';
+import type { Payment } from 'bitcoinjs-lib';
+import type { Account, Vault, WalletMeta } from '../types/wallet';
 import BIP32Factory from 'bip32';
 import encryption from '../utils/encryption.js';
 import * as bip39 from 'bip39';
@@ -6,8 +8,6 @@ import * as secp256k1 from '@bitcoinerlab/secp256k1';
 import * as bitcoin from 'bitcoinjs-lib';
 import { Network } from '../types/electrum';
 import { ScriptType } from '../types/wallet';
-import type { Payment } from 'bitcoinjs-lib';
-import type { Account, Vault, WalletMeta } from '../types/wallet';
 
 const bip32 = BIP32Factory(secp256k1);
 const WALLET_KEY = 'wallet';
@@ -163,6 +163,19 @@ export class Wallet {
   }
 
   /**
+   * Retrieves the mnemonic phrase from the decrypted vault.
+   * @param {string} password - The password to decrypt the vault.
+   */
+  public getMnemonic(password: string): string | null {
+    const vault: Vault | null = this.decryptVault(password);
+    if (!vault) {
+      throw new Error('Vault is empty');
+    }
+
+    return vault.mnemonic;
+  }
+
+  /**
    * Checks if an encrypted vault is available for restoration.
    * @returns {boolean} True if a vault exists and can be restored, false otherwise.
    */
@@ -226,7 +239,7 @@ export class Wallet {
    * @returns {Promise<void>} A promise that resolves when loading is complete.
    * @private
    */
-  private async load() {
+  private async load(): Promise<void> {
     const payload = await new Promise<{ [key: string]: WalletMeta | undefined }>(resolve => {
       chrome.storage.local.get(WALLET_KEY, resolve);
     });
@@ -242,7 +255,7 @@ export class Wallet {
    * @returns {Promise<void>} A promise that resolves when saving is complete.
    * @private
    */
-  private async save() {
+  private async save(): Promise<void> {
     await new Promise<void>(resolve => {
       const wallet: WalletMeta = {
         vault: this.encryptedVault,
