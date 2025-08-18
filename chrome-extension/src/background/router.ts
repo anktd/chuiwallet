@@ -4,6 +4,9 @@ import { walletManager } from '@extension/backend/src/walletManager';
 type Handler = (params: unknown, sender: Runtime.MessageSender) => Promise<unknown> | unknown;
 
 const handlers: Record<string, Handler> = {
+  'wallet.isRestorable': () => {
+    return walletManager.isRestorable();
+  },
   createWallet: async params => {
     const { mnemonic, password } = params as { mnemonic: string; password: string };
     return await walletManager.createWallet(mnemonic as string, password as string);
@@ -31,7 +34,8 @@ export type RouterResponse =
 export async function handle(message: RouterMessage, sender: Runtime.MessageSender): Promise<RouterResponse> {
   try {
     const fn = handlers[message.action];
-    if (!fn) return { status: 'error', error: { code: 'METHOD_NOT_FOUND', message: message.action } };
+    if (!fn)
+      return { status: 'error', error: { code: 'METHOD_NOT_FOUND', message: `Method not found: ${message.action}` } };
     const data = await fn(message.params, sender);
     return { status: 'ok', data };
   } catch (e) {

@@ -2,7 +2,6 @@ import { accountManager } from './accountManager';
 import { wallet } from './modules/wallet';
 import { preferenceManager } from './preferenceManager';
 import type { CreateWalletOptions } from './modules/wallet';
-import type { Network } from './types/electrum';
 
 /**
  * Manages the wallet lifecycle, including initialization, restoration, creation,
@@ -32,26 +31,19 @@ export class WalletManager {
     return true;
   }
 
+  /**
+   * Get the mnemonic of the current wallet
+   * @param password
+   */
   public getMnemonic(password: string) {
     return wallet.getMnemonic(password);
   }
 
   /**
-   * Ensures a default account (index 0) exists for the active network, deriving and adding it if necessary.
-   * @param {boolean} [forceCreate=false] - If true, creates the account even if one exists.
-   * @private
+   * Check if current wallet is restorable
    */
-  private async ensureDefaultAccount(forceCreate: boolean = false): Promise<void> {
-    const hasDefaultAccount = accountManager.accounts.some(
-      a => a.index === 0 && a.network === preferenceManager.get().activeNetwork,
-    );
-
-    if (forceCreate || !hasDefaultAccount) {
-      const defaultAccount = wallet.deriveAccount(0);
-      const activeAccountIndex = await accountManager.add(defaultAccount);
-      preferenceManager.get().activeAccountIndex = activeAccountIndex;
-      await preferenceManager.update({ activeAccountIndex: activeAccountIndex });
-    }
+  public isRestorable(): boolean {
+    return wallet.isRestorable();
   }
 
   /**
@@ -112,6 +104,24 @@ export class WalletManager {
     const activeAccountIndex = await accountManager.add(account);
     preferenceManager.get().activeAccountIndex = activeAccountIndex;
     await preferenceManager.update({ activeAccountIndex: activeAccountIndex });
+  }
+
+  /**
+   * Ensures a default account (index 0) exists for the active network, deriving and adding it if necessary.
+   * @param {boolean} [forceCreate=false] - If true, creates the account even if one exists.
+   * @private
+   */
+  private async ensureDefaultAccount(forceCreate: boolean = false): Promise<void> {
+    const hasDefaultAccount = accountManager.accounts.some(
+      a => a.index === 0 && a.network === preferenceManager.get().activeNetwork,
+    );
+
+    if (forceCreate || !hasDefaultAccount) {
+      const defaultAccount = wallet.deriveAccount(0);
+      const activeAccountIndex = await accountManager.add(defaultAccount);
+      preferenceManager.get().activeAccountIndex = activeAccountIndex;
+      await preferenceManager.update({ activeAccountIndex: activeAccountIndex });
+    }
   }
 }
 

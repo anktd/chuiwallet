@@ -70,7 +70,6 @@ function setupAlarms() {
 }
 
 browser.alarms.onAlarm.addListener(async alarm => {
-  console.log(alarm);
   if (alarm.name === 'forwardScan') {
     //Todo: move scan queue to scan manager
     await allScan();
