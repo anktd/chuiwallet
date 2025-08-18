@@ -17,7 +17,5 @@ export interface UtxoEntry {
     vout: number;
     value: number; // sats
     height: number;
-    address: string;
-    scriptPubKey: string;
   }>;
 }
