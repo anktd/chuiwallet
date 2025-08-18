@@ -1,9 +1,21 @@
-import winston from 'winston';
+export class Logger {
+  private readonly debugMode: boolean;
 
-const logger = winston.createLogger({
-  level: 'info',
-  format: winston.format.simple(),
-  transports: [new winston.transports.Console()],
-});
+  constructor(debugMode: boolean = false) {
+    this.debugMode = debugMode;
+  }
 
-export default logger;
+  public log(...messages: unknown[]) {
+    if (this.debugMode) console.log(...messages);
+  }
+
+  public warn(...messages: unknown[]) {
+    if (this.debugMode) console.warn(...messages);
+  }
+
+  public error(...messages: unknown[]) {
+    if (this.debugMode) console.error(...messages);
+  }
+}
+
+export const logger = new Logger(true);
