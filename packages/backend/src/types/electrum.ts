@@ -20,6 +20,20 @@ export interface ExtendedServerConfig extends ServerConfig {
   healthy?: boolean;
 }
 
+export type ElectrumHistoryItem = {
+  tx_hash: string; // some servers use tx_hash
+  height: number;
+  fee?: number;
+};
+export type ElectrumHistory = ElectrumHistoryItem[];
+
+export type ElectrumUtxo = {
+  tx_hash: string;
+  tx_pos: number;
+  height: number;
+  value: number; // sats
+};
+
 export type TransactionActivityStatus = 'PENDING' | 'CONFIRMED';
 export type TransactionType = 'SEND' | 'RECEIVE';
 
