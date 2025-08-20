@@ -18,6 +18,8 @@ interface WalletContextType {
   onboarded: boolean;
   isRestored: boolean;
   network: 'mainnet' | 'testnet';
+  isLocked: boolean | null;
+  isInitialized: boolean;
   setWallet: (wallet: Wallet, password: string) => void;
   setSelectedAccountIndex: (index: number) => void;
   setTotalAccounts: (index: number) => void;
@@ -29,6 +31,7 @@ interface WalletContextType {
   createWallet: (seed: string, password: string, network?: 'mainnet' | 'testnet', addressType?: AddressType) => void;
   restoreWallet: (seed: string, password: string, network?: 'mainnet' | 'testnet', addressType?: AddressType) => void;
   unlockWallet: (password: string) => void;
+  lockWallet: () => void;
   clearWallet: () => void;
   updateNetwork: (newNetwork: 'mainnet' | 'testnet') => void;
   cachedBalances: { [accountIndex: number]: BalanceData | null };
@@ -54,6 +57,8 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [onboarded, setOnboarded] = useState(false);
   const [isRestored, setIsRestored] = useState(false);
   const [network, setNetwork] = useState<'mainnet' | 'testnet'>('mainnet');
+  const [isLocked, setIsLocked] = useState<boolean | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
   const [cachedBalances, setCachedBalances] = useState<{
     [accountIndex: number]: BalanceData | null;
   }>({});
@@ -81,28 +86,41 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   // Hydrate settings (onboarded, accountIndex, totalAccounts, fiatCurrency & gapLimit)
   useEffect(() => {
-    chrome.storage.local.get(['storedAccount'], res => {
-      const storedAccount: StoredAccount | undefined = res.storedAccount;
-      if (storedAccount) {
-        if (storedAccount.walletOnboarded) {
-          setOnboarded(true);
-        }
+    chrome.storage.local.get(['walletLocked'], res => {
+      const walletLocked: boolean = res.walletLocked || false;
+      setIsLocked(walletLocked);
 
-        setSelectedAccountIndex(storedAccount.selectedAccountIndex);
-        setTotalAccounts(storedAccount.totalAccounts);
-        setGapLimitState(storedAccount.gapLimit);
+      if (!walletLocked) {
+        chrome.storage.local.get(['storedAccount'], res => {
+          const storedAccount: StoredAccount | undefined = res.storedAccount;
+          if (storedAccount) {
+            if (storedAccount.walletOnboarded) {
+              setOnboarded(true);
+            }
 
-        if (!storedAccount.fiatCurrency) {
-          setSelectedFiatCurrency('USD');
-        } else {
-          setSelectedFiatCurrency(storedAccount.fiatCurrency);
-        }
+            setSelectedAccountIndex(storedAccount.selectedAccountIndex);
+            setTotalAccounts(storedAccount.totalAccounts);
+            setGapLimitState(storedAccount.gapLimit);
+
+            if (!storedAccount.fiatCurrency) {
+              setSelectedFiatCurrency('USD');
+            } else {
+              setSelectedFiatCurrency(storedAccount.fiatCurrency);
+            }
+          }
+          setIsInitialized(true);
+        });
+      } else {
+        setIsInitialized(true);
       }
     });
   }, []);
 
-  // Restore wallets from storedAccount?
+  // Restore wallets from storedAccount? - only after initialization and if not locked
   useEffect(() => {
+    if (!isInitialized || isLocked === null || isLocked || wallet) {
+      return;
+    }
     (async () => {
       const storedPwd = await getSessionPassword();
       if (storedPwd) {
@@ -118,6 +136,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
               if (!restoredMnemonic) {
                 console.error('Failed to recover seed with stored password.');
                 clearWallet();
+                return;
               }
 
               const restoredWallet = manager.createWallet({
@@ -148,7 +167,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         await clearWallet();
       }
     })();
-  }, [manager]);
+  }, [manager, isInitialized, isLocked]);
 
   // Security Watchdog
   useEffect(() => {
@@ -322,6 +341,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             if (!restoredMnemonic) {
               console.error('Failed to recover seed with stored password.');
               clearWallet();
+              return;
             }
 
             const restoredWallet = manager.createWallet({
@@ -340,6 +360,9 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
               setSelectedAccountIndex(storedAccount.selectedAccountIndex);
               setTotalAccounts(storedAccount.totalAccounts);
               setSelectedFiatCurrency(storedAccount.fiatCurrency);
+              setOnboarded(true);
+              setIsLocked(false);
+              chrome.storage.local.remove('walletLocked');
             } else {
               console.error('Failed to recover seed with stored password.');
               clearWallet();
@@ -352,6 +375,16 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     } else {
       clearWallet();
     }
+  };
+
+  const lockWallet = async () => {
+    setIsLocked(true);
+    await clearWallet();
+    chrome.storage.local.set({ walletLocked: true }, () => {
+      if (chrome.runtime.lastError) {
+        console.error('Chrome storage error:', chrome.runtime.lastError);
+      }
+    });
   };
 
   const updateNetwork = (newNetwork: 'mainnet' | 'testnet') => {
@@ -504,6 +537,8 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         onboarded,
         isRestored,
         network,
+        isLocked,
+        isInitialized,
         setWallet,
         setSelectedAccountIndex,
         setTotalAccounts,
@@ -515,6 +550,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         createWallet,
         restoreWallet,
         unlockWallet,
+        lockWallet,
         clearWallet,
         updateNetwork,
         cachedBalances,

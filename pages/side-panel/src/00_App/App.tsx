@@ -26,8 +26,7 @@ import { useWalletContext } from '@src/context/WalletContext';
 import Xpub from '@src/06_Settings/Xpub';
 
 export const App: React.FC = () => {
-  const { onboarded, wallet } = useWalletContext();
-
+  const { onboarded, wallet, isLocked, isInitialized } = useWalletContext();
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
@@ -40,31 +39,37 @@ export const App: React.FC = () => {
     return () => clearTimeout(timer);
   }, [onboarded]);
 
-  if (showSplash) {
+  if (showSplash || !isInitialized || isLocked === null) {
     return <Splash />;
+  }
+
+  if (isLocked) {
+    return <PasswordLock />;
+  }
+
+  if (!onboarded) {
+    return (
+      <Routes>
+        <Route path="/" element={<Navigate to="/onboard/set-password" replace />} />
+        <Route path="/onboard/set-password" element={<SetPassword />} />
+        <Route path="/onboard/choose-method" element={<ChooseMethod />} />
+        <Route path="/onboard/restore-seed" element={<RestoreSeed />} />
+        <Route path="/onboard/generate-seed" element={<GenerateSeed />} />
+        <Route path="/onboard/backup-seed" element={<BackupSeed />} />
+        <Route path="/onboard/verify-seed" element={<VerifySeed />} />
+        <Route path="/onboard/complete" element={<Complete />} />
+        <Route path="*" element={<Navigate to="/onboard/set-password" replace />} />
+      </Routes>
+    );
+  }
+
+  if (!wallet) {
+    return <PasswordLock />;
   }
 
   return (
     <Routes>
-      {onboarded ? (
-        wallet ? (
-          <>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-          </>
-        ) : (
-          <Route path="*" element={<PasswordLock />} />
-        )
-      ) : (
-        <Route path="/" element={<Navigate to="/onboard/set-password" replace />} />
-      )}
-      <Route path="/onboard/set-password" element={<SetPassword />} />
-      <Route path="/onboard/choose-method" element={<ChooseMethod />} />
-      <Route path="/onboard/restore-seed" element={<RestoreSeed />} />
-      <Route path="/onboard/generate-seed" element={<GenerateSeed />} />
-      <Route path="/onboard/backup-seed" element={<BackupSeed />} />
-      <Route path="/onboard/verify-seed" element={<VerifySeed />} />
-      <Route path="/onboard/complete" element={<Complete />} />
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/dashboard/:currency/activity" element={<Activity />} />
       <Route path="/dashboard/:currency/activity/:txnHash/detail" element={<TransactionDetail />} />
@@ -77,8 +82,9 @@ export const App: React.FC = () => {
       <Route path="/settings/advanced" element={<AdvancedSettings />} />
       <Route path="/settings/advanced/unlock-seed" element={<UnlockSeed />} />
       <Route path="/settings/advanced/reveal-seed" element={<RevealSeed />} />
-      <Route path="/settings/advanced/xpub" element={wallet ? <Xpub /> : <PasswordLock />} />
+      <Route path="/settings/advanced/xpub" element={<Xpub />} />
       <Route path="/accounts" element={<Accounts />} />
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );
 };
