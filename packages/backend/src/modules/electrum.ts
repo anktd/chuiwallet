@@ -228,30 +228,30 @@ export default class Electrum {
   /**
    * Compute SHA-256 hash.
    */
-  private async sha256(data: Buffer): Promise<Buffer> {
-    if (typeof window === 'undefined') {
-      return createHash('sha256').update(data).digest();
-    } else {
-      const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
-      return Buffer.from(new Uint8Array(hashBuffer));
-    }
-  }
+  // private async sha256(data: Buffer): Promise<Buffer> {
+  //   if (typeof window === 'undefined') {
+  //     return createHash('sha256').update(data).digest();
+  //   } else {
+  //     const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
+  //     return Buffer.from(new Uint8Array(hashBuffer));
+  //   }
+  // }
 
   /**
    * Convert bitcoin address to an Electrum script hash.
    */
-  private async _addressToScriptHash(address: string): Promise<string> {
-    // Determine the bitcoinjs-lib network (bitcoin or testnet)
-    const networkConfig = this.network === 'mainnet' ? bitcoin.networks.bitcoin : bitcoin.networks.testnet;
-    // Convert the address to its corresponding output script.
-    const outputScript = bitcoin.address.toOutputScript(address, networkConfig);
-    // Compute SHA-256 hash of the output script.
-    const hash = await this.sha256(outputScript);
-    // Reverse the hash and return its hex string.
-    const reversedHash = Buffer.from(hash).reverse();
-
-    return reversedHash.toString('hex');
-  }
+  // private async _addressToScriptHash(address: string): Promise<string> {
+  //   // Determine the bitcoinjs-lib network (bitcoin or testnet)
+  //   const networkConfig = this.network === 'mainnet' ? bitcoin.networks.bitcoin : bitcoin.networks.testnet;
+  //   // Convert the address to its corresponding output script.
+  //   const outputScript = bitcoin.address.toOutputScript(address, networkConfig);
+  //   // Compute SHA-256 hash of the output script.
+  //   const hash = await this.sha256(outputScript);
+  //   // Reverse the hash and return its hex string.
+  //   const reversedHash = Buffer.from(hash).reverse();
+  //
+  //   return reversedHash.toString('hex');
+  // }
 
   public setGapLimit(newLimit: number): void {
     this.gapLimit = newLimit;

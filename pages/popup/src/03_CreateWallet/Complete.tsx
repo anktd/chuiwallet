@@ -1,10 +1,18 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/Button';
 import { useWalletContext } from '@src/context/WalletContext';
+import { useEffect } from 'react';
+import { sendMessage } from '@src/utils/bridge';
 
 export function Complete() {
   const navigate = useNavigate();
   const { setOnboarded, isRestored } = useWalletContext();
+
+  useEffect(() => {
+    (async () => {
+      await sendMessage('wallet.startup');
+    })();
+  }, []);
 
   const handleComplete = () => {
     setOnboarded(true);

@@ -3,19 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { InputField } from '../components/InputField';
 import { TermsCheckbox } from '../components/TermsCheckbox';
 import { Button } from '@src/components/Button';
-import WalletManager from '@extension/backend/src/walletManager';
-import { useWalletContext } from '../context/WalletContext';
 import { getPasswordStrength } from '@src/utils';
+import { sendMessage } from '@src/utils/bridge';
 
 export const SetPassword: React.FC = () => {
   const navigate = useNavigate();
-  const { setWallet } = useWalletContext();
-
   const [password, setPassword] = React.useState('');
   const [confirmPassword, setConfirmPassword] = React.useState('');
   const [termsAccepted, setTermsAccepted] = React.useState(false);
   const [errorMsg, setErrorMsg] = React.useState('');
-
   const passwordStrength = getPasswordStrength(password);
 
   let strengthColorClass = 'text-primary-red';
@@ -44,15 +40,11 @@ export const SetPassword: React.FC = () => {
       return;
     }
 
-    const manager = new WalletManager();
-
-    const wallet = manager.createWallet({
+    await sendMessage('wallet.create', {
       password,
       network: 'mainnet',
       addressType: 'bech32',
     });
-
-    setWallet(wallet, password);
 
     navigate('/onboard/choose-method');
   };

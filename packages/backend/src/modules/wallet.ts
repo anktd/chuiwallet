@@ -83,6 +83,9 @@ export class Wallet {
       mnemonic: options.mnemonic || null,
     };
 
+    if (vault.xpriv === null && vault.mnemonic === null) {
+      vault.mnemonic = bip39.generateMnemonic();
+    }
     this.deriveRootAndXpub(vault.xpriv, vault.mnemonic);
     this.encryptVault(vault, options.password);
     await this.save();
@@ -171,7 +174,6 @@ export class Wallet {
     if (!vault) {
       throw new Error('Vault is empty');
     }
-
     return vault.mnemonic;
   }
 
@@ -201,8 +203,9 @@ export class Wallet {
       this.seed = bip39.mnemonicToSeedSync(mnemonic);
       this.root = bip32.fromSeed(this.seed, this.network);
     } else {
-      throw new Error('No valid key provided');
+      throw new Error('xpriv or mnemonic required');
     }
+
     this.xpub = this.root.neutered().toBase58();
   }
 
@@ -230,7 +233,7 @@ export class Wallet {
    * @param {string} password - The password for encryption.
    * @private
    */
-  private encryptVault(vault: Vault, password) {
+  private encryptVault(vault: Vault, password: string) {
     this.encryptedVault = encryption.encrypt(JSON.stringify(vault), password);
   }
 

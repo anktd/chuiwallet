@@ -1,5 +1,10 @@
 import type { Runtime } from 'webextension-polyfill';
+import { preferenceManager } from '@extension/backend/src/preferenceManager';
 import { walletManager } from '@extension/backend/src/walletManager';
+import { accountManager } from '@extension/backend/src/accountManager';
+import { electrumService } from '@extension/backend/src/modules/electrumService';
+import { ChangeType, scanManager } from '@extension/backend/src/scanManager';
+import { getSessionPassword, setSessionPassword } from '@extension/backend/dist/utils/sessionStorageHelper';
 
 type Handler = (params: unknown, sender: Runtime.MessageSender) => Promise<unknown> | unknown;
 
@@ -7,9 +12,24 @@ const handlers: Record<string, Handler> = {
   'wallet.isRestorable': () => {
     return walletManager.isRestorable();
   },
-  createWallet: async params => {
+  'wallet.create': async params => {
     const { mnemonic, password } = params as { mnemonic: string; password: string };
-    return await walletManager.createWallet(mnemonic as string, password as string);
+    await walletManager.createWallet(mnemonic as string, password as string);
+    await setSessionPassword(password);
+  },
+  'wallet.getMnemonic': async () => {
+    const password = await getSessionPassword();
+    if (!password) {
+      throw new Error('Password is required');
+    }
+    return walletManager.getMnemonic(password);
+  },
+  'wallet.startup': async () => {
+    await electrumService.init(preferenceManager.get().activeNetwork);
+    await accountManager.init(preferenceManager.get().activeAccountIndex);
+    await scanManager.init();
+    await scanManager.forwardScan();
+    await scanManager.forwardScan(ChangeType.Internal);
   },
   getBalance: () => {},
   getHistory: () => {},

@@ -1,5 +1,5 @@
 import { handle } from './router';
-import { getSessionPassword, setSessionPassword } from '@extension/backend/src/utils/sessionStorageHelper';
+import { getSessionPassword } from '@extension/backend/src/utils/sessionStorageHelper';
 import { preferenceManager } from '@extension/backend/src/preferenceManager';
 import { walletManager } from '@extension/backend/src/walletManager';
 import { accountManager } from '@extension/backend/src/accountManager';
@@ -12,7 +12,6 @@ import MessageSender = Runtime.MessageSender;
 async function init() {
   await preferenceManager.init();
   await walletManager.init();
-  await setSessionPassword('11111111');
   const sessionPassword = await getSessionPassword();
   if (await walletManager.restoreIfPossible(sessionPassword)) {
     await electrumService.init(preferenceManager.get().activeNetwork);
@@ -72,6 +71,6 @@ function setupAlarms() {
 browser.alarms.onAlarm.addListener(async alarm => {
   if (alarm.name === 'forwardScan') {
     //Todo: move scan queue to scan manager
-    await allScan();
+    // await allScan();
   }
 });

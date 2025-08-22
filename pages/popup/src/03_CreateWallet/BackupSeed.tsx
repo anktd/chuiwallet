@@ -4,67 +4,47 @@ import { useNavigate } from 'react-router-dom';
 import { SeedColumn } from '../components/SeedColumn';
 import { Button } from '@src/components/Button';
 import { useWalletContext } from '../context/WalletContext';
+import { sendMessage } from '@src/utils/bridge';
+import { s } from 'framer-motion/dist/types.d-6pKw1mTI';
 
 export const BackupSeed: React.FC = () => {
   const navigate = useNavigate();
   const { createWallet, wallet, password } = useWalletContext();
   const [leftColumnWords, setLeftColumnWords] = useState<string[]>([]);
   const [rightColumnWords, setRightColumnWords] = useState<string[]>([]);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (!wallet || !password) {
-      console.error('Wallet or password not available in context');
-      setLoading(false);
-      return;
-    }
+    (async () => {
+      try {
+        const seed: string = await sendMessage('wallet.getMnemonic');
+        if (!seed) {
+          console.error('Failed to recover seed');
+          return;
+        }
 
-    try {
-      const seed = wallet.recoverMnemonic(password);
-      if (!seed) {
-        console.error('Failed to recover seed');
-        setLoading(false);
-        return;
+        const words = seed.split(' ');
+        if (words.length !== 12) {
+          console.error('Expected 12 words, got', words.length);
+        }
+
+        setLeftColumnWords(words.slice(0, 6));
+        setRightColumnWords(words.slice(6, 12));
+      } catch (err) {
+        console.error('Error recovering seed:', err);
       }
-
-      const words = seed.split(' ');
-      if (words.length !== 12) {
-        console.error('Expected 12 words, got', words.length);
-      }
-
-      setLeftColumnWords(words.slice(0, 6));
-      setRightColumnWords(words.slice(6, 12));
-    } catch (err) {
-      console.error('Error recovering seed:', err);
-    }
-
-    setLoading(false);
+    })();
   }, [wallet, password]);
 
   const handleCopyToClipboard = async () => {
     try {
-      if (!wallet || !password) {
-        console.error('Wallet or password not available in context');
-        setLoading(false);
-        return;
-      }
-
-      const seed = wallet.recoverMnemonic(password);
-      if (!seed) {
-        console.error('Failed to recover seed');
-        setLoading(false);
-        return;
-      }
-
+      const seed = [...leftColumnWords, ...rightColumnWords].join(' ');
       const words = seed.split(' ');
       if (words.length !== 12) {
         console.error('Expected 12 words, got', words.length);
       }
 
       await navigator.clipboard.writeText(seed);
-
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch (err) {
@@ -73,28 +53,7 @@ export const BackupSeed: React.FC = () => {
   };
 
   const handleSkip = async () => {
-    if (!wallet || !password) {
-      console.error('Wallet or password not available in context');
-      setLoading(false);
-      return;
-    }
-
-    const seed = wallet.recoverMnemonic(password);
-    if (!seed) {
-      console.error('Failed to recover seed');
-      setLoading(false);
-      return;
-    }
-
-    const seedWords = seed.split(' ');
-    if (seedWords.length !== 12) {
-      console.error('Expected 12 words, got', seedWords.length);
-    }
-
-    const mnemonic = seedWords.join(' ').trim();
-
-    createWallet(mnemonic, password, 'mainnet', 'bech32');
-
+    //Todo: create wallet
     navigate('/onboard/complete');
   };
 
