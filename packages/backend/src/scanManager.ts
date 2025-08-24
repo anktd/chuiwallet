@@ -2,7 +2,7 @@ import type { AddressEntry, HistoryEntry, UtxoEntry } from './types/cache';
 import { CacheType, ChangeType } from './types/cache';
 import browser from 'webextension-polyfill';
 import { addressToScriptHash, toBitcoinNetwork } from './utils/crypto';
-import { getCacheKey } from './utils/cache';
+import { getCacheKey, selectByChain } from './utils/cache';
 import { walletManager } from './walletManager';
 import { preferenceManager } from './preferenceManager';
 import { electrumService } from './modules/electrumService';
@@ -62,9 +62,9 @@ export class ScanManager {
   public async forwardScan(changeType: ChangeType = ChangeType.External) {
     let passes = 0;
     while (passes < this.config.forwardExtendMaxPasses) {
-      const gapLimit = this.selectByChain(this.config.externalGapLimit, this.config.internalGapLimit, changeType);
-      const highestUsed = this.selectByChain(this.highestUsedReceive, this.highestUsedChange, changeType);
-      const highestScanned = this.selectByChain(this.highestScannedReceive, this.highestScannedChange, changeType);
+      const gapLimit = selectByChain(this.config.externalGapLimit, this.config.internalGapLimit, changeType);
+      const highestUsed = selectByChain(this.highestUsedReceive, this.highestUsedChange, changeType);
+      const highestScanned = selectByChain(this.highestScannedReceive, this.highestScannedChange, changeType);
       const windowToScan = Math.max(0, highestUsed) + gapLimit - highestScanned - 1;
       if (windowToScan <= 0) {
         logger.log(`Forward scan up-to-date (used=${highestUsed}, scanned=${highestScanned}, gap=${gapLimit})`);
@@ -92,10 +92,10 @@ export class ScanManager {
    * @param changeType
    */
   public async backfillScan(changeType: ChangeType = ChangeType.External) {
-    const gapLimit = this.selectByChain(this.config.externalGapLimit, this.config.internalGapLimit, changeType);
-    const highestUsed = this.selectByChain(this.highestUsedReceive, this.highestUsedChange, changeType);
-    const highestScanned = this.selectByChain(this.highestScannedReceive, this.highestScannedChange, changeType);
-    const addressCache = this.selectByChain(this.addressCacheReceive, this.addressCacheChange, changeType);
+    const gapLimit = selectByChain(this.config.externalGapLimit, this.config.internalGapLimit, changeType);
+    const highestUsed = selectByChain(this.highestUsedReceive, this.highestUsedChange, changeType);
+    const highestScanned = selectByChain(this.highestScannedReceive, this.highestScannedChange, changeType);
+    const addressCache = selectByChain(this.addressCacheReceive, this.addressCacheChange, changeType);
 
     // Nothing derived yet
     if (highestScanned < 0) return;
@@ -263,10 +263,6 @@ export class ScanManager {
       max = Math.max(max, k);
     }
     return max;
-  }
-
-  private selectByChain<T>(external: T, internal: T, changeType: ChangeType): T {
-    return changeType === ChangeType.External ? external : internal;
   }
 
   private async saveAddress() {
