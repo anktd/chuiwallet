@@ -5,9 +5,10 @@ import { walletManager } from '@extension/backend/src/walletManager';
 import { accountManager } from '@extension/backend/src/accountManager';
 import { electrumService } from '@extension/backend/src/modules/electrumService';
 import { logger } from '@extension/backend/src/utils/logger';
-import { ChangeType, scanManager } from '@extension/backend/src/scanManager';
+import { scanManager } from '@extension/backend/src/scanManager';
 import browser, { Runtime } from 'webextension-polyfill';
 import MessageSender = Runtime.MessageSender;
+import { ChangeType } from '@extension/backend/src/types/cache';
 
 async function init() {
   await preferenceManager.init();
@@ -24,9 +25,11 @@ async function init() {
   }
 }
 
-init().catch(error => {
-  logger.error(error);
-});
+(async () => {
+  await init().catch(error => {
+    logger.error(error);
+  });
+})();
 
 async function allScan() {
   await scanManager.forwardScan();

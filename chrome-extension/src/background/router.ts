@@ -3,8 +3,9 @@ import { preferenceManager } from '@extension/backend/src/preferenceManager';
 import { walletManager } from '@extension/backend/src/walletManager';
 import { accountManager } from '@extension/backend/src/accountManager';
 import { electrumService } from '@extension/backend/src/modules/electrumService';
-import { ChangeType, scanManager } from '@extension/backend/src/scanManager';
+import { scanManager } from '@extension/backend/src/scanManager';
 import { getSessionPassword, setSessionPassword } from '@extension/backend/dist/utils/sessionStorageHelper';
+import { ChangeType } from '@extension/backend/src/types/cache';
 
 type Handler = (params: unknown, sender: Runtime.MessageSender) => Promise<unknown> | unknown;
 
@@ -14,7 +15,7 @@ const handlers: Record<string, Handler> = {
   },
   'wallet.create': async params => {
     const { mnemonic, password } = params as { mnemonic: string; password: string };
-    await walletManager.createWallet(mnemonic as string, password as string);
+    await walletManager.createWallet(mnemonic, password);
     await setSessionPassword(password);
   },
   'wallet.getMnemonic': async () => {
@@ -31,7 +32,15 @@ const handlers: Record<string, Handler> = {
     await scanManager.forwardScan();
     await scanManager.forwardScan(ChangeType.Internal);
   },
-  getBalance: () => {},
+  'wallet.getBalance': async () => {
+    return await walletManager.getBalance();
+  },
+  'preferences.get': async () => {
+    return preferenceManager.get();
+  },
+  'accounts.get': async () => {
+    return accountManager.accounts;
+  },
   getHistory: () => {},
   getFeeEstimates: () => {},
   getCustomFeeEstimates: () => {},

@@ -6,7 +6,7 @@ import { sendMessage } from '@src/utils/bridge';
 
 export function Complete() {
   const navigate = useNavigate();
-  const { setOnboarded, isRestored } = useWalletContext();
+  const { setOnboarded } = useWalletContext();
 
   useEffect(() => {
     (async () => {
@@ -26,7 +26,7 @@ export function Complete() {
         <div className="flex flex-col items-center gap-6">
           <div className="flex flex-1 flex-col self-stretch w-full text-center">
             <div className="text-2xl font-bold leading-loose text-white">
-              You've {isRestored ? 'restored' : 'created'} a wallet
+              You've {true ? 'restored' : 'created'} a wallet
             </div>
             <div className="mt-3 text-lg leading-none text-foreground">Keep your seed phrase safe.</div>
           </div>

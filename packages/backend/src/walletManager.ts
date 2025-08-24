@@ -1,7 +1,12 @@
+import browser from 'webextension-polyfill';
+import type { CreateWalletOptions } from './modules/wallet';
+import type { UtxoEntry } from './types/cache';
+import { getCacheKey } from './utils/cache';
+import { getBitcoinPrice } from './modules/blockonomics';
 import { accountManager } from './accountManager';
 import { wallet } from './modules/wallet';
 import { preferenceManager } from './preferenceManager';
-import type { CreateWalletOptions } from './modules/wallet';
+import { CacheType, ChangeType } from './types/cache';
 
 /**
  * Manages the wallet lifecycle, including initialization, restoration, creation,
@@ -14,6 +19,62 @@ export class WalletManager {
    */
   async init(): Promise<void> {
     await wallet.init();
+  }
+
+  /**
+   * Aggregate confirmed/unconfirmed balance for the active account by summing UTXOs
+   * from both external(0/receive) and internal(1/change) chains.
+   */
+  public async getBalance(): Promise<{
+    confirmed: number;
+    unconfirmed: number;
+    confirmedUsd: number;
+    unconfirmedUsd: number;
+  }> {
+    // 1) Resolve active account (index + network)
+    const activeAccount = accountManager.getActiveAccount();
+    console.log(activeAccount);
+    if (!activeAccount) {
+      return { confirmed: 0, unconfirmed: 0, confirmedUsd: 0, unconfirmedUsd: 0 };
+    }
+
+    const receiveKey = getCacheKey(CacheType.Utxo, ChangeType.External);
+    const changeKey = getCacheKey(CacheType.Utxo, ChangeType.Internal);
+    const payload = await browser.storage.local.get([receiveKey, changeKey]);
+
+    const toPairs = (v: unknown): [number, UtxoEntry][] => (Array.isArray(v) ? (v as [number, UtxoEntry][]) : []);
+    const receivePairs = toPairs(payload[receiveKey]);
+    const changePairs = toPairs(payload[changeKey]);
+
+    let confirmed = 0;
+    let unconfirmed = 0;
+    const addFrom = (pairs: [number, UtxoEntry][]) => {
+      for (const [, entry] of pairs) {
+        if (!entry?.utxos) continue;
+        for (const u of entry.utxos) {
+          if (u.height && u.height > 0) confirmed += u.value;
+          else unconfirmed += u.value;
+        }
+      }
+    };
+
+    addFrom(receivePairs);
+    addFrom(changePairs);
+
+    // 5) Convert to USD (best effort)
+    let confirmedUsd = 0;
+    let unconfirmedUsd = 0;
+    try {
+      const rate = await getBitcoinPrice();
+      console.log('BTC Price: ', rate);
+      confirmedUsd = (confirmed / 1e8) * rate;
+      unconfirmedUsd = (unconfirmed / 1e8) * rate;
+    } catch {
+      // ignore FX errors; return sats at minimum
+      console.error('Error getting Bitcoin price');
+    }
+
+    return { confirmed, unconfirmed, confirmedUsd, unconfirmedUsd };
   }
 
   /**

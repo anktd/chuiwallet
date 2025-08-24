@@ -5,6 +5,7 @@ import { TermsCheckbox } from '../components/TermsCheckbox';
 import { Button } from '@src/components/Button';
 import { getPasswordStrength } from '@src/utils';
 import { sendMessage } from '@src/utils/bridge';
+import { setSessionPassword } from '@extension/backend/dist/utils/sessionStorageHelper';
 
 export const SetPassword: React.FC = () => {
   const navigate = useNavigate();
@@ -40,12 +41,7 @@ export const SetPassword: React.FC = () => {
       return;
     }
 
-    await sendMessage('wallet.create', {
-      password,
-      network: 'mainnet',
-      addressType: 'bech32',
-    });
-
+    await setSessionPassword(password);
     navigate('/onboard/choose-method');
   };
 

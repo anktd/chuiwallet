@@ -3,13 +3,11 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SeedColumn } from '../components/SeedColumn';
 import { Button } from '@src/components/Button';
-import { useWalletContext } from '../context/WalletContext';
 import { sendMessage } from '@src/utils/bridge';
-import { s } from 'framer-motion/dist/types.d-6pKw1mTI';
+import { getSessionPassword } from '@extension/backend/dist/utils/sessionStorageHelper';
 
 export const BackupSeed: React.FC = () => {
   const navigate = useNavigate();
-  const { createWallet, wallet, password } = useWalletContext();
   const [leftColumnWords, setLeftColumnWords] = useState<string[]>([]);
   const [rightColumnWords, setRightColumnWords] = useState<string[]>([]);
   const [copied, setCopied] = useState(false);
@@ -17,6 +15,8 @@ export const BackupSeed: React.FC = () => {
   useEffect(() => {
     (async () => {
       try {
+        const password = await getSessionPassword();
+        await sendMessage('wallet.create', { password });
         const seed: string = await sendMessage('wallet.getMnemonic');
         if (!seed) {
           console.error('Failed to recover seed');
@@ -34,7 +34,7 @@ export const BackupSeed: React.FC = () => {
         console.error('Error recovering seed:', err);
       }
     })();
-  }, [wallet, password]);
+  }, []);
 
   const handleCopyToClipboard = async () => {
     try {
@@ -53,7 +53,6 @@ export const BackupSeed: React.FC = () => {
   };
 
   const handleSkip = async () => {
-    //Todo: create wallet
     navigate('/onboard/complete');
   };
 
