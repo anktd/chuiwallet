@@ -1,22 +1,12 @@
 import type { AddressEntry, HistoryEntry, UtxoEntry } from './types/cache';
+import { CacheType, ChangeType } from './types/cache';
 import browser from 'webextension-polyfill';
 import { addressToScriptHash, toBitcoinNetwork } from './utils/crypto';
-import { accountManager } from './accountManager';
+import { getCacheKey } from './utils/cache';
 import { walletManager } from './walletManager';
 import { preferenceManager } from './preferenceManager';
 import { electrumService } from './modules/electrumService';
 import { logger } from './utils/logger';
-
-export enum CacheType {
-  Address = 'address',
-  History = 'history',
-  Utxo = 'utxo',
-}
-
-export enum ChangeType {
-  External = 'receive',
-  Internal = 'change',
-}
 
 export interface ScanManagerConfig {
   externalGapLimit: number;
@@ -279,14 +269,9 @@ export class ScanManager {
     return changeType === ChangeType.External ? external : internal;
   }
 
-  private getCacheKey(type: string = CacheType.Address, chain: string = ChangeType.External): string {
-    const activeAccount = accountManager.getActiveAccount();
-    return `${type}_${activeAccount.network}_${chain}_${activeAccount.index}`;
-  }
-
   private async saveAddress() {
-    const receiveKey = this.getCacheKey(CacheType.Address, ChangeType.External);
-    const changeKey = this.getCacheKey(CacheType.Address, ChangeType.Internal);
+    const receiveKey = getCacheKey(CacheType.Address, ChangeType.External);
+    const changeKey = getCacheKey(CacheType.Address, ChangeType.Internal);
     const receiveSerialised = Array.from(this.addressCacheReceive);
     const changeSerialised = Array.from(this.addressCacheChange);
     await browser.storage.local.set({ [receiveKey]: receiveSerialised });
@@ -294,8 +279,8 @@ export class ScanManager {
   }
 
   private async loadAddress() {
-    const receiveKey = this.getCacheKey(CacheType.Address, ChangeType.External);
-    const changeKey = this.getCacheKey(CacheType.Address, ChangeType.Internal);
+    const receiveKey = getCacheKey(CacheType.Address, ChangeType.External);
+    const changeKey = getCacheKey(CacheType.Address, ChangeType.Internal);
     const receiveAddresses = await browser.storage.local.get(receiveKey);
     const changeAddresses = await browser.storage.local.get(changeKey);
     if (Object.keys(receiveAddresses).length === 0 || Object.keys(changeAddresses).length === 0) {
@@ -315,8 +300,8 @@ export class ScanManager {
   }
 
   private async saveHistory() {
-    const receiveKey = this.getCacheKey(CacheType.History, ChangeType.External);
-    const changeKey = this.getCacheKey(CacheType.History, ChangeType.Internal);
+    const receiveKey = getCacheKey(CacheType.History, ChangeType.External);
+    const changeKey = getCacheKey(CacheType.History, ChangeType.Internal);
     const receiveSerialised = Array.from(this.historyCacheReceive);
     const changeSerialised = Array.from(this.historyCacheChange);
     await browser.storage.local.set({ [receiveKey]: receiveSerialised });
@@ -324,8 +309,8 @@ export class ScanManager {
   }
 
   private async loadHistory() {
-    const receiveKey = this.getCacheKey(CacheType.History, ChangeType.External);
-    const changeKey = this.getCacheKey(CacheType.History, ChangeType.Internal);
+    const receiveKey = getCacheKey(CacheType.History, ChangeType.External);
+    const changeKey = getCacheKey(CacheType.History, ChangeType.Internal);
     const receiveHistory = await browser.storage.local.get(receiveKey);
     const changeHistory = await browser.storage.local.get(changeKey);
     if (Object.keys(receiveHistory).length === 0 || Object.keys(changeHistory).length === 0) {
@@ -345,8 +330,8 @@ export class ScanManager {
   }
 
   private async saveUtxo() {
-    const receiveKey = this.getCacheKey(CacheType.Utxo, ChangeType.External);
-    const changeKey = this.getCacheKey(CacheType.Utxo, ChangeType.Internal);
+    const receiveKey = getCacheKey(CacheType.Utxo, ChangeType.External);
+    const changeKey = getCacheKey(CacheType.Utxo, ChangeType.Internal);
     const receiveSerialised = Array.from(this.utxoCacheReceive);
     const changeSerialised = Array.from(this.utxoCacheChange);
     await browser.storage.local.set({ [receiveKey]: receiveSerialised });
@@ -354,8 +339,8 @@ export class ScanManager {
   }
 
   private async loadUtxo() {
-    const receiveKey = this.getCacheKey(CacheType.Utxo, ChangeType.External);
-    const changeKey = this.getCacheKey(CacheType.Utxo, ChangeType.Internal);
+    const receiveKey = getCacheKey(CacheType.Utxo, ChangeType.External);
+    const changeKey = getCacheKey(CacheType.Utxo, ChangeType.Internal);
     const receiveUtxo = await browser.storage.local.get(receiveKey);
     const changeUtxo = await browser.storage.local.get(changeKey);
     if (Object.keys(receiveUtxo).length === 0 || Object.keys(changeUtxo).length === 0) {

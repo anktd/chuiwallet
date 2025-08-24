@@ -19,3 +19,14 @@ export interface UtxoEntry {
     height: number;
   }>;
 }
+
+export enum CacheType {
+  Address = 'address',
+  History = 'history',
+  Utxo = 'utxo',
+}
+
+export enum ChangeType {
+  External = 'receive',
+  Internal = 'change',
+}
