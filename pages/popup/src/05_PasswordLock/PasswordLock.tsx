@@ -28,7 +28,6 @@ export const PasswordLock: React.FC = () => {
 
     try {
       await setSessionPassword(password);
-      await sendMessage('wallet.startup');
       navigate('/dashboard');
     } catch (err) {
       console.error(err);

@@ -26,7 +26,7 @@ import { useWalletContext } from '@src/context/WalletContext';
 import Xpub from '@src/06_Settings/Xpub';
 
 export const App: React.FC = () => {
-  const { onboarded, wallet } = useWalletContext();
+  const { onboarded, unlocked } = useWalletContext();
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
@@ -46,7 +46,7 @@ export const App: React.FC = () => {
   return (
     <Routes>
       {onboarded ? (
-        wallet ? (
+        unlocked ? (
           <>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<Dashboard />} />
@@ -76,7 +76,7 @@ export const App: React.FC = () => {
       <Route path="/settings/advanced" element={<AdvancedSettings />} />
       <Route path="/settings/advanced/unlock-seed" element={<UnlockSeed />} />
       <Route path="/settings/advanced/reveal-seed" element={<RevealSeed />} />
-      <Route path="/settings/advanced/xpub" element={wallet ? <Xpub /> : <PasswordLock />} />
+      <Route path="/settings/advanced/xpub" element={unlocked ? <Xpub /> : <PasswordLock />} />
       <Route path="/accounts" element={<Accounts />} />
     </Routes>
   );

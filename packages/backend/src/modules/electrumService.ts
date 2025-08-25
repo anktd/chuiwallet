@@ -15,7 +15,7 @@ export class ElectrumService {
   }
 
   private async connect() {
-    logger.log('connecting');
+    logger.log('Connecting Electrum server');
     const server = await selectBestServer(this.network);
     this.rpcClient = await new ElectrumRpcClient(server).connect();
   }

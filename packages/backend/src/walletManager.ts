@@ -31,9 +31,7 @@ export class WalletManager {
     confirmedUsd: number;
     unconfirmedUsd: number;
   }> {
-    // 1) Resolve active account (index + network)
     const activeAccount = accountManager.getActiveAccount();
-    console.log(activeAccount);
     if (!activeAccount) {
       return { confirmed: 0, unconfirmed: 0, confirmedUsd: 0, unconfirmedUsd: 0 };
     }
@@ -61,7 +59,6 @@ export class WalletManager {
     addFrom(receivePairs);
     addFrom(changePairs);
 
-    // 5) Convert to USD (best effort)
     let confirmedUsd = 0;
     let unconfirmedUsd = 0;
     try {
@@ -70,7 +67,6 @@ export class WalletManager {
       confirmedUsd = (confirmed / 1e8) * rate;
       unconfirmedUsd = (unconfirmed / 1e8) * rate;
     } catch {
-      // ignore FX errors; return sats at minimum
       console.error('Error getting Bitcoin price');
     }
 

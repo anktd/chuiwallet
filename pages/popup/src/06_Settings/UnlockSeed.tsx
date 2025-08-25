@@ -4,7 +4,6 @@ import { InputField } from '@src/components/InputField';
 import Header from '@src/components/Header';
 import { ButtonOutline } from '@src/components/ButtonOutline';
 import { useWalletContext } from '@src/context/WalletContext';
-import WalletManager from '@extension/backend/src/walletManager';
 import type { StoredAccount } from '@src/types';
 import bip39 from 'bip39';
 import encryption from '@extension/backend/src/utils/encryption';

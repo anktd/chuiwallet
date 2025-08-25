@@ -142,24 +142,24 @@ export const Dashboard: React.FC = () => {
             })
           }
         />
-        <CryptoBalance
-          cryptoName="Bitcoin Cash"
-          cryptoAmount={preferences?.fiatCurrency === 'USD' ? `0 USD` : `0 BCH`}
-          usdAmount={preferences?.fiatCurrency === 'USD' ? `0 BCH` : `0 USD`}
-          icon="popup/bch_coin.svg"
-          isLoading={balanceLoading}
-          disabled={true}
-          onClick={() => navigate('/dashboard/bch/activity')}
-        />
-        <CryptoBalance
-          cryptoName="USDT"
-          cryptoAmount={preferences?.fiatCurrency === 'USD' ? `0 USD` : `0 USDT`}
-          usdAmount={preferences?.fiatCurrency === 'USD' ? `0 USDT` : `0 USD`}
-          icon="popup/usdt_coin.svg"
-          isLoading={balanceLoading}
-          disabled={true}
-          onClick={() => navigate('/dashboard/usdt/activity')}
-        />
+        {/*<CryptoBalance*/}
+        {/*  cryptoName="Bitcoin Cash"*/}
+        {/*  cryptoAmount={preferences?.fiatCurrency === 'USD' ? `0 USD` : `0 BCH`}*/}
+        {/*  usdAmount={preferences?.fiatCurrency === 'USD' ? `0 BCH` : `0 USD`}*/}
+        {/*  icon="popup/bch_coin.svg"*/}
+        {/*  isLoading={balanceLoading}*/}
+        {/*  disabled={true}*/}
+        {/*  onClick={() => navigate('/dashboard/bch/activity')}*/}
+        {/*/>*/}
+        {/*<CryptoBalance*/}
+        {/*  cryptoName="USDT"*/}
+        {/*  cryptoAmount={preferences?.fiatCurrency === 'USD' ? `0 USD` : `0 USDT`}*/}
+        {/*  usdAmount={preferences?.fiatCurrency === 'USD' ? `0 USDT` : `0 USD`}*/}
+        {/*  icon="popup/usdt_coin.svg"*/}
+        {/*  isLoading={balanceLoading}*/}
+        {/*  disabled={true}*/}
+        {/*  onClick={() => navigate('/dashboard/usdt/activity')}*/}
+        {/*/>*/}
       </div>
 
       <AnimatePresence>

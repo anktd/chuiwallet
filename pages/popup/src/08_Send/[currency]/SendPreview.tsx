@@ -1,4 +1,3 @@
-import Wallet from '@extension/backend/src/modules/wallet';
 import { getSessionPassword } from '@extension/backend/src/utils/sessionStorageHelper';
 import { Button } from '@src/components/Button';
 import Header from '@src/components/Header';

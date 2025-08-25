@@ -1,5 +1,4 @@
 import { handle } from './router';
-import { getSessionPassword } from '@extension/backend/src/utils/sessionStorageHelper';
 import { preferenceManager } from '@extension/backend/src/preferenceManager';
 import { walletManager } from '@extension/backend/src/walletManager';
 import { accountManager } from '@extension/backend/src/accountManager';
@@ -13,16 +12,9 @@ import { ChangeType } from '@extension/backend/src/types/cache';
 async function init() {
   await preferenceManager.init();
   await walletManager.init();
-  const sessionPassword = await getSessionPassword();
-  if (await walletManager.restoreIfPossible(sessionPassword)) {
-    await electrumService.init(preferenceManager.get().activeNetwork);
-    await accountManager.init(preferenceManager.get().activeAccountIndex);
-    await scanManager.init();
-    await scanManager.forwardScan();
-    await scanManager.forwardScan(ChangeType.Internal);
-  } else {
-    // Unable or nothing to restore
-  }
+  await electrumService.init(preferenceManager.get().activeNetwork);
+  await accountManager.init(preferenceManager.get().activeAccountIndex);
+  await scanManager.init();
 }
 
 (async () => {
@@ -32,6 +24,7 @@ async function init() {
 })();
 
 async function allScan() {
+  //Todo: guard if manager init
   await scanManager.forwardScan();
   await scanManager.forwardScan(ChangeType.Internal);
   await scanManager.backfillScan();
@@ -58,22 +51,22 @@ browser.runtime.onMessage.addListener((message: unknown, sender: MessageSender) 
 // });
 
 chrome.runtime.onInstalled.addListener(() => {
-  console.log('oninstall');
+  console.log('onInstall');
   setupAlarms();
 });
 
 chrome.runtime.onStartup.addListener(() => {
-  console.log('start your engine');
+  console.log('onStartup');
 });
 
 function setupAlarms() {
-  chrome.alarms.create('forwardScan', { periodInMinutes: 1 });
-  chrome.alarms.create('backfillScan', { periodInMinutes: 5 });
+  browser.alarms.create('forwardScan', { periodInMinutes: 3 });
+  browser.alarms.create('backfillScan', { periodInMinutes: 1 });
 }
 
 browser.alarms.onAlarm.addListener(async alarm => {
   if (alarm.name === 'forwardScan') {
-    //Todo: move scan queue to scan manager
-    // await allScan();
+    // Todo: move scan queue to scan manager
+    await allScan();
   }
 });

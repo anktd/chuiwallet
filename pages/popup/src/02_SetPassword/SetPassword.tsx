@@ -4,7 +4,6 @@ import { InputField } from '../components/InputField';
 import { TermsCheckbox } from '../components/TermsCheckbox';
 import { Button } from '@src/components/Button';
 import { getPasswordStrength } from '@src/utils';
-import { sendMessage } from '@src/utils/bridge';
 import { setSessionPassword } from '@extension/backend/dist/utils/sessionStorageHelper';
 
 export const SetPassword: React.FC = () => {

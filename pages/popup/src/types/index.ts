@@ -8,6 +8,11 @@ export const currencyMapping: Record<Currencies, string> = {
   usdt: 'USDT',
 };
 
+export enum Network {
+  Mainnet = 'mainnet',
+  Testnet = 'testnet',
+}
+
 export interface Preferences {
   gapLimitReceive: number;
   gapLimitChange: number;

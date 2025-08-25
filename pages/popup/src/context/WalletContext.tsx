@@ -1,100 +1,72 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import {
-  deleteSessionPassword,
-  getSessionPassword,
-  setSessionPassword,
-} from '@extension/backend/src/utils/sessionStorageHelper.js';
-import type { BalanceData, TransactionActivity } from '@src/types';
-import { ScriptType } from '@extension/backend/src/types/wallet';
 import { sendMessage } from '@src/utils/bridge';
-
-type WalletProxy = {
-  getBalance: (accountIndex: number) => Promise<BalanceData>; // Triggers SW scan with gapLimit for external chain
-  getHistory: (accountIndex: number) => Promise<TransactionActivity[]>;
-  getAddress: (type: AddressType, index: number) => Promise<string>; // Derives address, respecting gap limit
-  getXpub: () => Promise<string>; // Fetches xpub for e-commerce sharing
-  signTransaction: (txHex: string) => Promise<string>; // Signs in SW, using gap-aware derivations if needed
-  // Extend with other proxy methods, e.g., for custom scans: scanExternal: (gapLimit: number) => Promise<{ scannedUpTo: number }>;
-};
+import type { BalanceData, Preferences, TransactionActivity } from '@src/types';
+import type { Account } from '@extension/backend/src/types/wallet'; //Todo: Consider decouple type from backend
 
 interface WalletContextType {
-  wallet: WalletProxy;
-  password: string;
-  selectedAccountIndex: number;
-  totalAccounts: number;
-  selectedFiatCurrency: 'USD' | 'BTC';
   onboarded: boolean;
-  isRestored: boolean;
-  network: 'mainnet' | 'testnet';
-  // setWallet: (wallet: typeof walletProxy, password: string) => void;
-  setSelectedAccountIndex: (index: number) => void;
-  setTotalAccounts: (index: number) => void;
-  setSelectedFiatCurrency: (currency: 'USD' | 'BTC') => void;
+  unlocked: boolean;
   setOnboarded: (onboarded: boolean) => void;
+  setUnlocked: (unlocked: boolean) => void;
+  preferences: Preferences | undefined;
+  accounts: Account[];
+  activeAccount: Account | undefined;
+  balance: BalanceData | undefined;
+  refreshBalance: () => void;
+
+  // network: 'mainnet' | 'testnet';
+  // totalAccounts: number;
+  // selectedFiatCurrency: 'USD' | 'BTC';
+  // isRestored: boolean;
+
+  // setTotalAccounts: (index: number) => void;
+  // setSelectedFiatCurrency: (currency: 'USD' | 'BTC') => void;
   // switchAccount: (index: number) => void;
   // nextAccount: () => void;
   // addAccount: () => void;
-  createWallet: (seed: string, password: string, network?: 'mainnet' | 'testnet', addressType?: ScriptType) => void;
+  // createWallet: (seed: string, password: string, network?: 'mainnet' | 'testnet', addressType?: ScriptType) => void;
   // restoreWallet: (seed: string, password: string, network?: 'mainnet' | 'testnet', addressType?: ScriptType) => void;
   // unlockWallet: (password: string) => void;
   // clearWallet: () => void;
   // updateNetwork: (newNetwork: 'mainnet' | 'testnet') => void;
-  cachedBalances: { [accountIndex: number]: BalanceData | null };
-  // refreshBalance: (accountIndex: number) => void;
+  // cachedBalances: { [accountIndex: number]: BalanceData | null };
+
   // refreshAllBalances: () => void;
-  cachedTxHistories: { [accountIndex: number]: TransactionActivity[] | null };
+  // cachedTxHistories: { [accountIndex: number]: TransactionActivity[] | null };
   // refreshTxHistory: (accountIndex: number) => void;
   // logout: () => void;
   // gapLimit: number;
-  setGapLimit: (newLimit: number) => void;
   // getXpub: () => Promise<string>;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
 
 export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [password, setPassword] = useState('');
-  const [selectedAccountIndex, setSelectedAccountIndex] = useState<number>(0);
-  const [selectedFiatCurrency, setSelectedFiatCurrency] = useState<'USD' | 'BTC'>('USD');
-  const [pendingNewAccountIndex, setPendingNewAccountIndex] = useState<number | null>(null);
-  const [totalAccounts, setTotalAccounts] = useState<number>(0);
-  const [onboarded, setOnboarded] = useState(false);
-  const [isRestored, setIsRestored] = useState(false);
-  const [network, setNetwork] = useState<'mainnet' | 'testnet'>('mainnet');
-  const [cachedBalances, setCachedBalances] = useState<{
-    [accountIndex: number]: BalanceData | null;
-  }>({});
-  const [lastBalanceFetchMap, setLastBalanceFetchMap] = useState<{
-    [accountIndex: number]: number;
-  }>({});
-  const [cachedTxHistories, setCachedTxHistories] = useState<{ [accountIndex: number]: TransactionActivity[] | null }>(
-    {},
-  );
-  const [lastTxFetchMap, setLastTxFetchMap] = useState<{ [accountIndex: number]: number }>({});
-  const [gapLimit, setGapLimitState] = useState<number>(500);
+  const [onboarded, setOnboarded] = useState<boolean>(false);
+  const [unlocked, setUnlocked] = useState<boolean>(false);
+  const [preferences, _setPreferences] = useState<Preferences>();
+  const [accounts, _setAccounts] = useState<Account[]>([]);
+  const [balance, _setBalance] = useState<BalanceData>();
+  const activeAccount = useMemo<Account | undefined>(() => {
+    const i = preferences?.activeAccountIndex ?? 0;
+    return accounts[i];
+  }, [accounts, preferences?.activeAccountIndex]);
 
-  const walletProxy = useMemo(
-    () => ({
-      getBalance: async (accountIndex: number) => {
-        // Delegate to router; includes gapLimit for external scan support
-        return sendMessage<BalanceData>('getBalance', { accountIndex, gapLimit });
-      },
-      getHistory: async (accountIndex: number) => {
-        return sendMessage<TransactionActivity[]>('getHistory', { accountIndex, gapLimit });
-      },
-      getAddress: async (type: ScriptType = ScriptType.P2WPKH, index: number) => {
-        return sendMessage<string>('getAddress', { type, index }); // Add handler in SW
-      },
-      getXpub: async () => {
-        return sendMessage<string>('getXpub');
-      },
-      // Add more methods as needed, e.g., signTransaction (returns signed tx from SW)
-      signTransaction: async (txHex: string) => {
-        return sendMessage<string>('signTransaction', { txHex, gapLimit }); // SW handles derivation with gap
-      },
-    }),
-    [],
-  ); //
+  // const [selectedFiatCurrency, _setSelectedFiatCurrency] = useState<'USD' | 'BTC'>('USD');
+  // const [network, _setNetwork] = useState<'mainnet' | 'testnet'>('mainnet');
+  // const [pendingNewAccountIndex, setPendingNewAccountIndex] = useState<number | null>(null);
+  // const [isRestored, setIsRestored] = useState(false);
+  // const [cachedBalances, setCachedBalances] = useState<{
+  //   [accountIndex: number]: BalanceData | null;
+  // }>({});
+  // const [lastBalanceFetchMap, setLastBalanceFetchMap] = useState<{
+  //   [accountIndex: number]: number;
+  // }>({});
+  // const [cachedTxHistories, setCachedTxHistories] = useState<{ [accountIndex: number]: TransactionActivity[] | null }>(
+  //   {},
+  // );
+  // const [lastTxFetchMap, setLastTxFetchMap] = useState<{ [accountIndex: number]: number }>({});
+
   // const setWallet = (newWallet: Wallet, newPassword: string) => {
   //   setWalletState(newWallet);
   //   setPassword(newPassword);
@@ -107,21 +79,23 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   //   await deleteSessionPassword();
   // };
 
-  // Hydrate settings (onboarded, accountIndex, totalAccounts, fiatCurrency & gapLimit)
+  // Hydrate settings (onboarded, preferences, accounts)
   useEffect(() => {
     (async () => {
       try {
-        const isRestorable = await sendMessage('wallet.isRestorable');
-        if (isRestorable) {
+        const isExist = await sendMessage('wallet.exist');
+        if (isExist) {
           setOnboarded(true);
-          // setSelectedAccountIndex(storedAccount.selectedAccountIndex);
-          // setTotalAccounts(storedAccount.totalAccounts);
-          // setGapLimitState(storedAccount.gapLimit);
-          // if (!storedAccount.fiatCurrency) {
-          //   setSelectedFiatCurrency('USD');
-          // } else {
-          //   setSelectedFiatCurrency(storedAccount.fiatCurrency);
-          // }
+          const isRestorable = await sendMessage('wallet.restore');
+          console.log('isRestorable', isRestorable);
+          if (isRestorable) {
+            setUnlocked(true);
+            console.log('Restoring');
+            const preferences: Preferences = await sendMessage('preferences.get');
+            const accounts: [] = await sendMessage('accounts.get');
+            _setPreferences(preferences);
+            _setAccounts(accounts);
+          }
         }
       } catch (e) {
         console.error(e);
@@ -129,54 +103,52 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     })();
   }, []);
 
-  // Restore wallets from storedAccount?
-  // useEffect(() => {
-  //   (async () => {
-  //     const storedPwd = await getSessionPassword();
-  //     if (storedPwd) {
-  //       chrome.storage.local.get(['storedAccount'], res => {
-  //         const storedAccount: StoredAccount | undefined = res.storedAccount;
-  //         if (storedAccount) {
-  //           try {
-  //             if (storedAccount?.network) {
-  //               setNetwork(storedAccount.network);
-  //             }
-  //
-  //             const restoredMnemonic = Wallet.getDecryptedMnemonic(storedAccount.encryptedMnemonic, storedPwd);
-  //             if (!restoredMnemonic) {
-  //               console.error('Failed to recover seed with stored password.');
-  //               clearWallet();
-  //             }
-  //
-  //             const restoredWallet = manager.createWallet({
-  //               password: storedPwd!,
-  //               mnemonic: restoredMnemonic!,
-  //               network: storedAccount.network,
-  //               addressType: 'bech32',
-  //               accountIndex: storedAccount.selectedAccountIndex,
-  //             });
-  //
-  //             const seed = restoredWallet.recoverMnemonic(storedPwd);
-  //             if (seed) {
-  //               setWalletState(restoredWallet);
-  //               setPassword(storedPwd);
-  //               setSelectedAccountIndex(storedAccount.selectedAccountIndex);
-  //               setTotalAccounts(storedAccount.totalAccounts);
-  //               setSelectedFiatCurrency(storedAccount.fiatCurrency);
-  //             } else {
-  //               console.error('Failed to recover seed with stored password.');
-  //               clearWallet();
-  //             }
-  //           } catch (err) {
-  //             console.error('Error restoring wallet from storage:', err);
-  //           }
-  //         }
-  //       });
-  //     } else {
-  //       await clearWallet();
+  useEffect(() => {
+    (async () => {
+      const balance: BalanceData = await sendMessage('wallet.getBalance');
+      _setBalance(balance);
+    })();
+  }, [
+    preferences?.activeNetwork,
+    preferences?.activeAccountIndex,
+    preferences?.gapLimitReceive,
+    preferences?.gapLimitChange,
+  ]);
+
+  const refreshBalance = () => {
+    (async () => {
+      const balance: BalanceData = await sendMessage('wallet.getBalance');
+      console.log('WalletContext:refresh', balance);
+      _setBalance(balance);
+    })();
+  };
+
+  // const refreshBalance = useCallback(
+  //   (accountIndex: number) => {
+  //     const now = Date.now();
+  //     if (cachedBalances[accountIndex] && now - (lastBalanceFetchMap[accountIndex] || 0) < 300000) {
+  //       return;
   //     }
-  //   })();
-  // }, [manager]);
+  //     if (wallet) {
+  //       const walletAddress = wallet.getAddress('bech32', accountIndex);
+  //       if (walletAddress) {
+  //         chrome.runtime.sendMessage({ action: 'getBalance', walletAddress }, response => {
+  //           if (response?.success && response.balance) {
+  //             setCachedBalances(prev => ({
+  //               ...prev,
+  //               [accountIndex]: response.balance,
+  //             }));
+  //             setLastBalanceFetchMap(prev => ({
+  //               ...prev,
+  //               [accountIndex]: now,
+  //             }));
+  //           }
+  //         });
+  //       }
+  //     }
+  //   },
+  //   [cachedBalances, lastBalanceFetchMap, wallet],
+  // );
 
   // Security Watchdog
   // useEffect(() => {
@@ -255,133 +227,6 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   //   }
   // }, [totalAccounts, pendingNewAccountIndex, switchAccount]);
 
-  const createWallet = (
-    seed: string,
-    pwd: string,
-    net: 'mainnet' | 'testnet' = 'mainnet',
-    scriptType: ScriptType = ScriptType.P2WPKH,
-  ) => {
-    // try {
-    // const createdWallet = manager.createWallet({
-    //   password: pwd,
-    //   mnemonic: seed,
-    //   network: net,
-    //   addressType,
-    // });
-    //   const storedAccount: StoredAccount = {
-    //     encryptedMnemonic: createdWallet.getEncryptedMnemonic()!,
-    //     xpub: createdWallet.getXpub(),
-    //     network: net,
-    //     selectedAccountIndex: 0,
-    //     fiatCurrency: 'USD',
-    //     totalAccounts: 1,
-    //     isRestored: false,
-    //     walletOnboarded: true,
-    //     gapLimit: 500,
-    //   };
-    //
-    //   chrome.storage.local.set(
-    //     {
-    //       storedAccount,
-    //     },
-    //     () => {
-    //     },
-    //   );
-    //
-    //   setSelectedAccountIndex(0);
-    //   setTotalAccounts(1);
-    // } catch (err) {
-    //   console.error('Error creating wallet:', err);
-    // }
-  };
-
-  // const restoreWallet = (
-  //   seed: string,
-  //   pwd: string,
-  //   net: 'mainnet' | 'testnet' = 'mainnet',
-  //   addressType: ScriptType = ScriptType.P2WPKH,
-  // ) => {
-  // try {
-  //   const restoredWallet = manager.createWallet({
-  //     password: pwd,
-  //     mnemonic: seed,
-  //     network: net,
-  //     addressType,
-  //   });
-  //
-  //   setWallet(restoredWallet, pwd);
-  //   setIsRestored(true);
-  //
-  //   const storedAccount: StoredAccount = {
-  //     encryptedMnemonic: restoredWallet.getEncryptedMnemonic()!,
-  //     xpub: restoredWallet.getXpub(),
-  //     network: net,
-  //     selectedAccountIndex: 0,
-  //     fiatCurrency: 'USD',
-  //     totalAccounts: 1,
-  //     isRestored: true,
-  //     walletOnboarded: true,
-  //     gapLimit: 500,
-  //   };
-  //
-  //   chrome.storage.local.set(
-  //     {
-  //       storedAccount,
-  //     },
-  //     () => {
-  //       // console.log('Wallet successfully restored from seed and persisted.');
-  //     },
-  //   );
-  //
-  //   setSelectedAccountIndex(0);
-  //   setTotalAccounts(1);
-  // } catch (err) {
-  //   console.error('Error restoring wallet from seed:', err);
-  // }
-  // }
-
-  // const unlockWallet = (pwd: string) => {
-  // if (pwd) {
-  //   chrome.storage.local.get(['storedAccount'], res => {
-  //     const storedAccount: StoredAccount | undefined = res.storedAccount;
-  //     if (storedAccount) {
-  //       try {
-  //         const restoredMnemonic = Wallet.getDecryptedMnemonic(storedAccount.encryptedMnemonic, pwd);
-  //         if (!restoredMnemonic) {
-  //           console.error('Failed to recover seed with stored password.');
-  //           clearWallet();
-  //         }
-  //
-  //         const restoredWallet = manager.createWallet({
-  //           password: pwd!,
-  //           mnemonic: restoredMnemonic!,
-  //           network: storedAccount.network,
-  //           addressType: 'bech32',
-  //           accountIndex: storedAccount.selectedAccountIndex,
-  //         });
-  //
-  //         const seed = restoredWallet.recoverMnemonic(pwd);
-  //         if (seed) {
-  //           setWalletState(restoredWallet);
-  //           setPassword(pwd);
-  //           setSessionPassword(pwd);
-  //           setSelectedAccountIndex(storedAccount.selectedAccountIndex);
-  //           setTotalAccounts(storedAccount.totalAccounts);
-  //           setSelectedFiatCurrency(storedAccount.fiatCurrency);
-  //         } else {
-  //           console.error('Failed to recover seed with stored password.');
-  //           clearWallet();
-  //         }
-  //       } catch (err) {
-  //         console.error('Error restoring wallet from storage:', err);
-  //       }
-  //     }
-  //   });
-  //   } else {
-  //     clearWallet();
-  //   }
-  // };
-
   // const updateNetwork = (newNetwork: 'mainnet' | 'testnet') => {
   // setNetwork(newNetwork);
   // chrome.storage.local.get(['storedAccount'], res => {
@@ -392,33 +237,6 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   //   }
   // });
   // };
-
-  // const refreshBalance = useCallback(
-  // (accountIndex: number) => {
-  //   const now = Date.now();
-  //   if (cachedBalances[accountIndex] && now - (lastBalanceFetchMap[accountIndex] || 0) < 300000) {
-  //     return;
-  //   }
-  //   if (wallet) {
-  //     const walletAddress = wallet.getAddress('bech32', accountIndex);
-  //     if (walletAddress) {
-  //       chrome.runtime.sendMessage({ action: 'getBalance', walletAddress }, response => {
-  //         if (response?.success && response.balance) {
-  //           setCachedBalances(prev => ({
-  //             ...prev,
-  //             [accountIndex]: response.balance,
-  //           }));
-  //           setLastBalanceFetchMap(prev => ({
-  //             ...prev,
-  //             [accountIndex]: now,
-  //           }));
-  //         }
-  //       });
-  //     }
-  //   }
-  // },
-  // [cachedBalances, lastBalanceFetchMap, wallet],
-  // );
 
   // const refreshAllBalances = useCallback(() => {
   // for (let i = 0; i < totalAccounts; i++) {
@@ -459,13 +277,6 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   //   },
   //   [cachedTxHistories, lastTxFetchMap, wallet],
   // );
-
-  //On wallet init/replace: refresh balances only
-  // useEffect(() => {
-  //   if (wallet) {
-  //     refreshAllBalances();
-  //   }
-  // }, [wallet, refreshAllBalances]);
 
   //On selectedAccountIndex change (or wallet init): refresh just the history
   // useEffect(() => {
@@ -524,34 +335,40 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   return (
     <WalletContext.Provider
       value={{
-        wallet: walletProxy,
-        password,
-        selectedAccountIndex,
-        totalAccounts,
-        selectedFiatCurrency,
         onboarded,
-        isRestored,
-        network,
-        // setWallet,
-        setSelectedAccountIndex,
-        setTotalAccounts,
-        setSelectedFiatCurrency,
+        unlocked,
+        preferences,
+        accounts,
+        activeAccount,
+        balance,
+        refreshBalance,
         setOnboarded,
+        setUnlocked,
+        // password,
+        // selectedAccountIndex,
+        // totalAccounts,
+        // selectedFiatCurrency,
+        // onboarded,
+        // isRestored,
+        // network,
+        // setWallet,
+        // setSelectedAccountIndex,
+        // setTotalAccounts,
+        // setSelectedFiatCurrency,
         // switchAccount,
         // nextAccount,
         // addAccount,
-        createWallet,
+        // createWallet,
         // restoreWallet,
         // unlockWallet,
         // clearWallet,
         // updateNetwork,
-        cachedBalances,
-        // refreshBalance,
+        // cachedBalances,
         // refreshAllBalances,
-        cachedTxHistories,
+        // cachedTxHistories,
         // refreshTxHistory,
         // logout,
-        gapLimit,
+        // gapLimit,
         // setGapLimit,
         // getXpub,
       }}>

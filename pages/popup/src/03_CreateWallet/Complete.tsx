@@ -1,22 +1,14 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '../components/Button';
 import { useWalletContext } from '@src/context/WalletContext';
-import { useEffect } from 'react';
-import { sendMessage } from '@src/utils/bridge';
 
 export function Complete() {
   const navigate = useNavigate();
   const { setOnboarded } = useWalletContext();
-
-  useEffect(() => {
-    (async () => {
-      await sendMessage('wallet.startup');
-    })();
-  }, []);
+  const isRestored = useSearchParams()[0].get('restored') === '1';
 
   const handleComplete = () => {
     setOnboarded(true);
-
     navigate('/dashboard');
   };
 
@@ -26,7 +18,7 @@ export function Complete() {
         <div className="flex flex-col items-center gap-6">
           <div className="flex flex-1 flex-col self-stretch w-full text-center">
             <div className="text-2xl font-bold leading-loose text-white">
-              You've {true ? 'restored' : 'created'} a wallet
+              You've {isRestored ? 'restored' : 'created'} a wallet
             </div>
             <div className="mt-3 text-lg leading-none text-foreground">Keep your seed phrase safe.</div>
           </div>

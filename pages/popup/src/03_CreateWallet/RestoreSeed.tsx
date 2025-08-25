@@ -67,7 +67,7 @@ export const RestoreSeed: React.FC = () => {
       }
 
       await sendMessage('wallet.create', { mnemonic, password });
-      navigate('/onboard/complete');
+      navigate('/onboard/complete?restored=1');
     })();
   };
 
