@@ -33,13 +33,18 @@ const handlers: Record<string, Handler> = {
   'wallet.getBalance': async () => {
     return await walletManager.getBalance();
   },
+  'wallet.getReceivingAddress': async () => {
+    return walletManager.getAddress();
+  },
   'preferences.get': async () => {
     return preferenceManager.get();
   },
   'accounts.get': async () => {
     return accountManager.accounts;
   },
-  getHistory: () => {},
+  'transactions.get': async () => {
+    return [];
+  },
   getFeeEstimates: () => {},
   getCustomFeeEstimates: () => {},
   sendTransaction: () => {},

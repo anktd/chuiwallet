@@ -38,8 +38,8 @@ export class ScanManager {
   private highestScannedChange = -1;
   private highestUsedReceive = -1;
   private highestUsedChange = -1;
-  nextReceiveIndex = 0;
-  nextChangeIndex = 0;
+  public nextReceiveIndex = 0;
+  public nextChangeIndex = 0;
 
   constructor(config: ScanManagerConfig = defaultScanConfig) {
     this.config = { ...config };
@@ -254,6 +254,8 @@ export class ScanManager {
   private initHighestUsed() {
     this.highestUsedReceive = this.getHighestIndex(this.historyCacheReceive);
     this.highestUsedChange = this.getHighestIndex(this.historyCacheChange);
+    this.nextReceiveIndex = this.highestUsedReceive + 1;
+    this.nextChangeIndex = this.highestUsedChange + 1;
   }
 
   private getHighestIndex(map: Map<number, unknown>): number {

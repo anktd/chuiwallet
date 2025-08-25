@@ -31,6 +31,10 @@ async function allScan() {
   await scanManager.backfillScan(ChangeType.Internal);
 }
 
+async function backfillScan() {
+  await scanManager.backfillScan();
+}
+
 // Message Action Router
 browser.runtime.onMessage.addListener((message: unknown, sender: MessageSender) => {
   if (!message || typeof message !== 'object' || !('action' in (message as never))) {
@@ -61,12 +65,15 @@ chrome.runtime.onStartup.addListener(() => {
 
 function setupAlarms() {
   browser.alarms.create('forwardScan', { periodInMinutes: 3 });
-  browser.alarms.create('backfillScan', { periodInMinutes: 1 });
+  browser.alarms.create('backfillScan', { periodInMinutes: 0.5 });
 }
 
 browser.alarms.onAlarm.addListener(async alarm => {
   if (alarm.name === 'forwardScan') {
     // Todo: move scan queue to scan manager
     await allScan();
+  }
+  if (alarm.name === 'backfillScan') {
+    await backfillScan();
   }
 });

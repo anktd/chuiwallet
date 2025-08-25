@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { sendMessage } from '@src/utils/bridge';
 import type { BalanceData, Preferences, TransactionActivity } from '@src/types';
 import type { Account } from '@extension/backend/src/types/wallet'; //Todo: Consider decouple type from backend
@@ -13,7 +13,9 @@ interface WalletContextType {
   activeAccount: Account | undefined;
   balance: BalanceData | undefined;
   refreshBalance: () => void;
-
+  transactions: TransactionActivity[];
+  refreshTransactions: () => void;
+  getReceivingAddress: () => Promise<string>;
   // network: 'mainnet' | 'testnet';
   // totalAccounts: number;
   // selectedFiatCurrency: 'USD' | 'BTC';
@@ -47,6 +49,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [preferences, _setPreferences] = useState<Preferences>();
   const [accounts, _setAccounts] = useState<Account[]>([]);
   const [balance, _setBalance] = useState<BalanceData>();
+  const [transactions, _setTransactions] = useState<TransactionActivity[]>([]);
   const activeAccount = useMemo<Account | undefined>(() => {
     const i = preferences?.activeAccountIndex ?? 0;
     return accounts[i];
@@ -62,9 +65,6 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // const [lastBalanceFetchMap, setLastBalanceFetchMap] = useState<{
   //   [accountIndex: number]: number;
   // }>({});
-  // const [cachedTxHistories, setCachedTxHistories] = useState<{ [accountIndex: number]: TransactionActivity[] | null }>(
-  //   {},
-  // );
   // const [lastTxFetchMap, setLastTxFetchMap] = useState<{ [accountIndex: number]: number }>({});
 
   // const setWallet = (newWallet: Wallet, newPassword: string) => {
@@ -87,10 +87,8 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         if (isExist) {
           setOnboarded(true);
           const isRestorable = await sendMessage('wallet.restore');
-          console.log('isRestorable', isRestorable);
           if (isRestorable) {
             setUnlocked(true);
-            console.log('Restoring');
             const preferences: Preferences = await sendMessage('preferences.get');
             const accounts: [] = await sendMessage('accounts.get');
             _setPreferences(preferences);
@@ -103,6 +101,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     })();
   }, []);
 
+  // Get wallet balance
   useEffect(() => {
     (async () => {
       const balance: BalanceData = await sendMessage('wallet.getBalance');
@@ -118,8 +117,20 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const refreshBalance = () => {
     (async () => {
       const balance: BalanceData = await sendMessage('wallet.getBalance');
-      console.log('WalletContext:refresh', balance);
       _setBalance(balance);
+    })();
+  };
+
+  const refreshTransactions = () => {
+    (async () => {
+      const transactions: TransactionActivity[] = await sendMessage('transactions.get');
+      _setTransactions(transactions);
+    })();
+  };
+
+  const getReceivingAddress = (): Promise<string> => {
+    return (async () => {
+      return await sendMessage('wallet.getReceivingAddress');
     })();
   };
 
@@ -341,9 +352,12 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         accounts,
         activeAccount,
         balance,
-        refreshBalance,
+        transactions,
         setOnboarded,
         setUnlocked,
+        refreshBalance,
+        refreshTransactions,
+        getReceivingAddress,
         // password,
         // selectedAccountIndex,
         // totalAccounts,

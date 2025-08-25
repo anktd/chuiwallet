@@ -1,12 +1,13 @@
 import browser from 'webextension-polyfill';
 import type { CreateWalletOptions } from './modules/wallet';
-import type { UtxoEntry } from './types/cache';
-import { getCacheKey } from './utils/cache';
+import { wallet } from './modules/wallet';
+import { type AddressEntry, CacheType, ChangeType, UtxoEntry } from './types/cache';
+import { getCacheKey, selectByChain } from './utils/cache';
 import { getBitcoinPrice } from './modules/blockonomics';
 import { accountManager } from './accountManager';
-import { wallet } from './modules/wallet';
 import { preferenceManager } from './preferenceManager';
-import { CacheType, ChangeType } from './types/cache';
+import { scanManager } from './scanManager';
+import { add } from 'winston';
 
 /**
  * Manages the wallet lifecycle, including initialization, restoration, creation,
@@ -19,6 +20,15 @@ export class WalletManager {
    */
   async init(): Promise<void> {
     await wallet.init();
+  }
+
+  /**
+   * Get current receiving/change address
+   * @param changeType
+   */
+  public getAddress(changeType: ChangeType = ChangeType.External) {
+    const nextIndex = selectByChain(scanManager.nextReceiveIndex, scanManager.nextChangeIndex, changeType);
+    return this.deriveAddress(changeType === ChangeType.External ? 0 : 1, nextIndex);
   }
 
   /**
@@ -63,7 +73,6 @@ export class WalletManager {
     let unconfirmedUsd = 0;
     try {
       const rate = await getBitcoinPrice();
-      console.log('BTC Price: ', rate);
       confirmedUsd = (confirmed / 1e8) * rate;
       unconfirmedUsd = (unconfirmed / 1e8) * rate;
     } catch {
@@ -71,6 +80,109 @@ export class WalletManager {
     }
 
     return { confirmed, unconfirmed, confirmedUsd, unconfirmedUsd };
+  }
+
+  public async getTransactions(): Promise<
+    Array<{
+      txid: string;
+      height: number;
+      status: 'PENDING' | 'CONFIRMED';
+      addresses: string[];
+      chains: ChangeType[];
+    }>
+  > {
+    // Keys that match ScanManager’s persistence format
+    const receiveHistoryKey = getCacheKey(CacheType.History, ChangeType.External);
+    const changeHistoryKey = getCacheKey(CacheType.History, ChangeType.Internal);
+    const receiveAddrKey = getCacheKey(CacheType.Address, ChangeType.External);
+    const changeAddrKey = getCacheKey(CacheType.Address, ChangeType.Internal);
+
+    // Pull everything in one shot
+    const payload = await browser.storage.local.get([
+      receiveHistoryKey,
+      changeHistoryKey,
+      receiveAddrKey,
+      changeAddrKey,
+    ]);
+
+    // Helpers to safely parse serialized Map<[index, Entry][]>
+    const toPairs = <T>(v: unknown): [number, T][] => (Array.isArray(v) ? (v as [number, T][]) : []);
+
+    type HistoryEntryLocal = { lastChecked: number; txs: [string, number][] };
+    type AddressEntryLocal = { address: string; firstSeen: number; lastChecked: number; everUsed: boolean };
+
+    const receiveHistoryPairs = toPairs<HistoryEntryLocal>(payload[receiveHistoryKey]);
+    const changeHistoryPairs = toPairs<HistoryEntryLocal>(payload[changeHistoryKey]);
+    const receiveAddrPairs = toPairs<AddressEntryLocal>(payload[receiveAddrKey]);
+    const changeAddrPairs = toPairs<AddressEntryLocal>(payload[changeAddrKey]);
+
+    // Build index->address maps for quick lookup
+    const receiveIndexToAddress = new Map<number, string>(receiveAddrPairs.map(([i, e]) => [i, e.address]));
+    const changeIndexToAddress = new Map<number, string>(changeAddrPairs.map(([i, e]) => [i, e.address]));
+
+    // Aggregate unique transactions across both chains
+    const txMap = new Map<
+      string,
+      {
+        // key: txid
+        txid: string;
+        height: number; // take the (shared) height; default 0 if any pending
+        status: 'PENDING' | 'CONFIRMED'; // derived from height
+        addresses: Set<string>; // our addresses involved
+        chains: Set<ChangeType>; // which chains saw it
+      }
+    >();
+
+    const foldHistory = (pairs: [number, HistoryEntryLocal][], chain: ChangeType, idxToAddr: Map<number, string>) => {
+      for (const [hdIndex, h] of pairs) {
+        const addr = idxToAddr.get(hdIndex);
+        if (!h?.txs || !addr) continue;
+
+        for (const [txid, height] of h.txs) {
+          let rec = txMap.get(txid);
+          if (!rec) {
+            rec = {
+              txid,
+              height: height || 0,
+              status: (height || 0) > 0 ? 'CONFIRMED' : 'PENDING',
+              addresses: new Set<string>(),
+              chains: new Set<ChangeType>(),
+            };
+            txMap.set(txid, rec);
+          } else {
+            // If any copy is pending, keep pending; else keep max height
+            if (rec.height === 0 || height === 0) {
+              rec.height = 0;
+              rec.status = 'PENDING';
+            } else {
+              rec.height = Math.max(rec.height, height);
+              rec.status = 'CONFIRMED';
+            }
+          }
+          rec.addresses.add(addr);
+          rec.chains.add(chain);
+        }
+      }
+    };
+
+    foldHistory(receiveHistoryPairs, ChangeType.External, receiveIndexToAddress);
+    foldHistory(changeHistoryPairs, ChangeType.Internal, changeIndexToAddress);
+
+    // Materialize & sort: PENDING first, then by height desc
+    const list = Array.from(txMap.values()).map(v => ({
+      txid: v.txid,
+      height: v.height,
+      status: v.status,
+      addresses: Array.from(v.addresses),
+      chains: Array.from(v.chains),
+    }));
+
+    list.sort((a, b) => {
+      if (a.status !== b.status) return a.status === 'PENDING' ? -1 : 1;
+      return (b.height || 0) - (a.height || 0);
+    });
+
+    return list;
   }
 
   /**
