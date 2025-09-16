@@ -126,6 +126,9 @@ export class ScanManager {
       if (!addressCache.has(index)) {
         const nowTimestamp = Date.now();
         const address = walletManager.deriveAddress(changeType === ChangeType.External ? 0 : 1, index);
+        if (!address) {
+          throw new Error('Unable to derive address');
+        }
         const entry: AddressEntry = {
           address,
           firstSeen: nowTimestamp,
@@ -154,7 +157,7 @@ export class ScanManager {
       const scriptHashesPromises = batch.map(async index => {
         const entry = addressCache.get(index);
         if (!entry) return undefined;
-        const scriptHash = await addressToScriptHash(entry.address, bitcoinNetwork);
+        const scriptHash = addressToScriptHash(entry.address, bitcoinNetwork);
         return [scriptHash];
       });
       const scriptHashes: string[][] = (await Promise.all(scriptHashesPromises)).filter(

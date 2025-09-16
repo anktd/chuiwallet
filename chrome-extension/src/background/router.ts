@@ -45,7 +45,18 @@ const handlers: Record<string, Handler> = {
   'transactions.get': async () => {
     return [];
   },
-  getFeeEstimates: () => {},
+  'fee.estimates': async param => {
+    return await walletManager.getFeeEstimates(param as string);
+  },
+  'payment.send': async param => {
+    const { toAddress, amountInSats, feerate } = param as { toAddress: string; amountInSats: number; feerate: number };
+    if (!toAddress || !amountInSats || !feerate) {
+      throw new Error('Missing required parameter');
+    }
+    const txid = await walletManager.sendPayment(toAddress, amountInSats, feerate);
+    console.log(txid);
+    return txid;
+  },
   getCustomFeeEstimates: () => {},
   sendTransaction: () => {},
   signAndSendTransaction: () => {},

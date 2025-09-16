@@ -1,13 +1,20 @@
 import browser from 'webextension-polyfill';
 import type { CreateWalletOptions } from './modules/wallet';
 import { wallet } from './modules/wallet';
-import { type AddressEntry, CacheType, ChangeType, UtxoEntry } from './types/cache';
+import type { SpendableUtxo, utxoSelectionResult } from './modules/utxoSelection';
+import { selectUtxo } from './modules/utxoSelection';
+import type { AddressEntry, UtxoEntry } from './types/cache';
+import { CacheType, ChangeType } from './types/cache';
 import { getCacheKey, selectByChain } from './utils/cache';
+import { buildSpendPsbt } from './utils/psbt';
 import { getBitcoinPrice } from './modules/blockonomics';
 import { accountManager } from './accountManager';
 import { preferenceManager } from './preferenceManager';
 import { scanManager } from './scanManager';
-import { add } from 'winston';
+import { electrumService } from './modules/electrumService';
+import { feeService } from './modules/feeService';
+import { scriptTypeFromAddress } from './utils/crypto';
+import { logger } from './utils/logger';
 
 /**
  * Manages the wallet lifecycle, including initialization, restoration, creation,
@@ -185,6 +192,87 @@ export class WalletManager {
     return list;
   }
 
+  public async getFeeEstimates(toAddress: string) {
+    try {
+      // We don't know the amount to spend yet, assuming 1 input with empty inputs for feeService.getFeeEstimates
+      return await feeService.getFeeEstimates([], toAddress, accountManager.getActiveAccount().scriptType);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  public async getUtxos(): Promise<SpendableUtxo[]> {
+    // Storage keys written by ScanManager
+    const rxUtxoKey = getCacheKey(CacheType.Utxo, ChangeType.External);
+    const chUtxoKey = getCacheKey(CacheType.Utxo, ChangeType.Internal);
+    const rxAddrKey = getCacheKey(CacheType.Address, ChangeType.External);
+    const chAddrKey = getCacheKey(CacheType.Address, ChangeType.Internal);
+
+    const [store, tipHeight] = await Promise.all([
+      browser.storage.local.get([rxUtxoKey, chUtxoKey, rxAddrKey, chAddrKey]),
+      electrumService.getTipHeight().catch(() => 0),
+    ]);
+
+    const toMap = <T>(v: unknown) => new Map<number, T>(Array.isArray(v) ? (v as [number, T][]) : []);
+    const rxUtxo = toMap<UtxoEntry>(store[rxUtxoKey]);
+    const chUtxo = toMap<UtxoEntry>(store[chUtxoKey]);
+    const rxAddr = toMap<AddressEntry>(store[rxAddrKey]);
+    const chAddr = toMap<AddressEntry>(store[chAddrKey]);
+
+    const scriptType = accountManager.getActiveAccount().scriptType;
+
+    const flatten = (m: Map<number, UtxoEntry>, a: Map<number, AddressEntry>, chain: ChangeType) =>
+      Array.from(m.entries()).flatMap(([index, entry]) =>
+        (entry?.utxos ?? []).map(
+          u =>
+            ({
+              txid: u.txid,
+              vout: u.vout,
+              value: u.value,
+              height: u.height,
+              confirmations: tipHeight > 0 && u.height > 0 ? Math.max(0, tipHeight - u.height + 1) : 0,
+              address: a.get(index)?.address ?? '',
+              index,
+              chain,
+              scriptType,
+            }) as SpendableUtxo,
+        ),
+      );
+
+    return [...flatten(rxUtxo, rxAddr, ChangeType.External), ...flatten(chUtxo, chAddr, ChangeType.Internal)];
+  }
+
+  /**
+   * Builds, signs, and broadcasts a PAYMENT (spend to one recipient).
+   */
+  public async sendPayment(to: string, amountSats: number, feerateSatPerVb: number): Promise<string> {
+    logger.log(`Sending ${amountSats} to ${to} at the rate of ${feerateSatPerVb}`);
+    const utxos = await this.getUtxos();
+    const account = accountManager.getActiveAccount();
+    const changeScript = account.scriptType;
+    const toScript = scriptTypeFromAddress(to);
+    const feeSizer = feeService.createFeeSizer(feerateSatPerVb, changeScript, toScript);
+    const selectedUtxo: utxoSelectionResult = selectUtxo(utxos, amountSats, feeSizer, feeService.DUST[changeScript]);
+    const outputs: Array<{ address: string; value: number }> = [{ address: to, value: amountSats }];
+    if (selectedUtxo.change > 0) {
+      const changeAddr = this.getAddress(ChangeType.Internal);
+      if (!changeAddr) throw new Error('Unable to derive change address');
+      outputs.push({ address: changeAddr, value: selectedUtxo.change });
+    }
+
+    const masterFp = wallet.getMasterFingerprint();
+    const psbt = await buildSpendPsbt({
+      inputs: selectedUtxo.inputs,
+      outputs,
+      account: account,
+      masterFingerprint: masterFp,
+      getPrevTxHex: (txid: string) => electrumService.getRawTransaction(txid), // only used for legacy P2PKH
+    });
+
+    const txHex = wallet.signPsbt(psbt);
+    return await electrumService.broadcastTx(txHex);
+  }
+
   /**
    * Attempts to restore the wallet if possible using the provided session password.
    * @param {string} sessionPassword - The password from session storage.
@@ -220,7 +308,7 @@ export class WalletManager {
    * @param chain
    * @param index
    */
-  public deriveAddress(chain: number, index: number): string {
+  public deriveAddress(chain: number, index: number): string | undefined {
     const activeIndex = this.getActiveAccountListIndex();
     const activeAccount = accountManager.accounts[activeIndex];
     if (!activeAccount) {

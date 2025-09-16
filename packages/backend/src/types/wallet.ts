@@ -1,4 +1,5 @@
 import type { Network } from './electrum';
+import type { ChangeType } from './cache';
 
 export interface WalletMeta {
   vault: string | null;

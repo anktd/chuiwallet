@@ -8,7 +8,9 @@ import * as secp256k1 from '@bitcoinerlab/secp256k1';
 import * as bitcoin from 'bitcoinjs-lib';
 import { Network } from '../types/electrum';
 import { ScriptType } from '../types/wallet';
+import { fingerprintBuffer, toHdSigner } from '../utils/crypto';
 
+bitcoin.initEccLib(secp256k1);
 const bip32 = BIP32Factory(secp256k1);
 const WALLET_KEY = 'wallet';
 
@@ -32,10 +34,10 @@ export interface CreateWalletOptions {
  */
 export class Wallet {
   private encryptedVault: string | null = null;
-  private root: BIP32Interface;
-  private seed: Buffer;
-  private network: bitcoin.networks.Network;
-  private xpub: string;
+  public root: BIP32Interface | null = null;
+  private seed: Buffer | null = null;
+  private network: bitcoin.networks.Network | undefined;
+  private xpub: string | null = null;
 
   /**
    * Initializes the wallet by loading any existing encrypted vault from storage.
@@ -97,7 +99,7 @@ export class Wallet {
    * @param chain
    * @param index
    */
-  public deriveAddress(account: Account, chain: number, index: number): string {
+  public deriveAddress(account: Account, chain: number, index: number): string | undefined {
     if (!account.xpub) {
       throw new Error('Account missing xpub');
     }
@@ -175,6 +177,38 @@ export class Wallet {
       throw new Error('Vault is empty');
     }
     return vault.mnemonic;
+  }
+
+  /**
+   * Returns the 4-byte **master fingerprint** of this wallet’s BIP32 root node.
+   *
+   * The fingerprint is defined by BIP32 as the first 4 bytes of
+   * `HASH160(compressed master public key)` and is used by PSBT (BIP174)
+   * in `bip32Derivation.masterFingerprint` to identify the signing root.
+   *
+   **/
+  public getMasterFingerprint(): Buffer {
+    if (!this.root) throw new Error('Wallet is not ready');
+    return fingerprintBuffer(this.root);
+  }
+
+  /**
+   * Sign a PSBT with wallet’s HD root and return a finalized raw tx hex.
+   * Accepts a PSBT instance or hex string.
+   *
+   * Each input must include bip32Derivation (segwit/legacy) or tapBip32Derivation (taproot)
+   * paths that correspond to this wallet's root fingerprint.
+   */
+  public signPsbt(psbt: bitcoin.Psbt): string {
+    if (!this.root) throw new Error('Wallet is not ready');
+    console.log('signing', psbt.data);
+    const signer = toHdSigner(this.root);
+    console.log('signer', signer);
+    psbt.signAllInputsHD(signer);
+    console.log('signed', psbt.data);
+
+    psbt.finalizeAllInputs();
+    return psbt.extractTransaction().toHex();
   }
 
   /**

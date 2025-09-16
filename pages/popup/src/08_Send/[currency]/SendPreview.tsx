@@ -1,12 +1,11 @@
-import { getSessionPassword } from '@extension/backend/src/utils/sessionStorageHelper';
-import { Button } from '@src/components/Button';
-import Header from '@src/components/Header';
-import { useWalletContext } from '@src/context/WalletContext';
-import type { StoredAccount, Currencies } from '@src/types';
+import type { Currencies } from '@src/types';
 import { currencyMapping } from '@src/types';
+import Header from '@src/components/Header';
+import { Button } from '@src/components/Button';
 import { formatNumber } from '@src/utils';
 import { useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { sendMessage } from '@src/utils/bridge';
 
 interface SendPreviewStates {
   destinationAddress: string;
@@ -20,7 +19,6 @@ interface SendPreviewStates {
 export function SendPreview() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { refreshAllBalances, refreshTxHistory, selectedAccountIndex, wallet } = useWalletContext();
   const { currency } = useParams<{ currency: Currencies }>();
   const states = location.state as SendPreviewStates;
 
@@ -30,63 +28,30 @@ export function SendPreview() {
 
   const handleConfirm = async () => {
     setConfirmLoading(true);
-
-    const storedPwd = await getSessionPassword();
-    if (storedPwd) {
-      chrome.storage.local.get(['storedAccount'], res => {
-        const storedAccount: StoredAccount | undefined = res.storedAccount;
-        if (storedAccount) {
-          const restoredMnemonic = Wallet.getDecryptedMnemonic(storedAccount.encryptedMnemonic, storedPwd);
-          if (!restoredMnemonic) {
-            console.error('Failed to recover seed with stored password.');
-          }
-
-          const walletData = {
-            password: storedPwd!,
-            mnemonic: restoredMnemonic!,
-            network: storedAccount.network,
-            addressType: 'bech32',
-            accountIndex: storedAccount.selectedAccountIndex,
-          };
-
-          chrome.runtime.sendMessage(
-            {
-              action: 'signAndSendTransaction',
-              walletData,
-              to: states.destinationAddress,
-              amount: Math.round(states.amountBtc * 1e8),
-              feeRates: Math.round(states.feeBtc * 1e8),
-            },
-            response => {
-              if (response?.success) {
-                const transactionHash = response.txid;
-                console.log(transactionHash);
-                if (transactionHash) {
-                  if (wallet) {
-                    refreshAllBalances();
-                    refreshTxHistory(selectedAccountIndex);
-                  }
-
-                  navigate(`/send/${currency}/status`, {
-                    state: {
-                      status: 'success',
-                      transactionHash,
-                    },
-                  });
-                } else {
-                  setError('Failed to broadcast transaction');
-                }
-              } else {
-                setError(response.error);
-              }
-
-              setConfirmLoading(false);
-            },
-          );
-        }
+    try {
+      const txid = await sendMessage('payment.send', {
+        toAddress: states.destinationAddress,
+        amountInSats: Math.round(states.amountBtc * 1e8),
+        feerate: states.sats,
       });
-    } else {
-      setError('Wallet is null');
+      console.log(txid);
+      if (txid) {
+        // refreshAllBalances();
+        // refreshTxHistory(selectedAccountIndex);
+
+        navigate(`/send/${currency}/status`, {
+          state: {
+            status: 'success',
+            transactionHash: txid,
+          },
+        });
+      } else {
+        setError('Failed to broadcast transaction');
+      }
+    } catch (e) {
+      console.error(e);
+      setError(e as string);
+    } finally {
       setConfirmLoading(false);
     }
   };
