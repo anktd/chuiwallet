@@ -1,4 +1,4 @@
-import { encryptText, decryptText } from './cryptoUtils';
+import { decryptText, encryptText } from './cryptoUtils';
 
 export const SESSION_PASSWORD_KEY = '8C7822A5D65E99D67FDE93E344AF9';
 const PASSWORD_TTL = 60 * 60 * 1000;
@@ -19,8 +19,7 @@ export async function getSessionPassword(): Promise<string | null> {
   }
 
   try {
-    const decrypted = await decryptText(data.value);
-    return decrypted;
+    return await decryptText(data.value);
   } catch (error) {
     console.error('Error decrypting session password:', error);
     return null;

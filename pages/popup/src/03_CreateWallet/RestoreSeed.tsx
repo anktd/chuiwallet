@@ -1,14 +1,13 @@
+import bip39 from 'bip39';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import bip39 from 'bip39';
 import { WordColumn } from '../components/WordColumn';
 import { Button } from '@src/components/Button';
-import { useWalletContext } from '../context/WalletContext';
+import { sendMessage } from '@src/utils/bridge';
+import { getSessionPassword } from '@extension/backend/dist/utils/sessionStorageHelper';
 
 export const RestoreSeed: React.FC = () => {
   const navigate = useNavigate();
-  const { restoreWallet, password } = useWalletContext();
-
   const [seedWords, setSeedWords] = useState<string[]>(Array(12).fill(''));
   const [errorMsg, setErrorMsg] = React.useState('');
   const [isValid, setIsValid] = useState(false);
@@ -45,30 +44,31 @@ export const RestoreSeed: React.FC = () => {
   };
 
   const handleRestore = () => {
-    setErrorMsg('');
+    (async () => {
+      setErrorMsg('');
 
-    if (!isValid) {
-      setErrorMsg('Seed phrase is invalid. Please check each word.');
-      return;
-    }
-
-    for (let i = 0; i < 12; i++) {
-      if (!seedWords[i] || seedWords[i].trim() === '') {
-        setErrorMsg('Please fill in all 12 words.');
+      if (!isValid) {
+        setErrorMsg('Seed phrase is invalid. Please check each word.');
         return;
       }
-    }
 
-    const mnemonic = seedWords.join(' ').trim();
+      for (let i = 0; i < 12; i++) {
+        if (!seedWords[i] || seedWords[i].trim() === '') {
+          setErrorMsg('Please fill in all 12 words.');
+          return;
+        }
+      }
 
-    if (!password) {
-      setErrorMsg('No universal password found. Please unlock your wallet first.');
-      return;
-    }
+      const mnemonic = seedWords.join(' ').trim();
+      const password = await getSessionPassword();
+      if (!password) {
+        setErrorMsg('No universal password found. Please unlock your wallet first.');
+        return;
+      }
 
-    restoreWallet(mnemonic, password, 'mainnet', 'bech32');
-
-    navigate('/onboard/complete');
+      await sendMessage('wallet.create', { mnemonic, password });
+      navigate('/onboard/complete?restored=1');
+    })();
   };
 
   const leftWords = seedWords.slice(0, 6).map((word, i) => ({

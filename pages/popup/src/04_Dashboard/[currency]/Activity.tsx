@@ -16,17 +16,16 @@ interface ActivityStates {
 export const Activity: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { cachedTxHistories, refreshTxHistory, selectedAccountIndex, selectedFiatCurrency } = useWalletContext();
+  const { transactions, refreshTransactions, preferences } = useWalletContext();
 
   const activityStates = location.state as ActivityStates;
   const { balance, balanceUsd } = activityStates;
 
   useEffect(() => {
-    refreshTxHistory(selectedAccountIndex);
-  }, [refreshTxHistory, selectedAccountIndex]);
+    refreshTransactions();
+  }, [refreshTransactions, preferences?.activeAccountIndex]);
 
-  const txHistory = cachedTxHistories[selectedAccountIndex];
-  const loading = txHistory == null;
+  const loading = transactions == null;
 
   return (
     <div className="flex flex-col items-center text-white bg-dark h-full px-4 pt-12 pb-[19px]">
@@ -50,7 +49,7 @@ export const Activity: React.FC = () => {
         </div>
         <div className="flex justify-center items-end mt-2 text-5xl font-bold uppercase cursor-pointer gap-[8px] flex-wrap max-w-[320px]">
           <span>
-            {selectedFiatCurrency === 'USD'
+            {preferences?.fiatCurrency === 'USD'
               ? balanceUsd != null
                 ? formatNumber(balanceUsd)
                 : '0'
@@ -58,19 +57,19 @@ export const Activity: React.FC = () => {
                 ? formatNumber(balance / 1e8, 8)
                 : '0'}
           </span>
-          <span className="text-xl">{selectedFiatCurrency}</span>
+          <span className="text-xl">{preferences?.fiatCurrency}</span>
         </div>
       </div>
 
       <div className="mt-2 text-sm leading-none text-center text-white cursor-pointer">
-        {selectedFiatCurrency === 'USD'
+        {preferences?.fiatCurrency === 'USD'
           ? balanceUsd != null
             ? formatNumber(balance / 1e8, 8)
             : '0'
           : balance != null
             ? formatNumber(balanceUsd)
             : '0'}{' '}
-        {selectedFiatCurrency === 'USD' ? 'BTC' : 'USD'}
+        {preferences?.fiatCurrency === 'USD' ? 'BTC' : 'USD'}
       </div>
 
       <div className="flex gap-2.5 justify-between items-center mt-[44px] w-full text-lg font-medium leading-none text-center whitespace-nowrap max-w-[346px] text-foreground">
@@ -92,7 +91,7 @@ export const Activity: React.FC = () => {
         <div className="flex flex-col w-full gap-[7px]">
           <div className="flex justify-between items-center">
             <span className="text-white text-sm font-bold">Activity</span>
-            <span className="text-white text-sm">{formatNumber(txHistory?.length || 0)} total</span>
+            <span className="text-white text-sm">{formatNumber(transactions?.length || 0)} total</span>
           </div>
           {loading ? (
             <>
@@ -101,7 +100,7 @@ export const Activity: React.FC = () => {
               <Skeleton className="!h-[66px]" />
             </>
           ) : (
-            <TransactionActivityList transactions={txHistory} />
+            <TransactionActivityList transactions={transactions} />
           )}
         </div>
       </div>

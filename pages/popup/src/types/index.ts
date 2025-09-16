@@ -8,16 +8,18 @@ export const currencyMapping: Record<Currencies, string> = {
   usdt: 'USDT',
 };
 
-export interface StoredAccount {
-  encryptedMnemonic: string;
-  xpub: string;
-  network: 'mainnet' | 'testnet';
-  fiatCurrency: 'USD' | 'BTC';
-  selectedAccountIndex: number;
-  totalAccounts: number;
-  isRestored: boolean;
-  walletOnboarded: boolean;
-  gapLimit: number;
+export enum Network {
+  Mainnet = 'mainnet',
+  Testnet = 'testnet',
+}
+
+export interface Preferences {
+  gapLimitReceive: number;
+  gapLimitChange: number;
+  locale: string;
+  fiatCurrency: string;
+  activeAccountIndex: number;
+  activeNetwork: Network;
 }
 
 export interface BalanceData {

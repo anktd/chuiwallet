@@ -1,9 +1,9 @@
-import type { TransactionActivityStatus, TransactionType } from '@extension/backend/src/modules/electrumService';
+import type * as React from 'react';
+import type { TransactionActivityStatus, TransactionType } from '@src/types';
 import Header from '@src/components/Header';
 import LabelValue from '@src/components/LabelValue';
 import { useWalletContext } from '@src/context/WalletContext';
 import { formatNumber, formatTimestamp } from '@src/utils';
-import type * as React from 'react';
 import { useLocation } from 'react-router-dom';
 
 export interface TransactionDetailStates {
@@ -21,7 +21,7 @@ export interface TransactionDetailStates {
 }
 
 export const TransactionDetail: React.FC = () => {
-  const { selectedFiatCurrency } = useWalletContext();
+  const { preferences } = useWalletContext();
   const location = useLocation();
 
   const transactionDetailStates = location.state as TransactionDetailStates;
@@ -51,7 +51,7 @@ export const TransactionDetail: React.FC = () => {
           className="object-contain w-6"
         />
 
-        {selectedFiatCurrency === 'USD' ? (
+        {preferences?.fiatCurrency === 'USD' ? (
           <div className="text-[35px] leading-[53.2px] font-bold text-center text-white uppercase text-nowrap">
             {formatNumber(Math.abs(amountUsd))} <span className="text-xl">USD</span>
           </div>
@@ -65,7 +65,7 @@ export const TransactionDetail: React.FC = () => {
           {status == 'CONFIRMED' ? (type == 'SEND' ? 'Sent' : 'Received') : 'Pending'}
         </div>
 
-        {selectedFiatCurrency === 'USD' ? (
+        {preferences?.fiatCurrency === 'USD' ? (
           <span className="text-xs leading-loose text-foreground">{formatNumber(Math.abs(amountBtc), 8)} BTC</span>
         ) : (
           <span className="text-xs leading-loose text-foreground">{formatNumber(Math.abs(amountUsd))} USD</span>
@@ -76,7 +76,7 @@ export const TransactionDetail: React.FC = () => {
         <LabelValue
           label="Amount"
           value={
-            selectedFiatCurrency === 'USD'
+            preferences?.fiatCurrency === 'USD'
               ? `${formatNumber(Math.abs(amountUsd))} USD (${formatNumber(Math.abs(amountBtc), 8)} BTC)`
               : `${formatNumber(Math.abs(amountBtc), 8)} BTC (${formatNumber(Math.abs(amountUsd))} USD)`
           }
@@ -86,7 +86,7 @@ export const TransactionDetail: React.FC = () => {
           <LabelValue
             label="Fee"
             value={
-              selectedFiatCurrency === 'USD'
+              preferences?.fiatCurrency === 'USD'
                 ? `${formatNumber(Math.abs(feeUsd))} USD (${formatNumber(Math.abs(feeBtc), 8)} BTC)`
                 : `${formatNumber(Math.abs(feeBtc), 8)} BTC (${formatNumber(Math.abs(feeUsd))} USD)`
             }

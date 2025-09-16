@@ -11,12 +11,13 @@ function withSidePanel(manifest) {
     return manifest;
   }
 
-  return deepmerge(manifest, {
-    side_panel: {
-      default_path: 'side-panel/index.html',
-    },
-    permissions: ['sidePanel', 'alarms'],
-  });
+  return manifest;
+  // return deepmerge(manifest, {
+  //   side_panel: {
+  //     default_path: 'side-panel/index.html',
+  //   },
+  //   permissions: ['sidePanel', 'alarms'],
+  // });
 }
 
 /**
@@ -34,7 +35,7 @@ const manifest = withSidePanel({
   version: packageJson.version,
   description: '__MSG_extensionDescription__',
   host_permissions: ['<all_urls>'],
-  permissions: ['storage', 'scripting', 'tabs', 'activeTab', 'notifications'],
+  permissions: ['storage', 'scripting', 'tabs', 'activeTab', 'notifications', 'alarms'],
   background: {
     service_worker: 'background.iife.js',
     type: 'module',

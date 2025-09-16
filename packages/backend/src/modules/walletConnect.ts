@@ -1,11 +1,12 @@
-import type Wallet from './wallet.js';
+import type { Wallet } from './wallet.js';
+// import wallet from './wallet.js';
 
 class WalletConnect {
-  public getXpub(wallet: Wallet): string {
+  public getXpub(wallet: Wallet) {
     if (!wallet) {
       throw new Error('Wallet not provided');
     }
-    return wallet.getXpub();
+    // return wallet.getXpub();
   }
 }
 

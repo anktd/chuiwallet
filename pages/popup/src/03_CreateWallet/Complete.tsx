@@ -1,14 +1,14 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '../components/Button';
 import { useWalletContext } from '@src/context/WalletContext';
 
 export function Complete() {
   const navigate = useNavigate();
-  const { setOnboarded, isRestored } = useWalletContext();
+  const { setOnboarded } = useWalletContext();
+  const isRestored = useSearchParams()[0].get('restored') === '1';
 
   const handleComplete = () => {
     setOnboarded(true);
-
     navigate('/dashboard');
   };
 

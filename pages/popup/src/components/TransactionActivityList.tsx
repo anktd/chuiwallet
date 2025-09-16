@@ -1,6 +1,6 @@
 import type * as React from 'react';
+import type { TransactionActivity } from '@src/types';
 import { TransactionActivityItem } from './TransactionActivityItem';
-import type { TransactionActivity } from '@extension/backend/src/modules/electrumService';
 import { useEffect, useRef, useState } from 'react';
 
 interface TransactionActivityListProps {

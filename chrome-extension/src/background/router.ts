@@ -1,19 +1,62 @@
 import type { Runtime } from 'webextension-polyfill';
+import browser from 'webextension-polyfill';
+import { preferenceManager } from '@extension/backend/src/preferenceManager';
 import { walletManager } from '@extension/backend/src/walletManager';
-
+import { accountManager } from '@extension/backend/src/accountManager';
+import { getSessionPassword, setSessionPassword } from '@extension/backend/dist/utils/sessionStorageHelper';
 type Handler = (params: unknown, sender: Runtime.MessageSender) => Promise<unknown> | unknown;
 
 const handlers: Record<string, Handler> = {
-  'wallet.isRestorable': () => {
+  'wallet.exist': async () => {
     return walletManager.isRestorable();
   },
-  createWallet: async params => {
-    const { mnemonic, password } = params as { mnemonic: string; password: string };
-    return await walletManager.createWallet(mnemonic as string, password as string);
+  'wallet.restore': async () => {
+    const sessionPassword = await getSessionPassword();
+    const isRestorable = await walletManager.restoreIfPossible(sessionPassword);
+    if (isRestorable) {
+      browser.alarms.create('forwardScan', { when: Date.now() + 100 });
+    }
+    return isRestorable;
   },
-  getBalance: () => {},
-  getHistory: () => {},
-  getFeeEstimates: () => {},
+  'wallet.create': async params => {
+    const { mnemonic, password } = params as { mnemonic: string; password: string };
+    await walletManager.createWallet(mnemonic, password);
+    await setSessionPassword(password);
+  },
+  'wallet.getMnemonic': async () => {
+    const password = await getSessionPassword();
+    if (!password) {
+      throw new Error('Password is required');
+    }
+    return walletManager.getMnemonic(password);
+  },
+  'wallet.getBalance': async () => {
+    return await walletManager.getBalance();
+  },
+  'wallet.getReceivingAddress': async () => {
+    return walletManager.getAddress();
+  },
+  'preferences.get': async () => {
+    return preferenceManager.get();
+  },
+  'accounts.get': async () => {
+    return accountManager.accounts;
+  },
+  'transactions.get': async () => {
+    return [];
+  },
+  'fee.estimates': async param => {
+    return await walletManager.getFeeEstimates(param as string);
+  },
+  'payment.send': async param => {
+    const { toAddress, amountInSats, feerate } = param as { toAddress: string; amountInSats: number; feerate: number };
+    if (!toAddress || !amountInSats || !feerate) {
+      throw new Error('Missing required parameter');
+    }
+    const txid = await walletManager.sendPayment(toAddress, amountInSats, feerate);
+    console.log(txid);
+    return txid;
+  },
   getCustomFeeEstimates: () => {},
   sendTransaction: () => {},
   signAndSendTransaction: () => {},

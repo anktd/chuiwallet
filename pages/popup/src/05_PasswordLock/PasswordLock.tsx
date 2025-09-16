@@ -1,23 +1,20 @@
 import * as React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import bip39 from 'bip39';
 import { InputField } from '@src/components/InputField';
 import { Button } from '@src/components/Button';
-import { useWalletContext } from '@src/context/WalletContext';
-import WalletManager from '@extension/backend/src/walletManager';
-import type { StoredAccount } from '@src/types';
-import encryption from '@extension/backend/src/utils/encryption';
+import { getSessionPassword, setSessionPassword } from '@extension/backend/dist/utils/sessionStorageHelper';
+import { useEffect } from 'react';
+import { sendMessage } from '@src/utils/bridge';
 
 export const PasswordLock: React.FC = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { unlockWallet } = useWalletContext();
+  // const location = useLocation();
   const [password, setPassword] = React.useState('');
   const [errorMsg, setErrorMsg] = React.useState('');
   const [loading, setLoading] = React.useState(false);
 
-  const params = new URLSearchParams(location.search);
-  const redirectToXpub = params.get('redirectToXpub') === 'true';
+  // const params = new URLSearchParams(location.search);
+  // const redirectToXpub = params.get('redirectToXpub') === 'true';
 
   const handleUnlock = async () => {
     setErrorMsg('');
@@ -30,50 +27,12 @@ export const PasswordLock: React.FC = () => {
     setLoading(true);
 
     try {
-      chrome.storage.local.get(['storedAccount'], async res => {
-        const storedAccount: StoredAccount | undefined = res.storedAccount;
-        if (!storedAccount) {
-          setErrorMsg('Wallet data not found. Please complete onboarding.');
-          setLoading(false);
-          return;
-        }
-        try {
-          const decryptedMnemonic = encryption.decrypt(storedAccount.encryptedMnemonic, password);
-          if (!decryptedMnemonic || !bip39.validateMnemonic(decryptedMnemonic)) {
-            setErrorMsg('Your password is incorrect.');
-            setLoading(false);
-            return;
-          }
-
-          const manager = new WalletManager();
-          const restoredWallet = manager.createWallet({
-            password: password,
-            mnemonic: decryptedMnemonic,
-            network: storedAccount.network,
-            addressType: 'bech32',
-          });
-
-          const seed = restoredWallet.recoverMnemonic(password);
-          if (seed && bip39.validateMnemonic(seed)) {
-            unlockWallet(password);
-
-            if (redirectToXpub) {
-              navigate('/settings/advanced/xpub');
-            } else {
-              navigate('/dashboard');
-            }
-          } else {
-            setErrorMsg('Your password is incorrect.');
-          }
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        } catch (err) {
-          setErrorMsg('Your password is incorrect.');
-        }
-        setLoading(false);
-      });
+      await setSessionPassword(password);
+      navigate('/dashboard');
     } catch (err) {
       console.error(err);
       setErrorMsg('An error occurred. Please try again.');
+    } finally {
       setLoading(false);
     }
   };

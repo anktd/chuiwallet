@@ -1,22 +1,12 @@
 import type { AddressEntry, HistoryEntry, UtxoEntry } from './types/cache';
+import { CacheType, ChangeType } from './types/cache';
 import browser from 'webextension-polyfill';
 import { addressToScriptHash, toBitcoinNetwork } from './utils/crypto';
-import { accountManager } from './accountManager';
+import { getCacheKey, selectByChain } from './utils/cache';
 import { walletManager } from './walletManager';
 import { preferenceManager } from './preferenceManager';
 import { electrumService } from './modules/electrumService';
 import { logger } from './utils/logger';
-
-export enum CacheType {
-  Address = 'address',
-  History = 'history',
-  Utxo = 'utxo',
-}
-
-export enum ChangeType {
-  External = 'receive',
-  Internal = 'change',
-}
 
 export interface ScanManagerConfig {
   externalGapLimit: number;
@@ -48,8 +38,8 @@ export class ScanManager {
   private highestScannedChange = -1;
   private highestUsedReceive = -1;
   private highestUsedChange = -1;
-  nextReceiveIndex = 0;
-  nextChangeIndex = 0;
+  public nextReceiveIndex = 0;
+  public nextChangeIndex = 0;
 
   constructor(config: ScanManagerConfig = defaultScanConfig) {
     this.config = { ...config };
@@ -72,9 +62,9 @@ export class ScanManager {
   public async forwardScan(changeType: ChangeType = ChangeType.External) {
     let passes = 0;
     while (passes < this.config.forwardExtendMaxPasses) {
-      const gapLimit = this.selectByChain(this.config.externalGapLimit, this.config.internalGapLimit, changeType);
-      const highestUsed = this.selectByChain(this.highestUsedReceive, this.highestUsedChange, changeType);
-      const highestScanned = this.selectByChain(this.highestScannedReceive, this.highestScannedChange, changeType);
+      const gapLimit = selectByChain(this.config.externalGapLimit, this.config.internalGapLimit, changeType);
+      const highestUsed = selectByChain(this.highestUsedReceive, this.highestUsedChange, changeType);
+      const highestScanned = selectByChain(this.highestScannedReceive, this.highestScannedChange, changeType);
       const windowToScan = Math.max(0, highestUsed) + gapLimit - highestScanned - 1;
       if (windowToScan <= 0) {
         logger.log(`Forward scan up-to-date (used=${highestUsed}, scanned=${highestScanned}, gap=${gapLimit})`);
@@ -102,10 +92,10 @@ export class ScanManager {
    * @param changeType
    */
   public async backfillScan(changeType: ChangeType = ChangeType.External) {
-    const gapLimit = this.selectByChain(this.config.externalGapLimit, this.config.internalGapLimit, changeType);
-    const highestUsed = this.selectByChain(this.highestUsedReceive, this.highestUsedChange, changeType);
-    const highestScanned = this.selectByChain(this.highestScannedReceive, this.highestScannedChange, changeType);
-    const addressCache = this.selectByChain(this.addressCacheReceive, this.addressCacheChange, changeType);
+    const gapLimit = selectByChain(this.config.externalGapLimit, this.config.internalGapLimit, changeType);
+    const highestUsed = selectByChain(this.highestUsedReceive, this.highestUsedChange, changeType);
+    const highestScanned = selectByChain(this.highestScannedReceive, this.highestScannedChange, changeType);
+    const addressCache = selectByChain(this.addressCacheReceive, this.addressCacheChange, changeType);
 
     // Nothing derived yet
     if (highestScanned < 0) return;
@@ -136,6 +126,9 @@ export class ScanManager {
       if (!addressCache.has(index)) {
         const nowTimestamp = Date.now();
         const address = walletManager.deriveAddress(changeType === ChangeType.External ? 0 : 1, index);
+        if (!address) {
+          throw new Error('Unable to derive address');
+        }
         const entry: AddressEntry = {
           address,
           firstSeen: nowTimestamp,
@@ -164,7 +157,7 @@ export class ScanManager {
       const scriptHashesPromises = batch.map(async index => {
         const entry = addressCache.get(index);
         if (!entry) return undefined;
-        const scriptHash = await addressToScriptHash(entry.address, bitcoinNetwork);
+        const scriptHash = addressToScriptHash(entry.address, bitcoinNetwork);
         return [scriptHash];
       });
       const scriptHashes: string[][] = (await Promise.all(scriptHashesPromises)).filter(
@@ -264,6 +257,8 @@ export class ScanManager {
   private initHighestUsed() {
     this.highestUsedReceive = this.getHighestIndex(this.historyCacheReceive);
     this.highestUsedChange = this.getHighestIndex(this.historyCacheChange);
+    this.nextReceiveIndex = this.highestUsedReceive + 1;
+    this.nextChangeIndex = this.highestUsedChange + 1;
   }
 
   private getHighestIndex(map: Map<number, unknown>): number {
@@ -275,18 +270,9 @@ export class ScanManager {
     return max;
   }
 
-  private selectByChain<T>(external: T, internal: T, changeType: ChangeType): T {
-    return changeType === ChangeType.External ? external : internal;
-  }
-
-  private getCacheKey(type: string = CacheType.Address, chain: string = ChangeType.External): string {
-    const activeAccount = accountManager.getActiveAccount();
-    return `${type}_${activeAccount.network}_${chain}_${activeAccount.index}`;
-  }
-
   private async saveAddress() {
-    const receiveKey = this.getCacheKey(CacheType.Address, ChangeType.External);
-    const changeKey = this.getCacheKey(CacheType.Address, ChangeType.Internal);
+    const receiveKey = getCacheKey(CacheType.Address, ChangeType.External);
+    const changeKey = getCacheKey(CacheType.Address, ChangeType.Internal);
     const receiveSerialised = Array.from(this.addressCacheReceive);
     const changeSerialised = Array.from(this.addressCacheChange);
     await browser.storage.local.set({ [receiveKey]: receiveSerialised });
@@ -294,8 +280,8 @@ export class ScanManager {
   }
 
   private async loadAddress() {
-    const receiveKey = this.getCacheKey(CacheType.Address, ChangeType.External);
-    const changeKey = this.getCacheKey(CacheType.Address, ChangeType.Internal);
+    const receiveKey = getCacheKey(CacheType.Address, ChangeType.External);
+    const changeKey = getCacheKey(CacheType.Address, ChangeType.Internal);
     const receiveAddresses = await browser.storage.local.get(receiveKey);
     const changeAddresses = await browser.storage.local.get(changeKey);
     if (Object.keys(receiveAddresses).length === 0 || Object.keys(changeAddresses).length === 0) {
@@ -315,8 +301,8 @@ export class ScanManager {
   }
 
   private async saveHistory() {
-    const receiveKey = this.getCacheKey(CacheType.History, ChangeType.External);
-    const changeKey = this.getCacheKey(CacheType.History, ChangeType.Internal);
+    const receiveKey = getCacheKey(CacheType.History, ChangeType.External);
+    const changeKey = getCacheKey(CacheType.History, ChangeType.Internal);
     const receiveSerialised = Array.from(this.historyCacheReceive);
     const changeSerialised = Array.from(this.historyCacheChange);
     await browser.storage.local.set({ [receiveKey]: receiveSerialised });
@@ -324,8 +310,8 @@ export class ScanManager {
   }
 
   private async loadHistory() {
-    const receiveKey = this.getCacheKey(CacheType.History, ChangeType.External);
-    const changeKey = this.getCacheKey(CacheType.History, ChangeType.Internal);
+    const receiveKey = getCacheKey(CacheType.History, ChangeType.External);
+    const changeKey = getCacheKey(CacheType.History, ChangeType.Internal);
     const receiveHistory = await browser.storage.local.get(receiveKey);
     const changeHistory = await browser.storage.local.get(changeKey);
     if (Object.keys(receiveHistory).length === 0 || Object.keys(changeHistory).length === 0) {
@@ -345,8 +331,8 @@ export class ScanManager {
   }
 
   private async saveUtxo() {
-    const receiveKey = this.getCacheKey(CacheType.Utxo, ChangeType.External);
-    const changeKey = this.getCacheKey(CacheType.Utxo, ChangeType.Internal);
+    const receiveKey = getCacheKey(CacheType.Utxo, ChangeType.External);
+    const changeKey = getCacheKey(CacheType.Utxo, ChangeType.Internal);
     const receiveSerialised = Array.from(this.utxoCacheReceive);
     const changeSerialised = Array.from(this.utxoCacheChange);
     await browser.storage.local.set({ [receiveKey]: receiveSerialised });
@@ -354,8 +340,8 @@ export class ScanManager {
   }
 
   private async loadUtxo() {
-    const receiveKey = this.getCacheKey(CacheType.Utxo, ChangeType.External);
-    const changeKey = this.getCacheKey(CacheType.Utxo, ChangeType.Internal);
+    const receiveKey = getCacheKey(CacheType.Utxo, ChangeType.External);
+    const changeKey = getCacheKey(CacheType.Utxo, ChangeType.Internal);
     const receiveUtxo = await browser.storage.local.get(receiveKey);
     const changeUtxo = await browser.storage.local.get(changeKey);
     if (Object.keys(receiveUtxo).length === 0 || Object.keys(changeUtxo).length === 0) {

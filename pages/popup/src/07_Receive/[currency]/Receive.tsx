@@ -1,4 +1,5 @@
 import type React from 'react';
+import { useEffect } from 'react';
 import { useState } from 'react';
 import AddressQRCode from '@src/components/AddressQRCode';
 import { Button } from '@src/components/Button';
@@ -8,15 +9,20 @@ import type { Currencies } from '@src/types';
 import { useParams } from 'react-router-dom';
 
 export const Receive: React.FC = () => {
-  const { wallet } = useWalletContext();
+  const { getReceivingAddress } = useWalletContext();
   const { currency } = useParams<{ currency: Currencies }>();
+  const [address, setAddress] = useState<string>('Address not found');
   const [copyText, setCopyText] = useState<string>('Copy address');
 
-  const address = wallet ? wallet.generateAddress() : 'Address not found';
+  useEffect(() => {
+    (async () => {
+      setAddress(await getReceivingAddress());
+    })();
+  }, []);
 
   const handleCopyAddress = async () => {
     try {
-      if (!wallet || !address) {
+      if (!address) {
         console.error('Address not found');
         return;
       }

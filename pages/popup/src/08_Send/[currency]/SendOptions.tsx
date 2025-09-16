@@ -1,15 +1,16 @@
 import type * as React from 'react';
+import type { FeeOptionSetting } from '@extension/backend/src/types/electrum';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { currencyMapping, type Currencies } from '@src/types';
 import { AmountInputField } from '@src/components/AmountInputField';
 import { FeeOption } from '@src/components/FeeOption';
-import Header from '@src/components/Header';
 import { useEffect, useState } from 'react';
 import { getBtcToUsdRate } from '@src/utils';
 import { Button } from '@src/components/Button';
-import { useWalletContext } from '@src/context/WalletContext';
-import type { FeeOptionSetting } from '@extension/backend/src/modules/electrumService';
+import Header from '@src/components/Header';
+
 import Skeleton from 'react-loading-skeleton';
+import { sendMessage } from '@src/utils/bridge';
 
 interface SendOptionsState {
   destinationAddress: string;
@@ -17,7 +18,6 @@ interface SendOptionsState {
 }
 
 export const SendOptions: React.FC = () => {
-  const { wallet } = useWalletContext();
   const navigate = useNavigate();
   const location = useLocation();
   const { currency } = useParams<{ currency: Currencies }>();
@@ -62,72 +62,59 @@ export const SendOptions: React.FC = () => {
     });
   };
 
+  // Fetch Fees Estimates
   useEffect(() => {
-    async function fetchFees() {
-      setFeeEstimatesLoading(true);
-
-      const walletAddress = wallet ? wallet.generateAddress() : undefined;
-      if (walletAddress) {
-        chrome.runtime.sendMessage(
-          { action: 'getFeeEstimates', from: walletAddress, to: states.destinationAddress },
-          response => {
-            if (response?.success) {
-              setFeeOptions(response.estimates);
-              setFeeEstimatesLoading(false);
-            } else {
-              setError(response.error);
-              setFeeEstimatesLoading(false);
-            }
-          },
-        );
-      } else {
+    setFeeEstimatesLoading(true);
+    try {
+      (async () => {
+        const estimates: FeeOptionSetting[] = await sendMessage('fee.estimates', states.destinationAddress);
+        setFeeOptions(estimates);
         setFeeEstimatesLoading(false);
-      }
+      })();
+    } catch (error) {
+      console.error(error);
+      setFeeEstimatesLoading(false);
     }
+  }, [states.destinationAddress]);
 
-    fetchFees();
-  }, [states.destinationAddress, wallet]);
-
-  useEffect(() => {
-    async function fetchCustomFee() {
-      console.log('fetchCustomFee');
-      setCustomFeeEstimatesLoading(true);
-
-      const walletAddress = wallet ? wallet.generateAddress() : undefined;
-      if (walletAddress) {
-        chrome.runtime.sendMessage(
-          { action: 'getCustomFeeEstimates', from: walletAddress, to: states.destinationAddress, customSats },
-          response => {
-            if (response?.success) {
-              setCustomFeeOption(response.customEstimate);
-              setCustomFeeEstimatesLoading(false);
-            } else {
-              setError(response.error);
-              setCustomFeeEstimatesLoading(false);
-            }
-          },
-        );
-      } else {
-        setCustomFeeEstimatesLoading(false);
-      }
-    }
-
-    if (isCustomFee) {
-      fetchCustomFee();
-    }
-  }, [customSats, isCustomFee, states.destinationAddress, wallet]);
+  // Fetch custom Fee
+  // useEffect(() => {
+  //   async function fetchCustomFee() {
+  //     setCustomFeeEstimatesLoading(true);
+  //
+  //     // const walletAddress = undefined;
+  //     // if (walletAddress) {
+  //     //   chrome.runtime.sendMessage(
+  //     //     { action: 'getCustomFeeEstimates', from: walletAddress, to: states.destinationAddress, customSats },
+  //     //     response => {
+  //     //       if (response?.success) {
+  //     //         setCustomFeeOption(response.customEstimate);
+  //     //         setCustomFeeEstimatesLoading(false);
+  //     //       } else {
+  //     //         setError(response.error);
+  //     //         setCustomFeeEstimatesLoading(false);
+  //     //       }
+  //     //     },
+  //     //   );
+  //     // } else {
+  //     //   setCustomFeeEstimatesLoading(false);
+  //     // }
+  //   }
+  //
+  //   if (isCustomFee) {
+  //     // fetchCustomFee();
+  //   }
+  // }, [customSats, isCustomFee, states.destinationAddress]);
 
   useEffect(() => {
     async function fetchRate() {
-      try {
-        const rate = await getBtcToUsdRate();
-        setExchangeRate(rate);
-      } catch (e) {
-        console.error(e);
-        setError('Failed to load exchange rate.');
-      }
+      const rate = await getBtcToUsdRate();
+      setExchangeRate(rate);
     }
-    fetchRate();
+
+    fetchRate().catch(() => {
+      setError('Failed to load exchange rate.');
+    });
   }, []);
 
   const handleBtcAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -160,9 +147,7 @@ export const SendOptions: React.FC = () => {
 
   const handleSetMaxAmount = () => {
     if (!states.balance) return;
-
     const feeData = isCustomFee && customFeeOption ? customFeeOption : feeOptions[selectedFeeIndex];
-
     const maxBtc = states.balance - feeData.btcAmount;
 
     if (maxBtc < 0) {
@@ -177,17 +162,17 @@ export const SendOptions: React.FC = () => {
     }
   };
 
-  const handleSetCustomFee = () => {
-    setIsCustomFee(!isCustomFee);
-    if (!isCustomFee) {
-      setCustomSats('1');
-    }
-  };
-
-  const handleSatsChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setCustomSats(value);
-  };
+  // const handleSetCustomFee = () => {
+  //   setIsCustomFee(!isCustomFee);
+  //   if (!isCustomFee) {
+  //     setCustomSats('1');
+  //   }
+  // };
+  //
+  // const handleSatsChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const value = e.target.value;
+  //   setCustomSats(value);
+  // };
 
   return (
     <div className="relative flex flex-col items-center text-white bg-dark h-full px-4 pt-12 pb-[19px]">
@@ -250,40 +235,43 @@ export const SendOptions: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex flex-col w-[229px] items-end text-lg font-bold">
-          <button
-            className="flex items-center self-end my-2 text-sm font-medium text-center text-primary-yellow"
-            onClick={handleSetCustomFee}
-            disabled={feeCustomEstimatesLoading}>
-            <span className="self-stretch my-auto">Set Custom Fee</span>
-            {isCustomFee && (
-              <img
-                loading="lazy"
-                src={chrome.runtime.getURL('popup/close_icon.svg')}
-                className="object-contain shrink-0 self-stretch my-auto aspect-square w-[18px] p-1"
-                alt=""
-              />
-            )}
-          </button>
-          {isCustomFee && (
-            <>
-              <AmountInputField
-                label=""
-                placeholder="3 sat/vB"
-                id="customFee"
-                hasIcon={false}
-                value={customSats}
-                onChange={handleSatsChanged}
-                disabled={feeCustomEstimatesLoading}
-              />
-            </>
-          )}
-        </div>
+        {/*<div className="flex flex-col w-[229px] items-end text-lg font-bold">*/}
+        {/*  <button*/}
+        {/*    className="flex items-center self-end my-2 text-sm font-medium text-center text-primary-yellow"*/}
+        {/*    onClick={handleSetCustomFee}*/}
+        {/*    disabled={feeCustomEstimatesLoading}>*/}
+        {/*    <span className="self-stretch my-auto">Set Custom Fee</span>*/}
+        {/*    {isCustomFee && (*/}
+        {/*      <img*/}
+        {/*        loading="lazy"*/}
+        {/*        src={chrome.runtime.getURL('popup/close_icon.svg')}*/}
+        {/*        className="object-contain shrink-0 self-stretch my-auto aspect-square w-[18px] p-1"*/}
+        {/*        alt=""*/}
+        {/*      />*/}
+        {/*    )}*/}
+        {/*  </button>*/}
+        {/*  {isCustomFee && (*/}
+        {/*    <>*/}
+        {/*      <AmountInputField*/}
+        {/*        label=""*/}
+        {/*        placeholder="3 sat/vB"*/}
+        {/*        id="customFee"*/}
+        {/*        hasIcon={false}*/}
+        {/*        value={customSats}*/}
+        {/*        onChange={handleSatsChanged}*/}
+        {/*        disabled={feeCustomEstimatesLoading}*/}
+        {/*      />*/}
+        {/*    </>*/}
+        {/*  )}*/}
+        {/*</div>*/}
       </div>
 
-      <Button className="absolute w-full bottom-[19px]" onClick={handleNext} disabled={!btcAmount}>
-        Next
-      </Button>
+      <div className="absolute w-full bottom-0 flex flex-col justify-start items-center">
+        <Button className="mb-2" onClick={handleNext} disabled={!btcAmount}>
+          Next
+        </Button>
+        {error && <div className="w-full mt-2 p-2 bg-red-600 text-center">{error}</div>}
+      </div>
     </div>
   );
 };

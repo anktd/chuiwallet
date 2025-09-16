@@ -1,4 +1,5 @@
-import WAValidator from 'wallet-address-validator';
+import * as bitcoin from 'bitcoinjs-lib';
+import { Network } from '@src/types';
 
 /**
  * Simple password strength checker:
@@ -109,8 +110,14 @@ export function truncateLastTxn(address: string, front = 10) {
   return `${address.slice(0, front)}...`;
 }
 
-export function isValidBTCAddress(address: string) {
-  return WAValidator.validate(address, 'BTC');
+export function isValidBTCAddress(addr: string, expected: Network): boolean {
+  const net = expected === Network.Mainnet ? bitcoin.networks.bitcoin : bitcoin.networks.testnet;
+  try {
+    bitcoin.address.toOutputScript(addr, net); // throws if bad format or wrong network
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export async function getBtcToUsdRate(): Promise<number> {

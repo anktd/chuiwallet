@@ -4,42 +4,34 @@ import { WordColumn } from '../components/WordColumn';
 import { Button } from '@src/components/Button';
 import { useWalletContext } from '../context/WalletContext';
 import { pickRandomPositions } from '@src/utils';
+import { sendMessage } from '@src/utils/bridge';
 
 export const VerifySeed: React.FC = () => {
   const navigate = useNavigate();
-  const { createWallet, wallet, password } = useWalletContext();
   const [seedWords, setSeedWords] = useState<string[]>(Array(12).fill(''));
   const [missingPositions, setMissingPositions] = useState<number[]>([]);
   const [userInputs, setUserInputs] = useState<{ [pos: number]: string }>({});
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = React.useState('');
   const [isValid, setIsValid] = useState(false);
 
   useEffect(() => {
-    const positions = pickRandomPositions(3, 12);
-    setMissingPositions(positions);
+    (async () => {
+      const positions = pickRandomPositions(3, 12);
+      setMissingPositions(positions);
 
-    if (!wallet || !password) {
-      console.error('Wallet or password not available in context');
-      setLoading(false);
-      return;
-    }
+      try {
+        const seed: string = await sendMessage('wallet.getMnemonic');
+        if (!seed) {
+          console.error('Failed to recover seed');
+          return;
+        }
 
-    try {
-      const seed = wallet.recoverMnemonic(password);
-      if (!seed) {
-        console.error('Failed to recover seed');
-        setLoading(false);
-        return;
+        setSeedWords(seed.split(' '));
+      } catch (err) {
+        console.error('Error recovering seed in verify:', err);
       }
-
-      setSeedWords(seed.split(' '));
-    } catch (err) {
-      console.error('Error recovering seed in verify:', err);
-    }
-    setLoading(false);
-  }, [wallet, password]);
+    })();
+  }, []);
 
   useEffect(() => {
     const allMissingMatch = missingPositions.every(pos => {
@@ -70,14 +62,9 @@ export const VerifySeed: React.FC = () => {
       return;
     }
 
-    const mnemonic = seedWords.join(' ').trim();
-
-    if (!password) {
-      setErrorMsg('No universal password found. Please unlock your wallet first.');
-      return;
-    }
-
-    createWallet(mnemonic, password, 'mainnet', 'bech32');
+    //Todo: Create wallet
+    // const mnemonic = seedWords.join(' ').trim();
+    // createWallet(mnemonic, password, 'mainnet', 'bech32');
 
     navigate('/onboard/complete');
   };
@@ -94,7 +81,6 @@ export const VerifySeed: React.FC = () => {
     }
     return { text: word, isHighlighted: false, isInput: false };
   });
-
   const rightWords = seedWords.slice(6, 12).map((word, i) => {
     const pos = i + 7;
     if (missingPositions.includes(pos)) {
