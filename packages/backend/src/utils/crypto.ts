@@ -3,6 +3,7 @@ import * as bitcoin from 'bitcoinjs-lib';
 import { Network } from '../types/electrum';
 import { Buffer } from 'buffer';
 import { ScriptType } from '../types/wallet';
+import type { HDSigner } from 'bitcoinjs-lib';
 
 /**
  * Convert bitcoin address to an Electrum script hash.
@@ -45,6 +46,28 @@ export function scriptTypeFromAddress(addr: string): ScriptType {
 
 const hasPrefix = (s: string, ...prefixes: string[]) => prefixes.some(p => s.startsWith(p));
 
+export function purposeFromScriptType(scriptType: ScriptType) {
+  let purpose: number;
+  switch (scriptType) {
+    case ScriptType.P2PKH:
+      purpose = 44;
+      break;
+    case ScriptType.P2SH_P2WPKH:
+      purpose = 49;
+      break;
+    case ScriptType.P2TR:
+      purpose = 86;
+      break;
+    case ScriptType.P2WPKH:
+      purpose = 84;
+      break;
+    default:
+      throw new Error('Unknown script type');
+  }
+
+  return purpose;
+}
+
 /**
  * Computes the 32-bit BIP32 fingerprint for a given node as a **number**.
  *
@@ -82,16 +105,20 @@ export function fingerprintBuffer(node: BIP32Interface): Buffer {
  * Convert a BIP32 node to an HDSigner acceptable by bitcoinjs-lib PSBT.
  * This fixes TypeScript’s type mismatch while keeping runtime behavior correct.
  */
-export function toHdSigner(root: BIP32Interface): bitcoin.HDSigner & bitcoin.Signer {
-  const fp = fingerprintBuffer(root);
+export function toHdSigner(node: BIP32Interface): bitcoin.Signer & HDSigner {
+  const pubkey = asBuffer(node.publicKey);
   return {
-    publicKey: root.publicKey,
-    fingerprint: fp,
-    // must return a Signer (BIP32 child has .publicKey and .sign)
-    derivePath: (path: string) => root.derivePath(path),
-    sign: (hash: Buffer) => {
-      if (!root.sign) throw new Error('Root cannot sign');
-      return root.sign(hash);
+    publicKey: pubkey,
+    sign: (hash: Buffer): Buffer => {
+      console.log('sign: ', node.sign);
+      if (!node.sign) throw new Error('Node cannot sign');
+      const sig = node.sign(hash); // may return Uint8Array
+      return asBuffer(sig); // ensure Buffer
     },
-  } as unknown as bitcoin.HDSigner & bitcoin.Signer;
+    // (Add signSchnorr for Taproot if needed)
+  } as unknown as bitcoin.Signer & { publicKey: Buffer } as HDSigner;
+}
+
+export function asBuffer(x: Buffer | Uint8Array) {
+  return Buffer.isBuffer(x) ? x : Buffer.from(x);
 }

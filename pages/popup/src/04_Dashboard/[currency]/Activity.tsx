@@ -1,6 +1,6 @@
 import type * as React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { CryptoButton } from '../../components/CryptoButton';
+import { CryptoButton } from '@src/components/CryptoButton';
 import { useWalletContext } from '@src/context/WalletContext';
 import { useEffect } from 'react';
 import { formatNumber } from '@src/utils';
@@ -23,7 +23,7 @@ export const Activity: React.FC = () => {
 
   useEffect(() => {
     refreshTransactions();
-  }, [refreshTransactions, preferences?.activeAccountIndex]);
+  }, [preferences?.activeAccountIndex]);
 
   const loading = transactions == null;
 

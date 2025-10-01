@@ -20,6 +20,40 @@ export interface ExtendedServerConfig extends ServerConfig {
   healthy?: boolean;
 }
 
+export interface ElectrumVin {
+  txid: string;
+  vout: number;
+  sequence: number;
+  // Optional fields if Electrum server enriches
+  addresses?: string[];
+  value?: number; // in sats
+}
+
+export interface ElectrumVout {
+  value: number; // sats
+  n: number;
+  scriptPubKey: {
+    asm: string;
+    hex: string;
+    type: string;
+    address: string;
+    addresses?: string[];
+  };
+}
+
+export interface ElectrumTransaction {
+  txid: string;
+  hex: string;
+  version: number;
+  locktime: number;
+  vin: ElectrumVin[];
+  vout: ElectrumVout[];
+  blockhash?: string;
+  confirmations?: number;
+  time?: number;
+  blocktime?: number;
+}
+
 export type ElectrumHistoryItem = {
   tx_hash: string; // some servers use tx_hash
   height: number;
@@ -33,23 +67,6 @@ export type ElectrumUtxo = {
   height: number;
   value: number; // sats
 };
-
-export type TransactionActivityStatus = 'PENDING' | 'CONFIRMED';
-export type TransactionType = 'SEND' | 'RECEIVE';
-
-export interface TransactionActivity {
-  type: TransactionType;
-  status: TransactionActivityStatus;
-  amountBtc: number;
-  amountUsd: number;
-  feeBtc: number;
-  feeUsd: number;
-  timestamp: number;
-  confirmations: number;
-  transactionHash: string;
-  sender: string;
-  receiver: string;
-}
 
 export interface FeeOptionSetting {
   speed: string;

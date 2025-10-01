@@ -13,8 +13,12 @@ import { preferenceManager } from './preferenceManager';
 import { scanManager } from './scanManager';
 import { electrumService } from './modules/electrumService';
 import { feeService } from './modules/feeService';
-import { scriptTypeFromAddress } from './utils/crypto';
+import { scriptTypeFromAddress, toHdSigner } from './utils/crypto';
 import { logger } from './utils/logger';
+import * as secp256k1 from '@bitcoinerlab/secp256k1';
+import * as bitcoin from 'bitcoinjs-lib';
+
+bitcoin.initEccLib(secp256k1);
 
 /**
  * Manages the wallet lifecycle, including initialization, restoration, creation,
@@ -266,11 +270,15 @@ export class WalletManager {
       outputs,
       account: account,
       masterFingerprint: masterFp,
-      getPrevTxHex: (txid: string) => electrumService.getRawTransaction(txid), // only used for legacy P2PKH
+      getPrevTxHex: (txid: string) => electrumService.getRawTransaction(txid), // Todo: only used for legacy P2PKH, consider depracation
     });
+    const txHex = wallet.signPsbt(selectedUtxo.inputs, psbt);
+    console.log('Send TX Hex', txHex);
+    return await electrumService.broadcastTx(txHex!);
+  }
 
-    const txHex = wallet.signPsbt(psbt);
-    return await electrumService.broadcastTx(txHex);
+  public getRoot() {
+    return wallet.root!;
   }
 
   /**

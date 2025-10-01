@@ -1,11 +1,13 @@
+import type { SpendableUtxo } from '../modules/utxoSelection';
 import * as bitcoin from 'bitcoinjs-lib';
 import * as secp256k1 from '@bitcoinerlab/secp256k1';
-import type { SpendableUtxo } from '../modules/utxoSelection';
 import { type Account, ScriptType } from '../types/wallet';
-import { Network as NetEnum } from '../types/electrum';
-import BIP32Factory from 'bip32';
+import { Network } from '../types/electrum';
 import { ChangeType } from '../types/cache';
-import { toBitcoinNetwork } from './crypto';
+import { asBuffer, toBitcoinNetwork } from './crypto';
+import BIP32Factory from 'bip32';
+
+const bip32 = BIP32Factory(secp256k1);
 
 type BuildParams = {
   inputs: SpendableUtxo[];
@@ -15,7 +17,6 @@ type BuildParams = {
   getPrevTxHex?: (txid: string) => Promise<string>; // required for legacy P2PKH
 };
 
-const bip32 = BIP32Factory(secp256k1);
 const purposeFrom = (t: ScriptType) =>
   t === ScriptType.P2TR ? 86 : t === ScriptType.P2WPKH ? 84 : t === ScriptType.P2SH_P2WPKH ? 49 : 44;
 
@@ -29,46 +30,49 @@ export async function buildSpendPsbt({
   const network = toBitcoinNetwork(account.network);
   const psbt = new bitcoin.Psbt({ network });
   const purpose = purposeFrom(account.scriptType);
-  const coin = account.network === NetEnum.Mainnet ? 0 : 1;
+  const coin = account.network === Network.Mainnet ? 0 : 1;
   const accountNode = bip32.fromBase58(account.xpub, network);
 
   for (const input of inputs) {
     const chainNum: 0 | 1 = input.chain === ChangeType.Internal ? 1 : 0;
-    const child = accountNode.derive(chainNum).derive(input.index);
-    const pubkey33 = Buffer.isBuffer(child.publicKey) ? child.publicKey : Buffer.from(child.publicKey);
-    const xOnly = pubkey33.length === 33 ? pubkey33.slice(1) : pubkey33;
-    const spk = bitcoin.address.toOutputScript(input.address, network);
+    const childNode = accountNode.derive(chainNum).derive(input.index);
+    const pubkey = asBuffer(childNode.publicKey);
+    const scriptPubKey = bitcoin.address.toOutputScript(input.address, network);
     const path = `m/${purpose}'/${coin}'/${account.index}'/${chainNum}/${input.index}`;
     const base = { hash: input.txid, index: input.vout };
 
     switch (input.scriptType) {
-      case ScriptType.P2WPKH:
+      case ScriptType.P2WPKH: {
+        console.log('pubkey: ', pubkey);
         psbt.addInput({
           ...base,
-          witnessUtxo: { script: spk, value: input.value },
-          bip32Derivation: [{ masterFingerprint, pubkey: pubkey33, path }],
-        });
-        break;
-
-      case ScriptType.P2SH_P2WPKH: {
-        const redeem = bitcoin.payments.p2wpkh({ pubkey: pubkey33, network }).output!;
-        psbt.addInput({
-          ...base,
-          witnessUtxo: { script: spk, value: input.value },
-          redeemScript: redeem,
-          bip32Derivation: [{ masterFingerprint, pubkey: pubkey33, path }],
+          witnessUtxo: { script: scriptPubKey, value: input.value },
+          bip32Derivation: [{ masterFingerprint, pubkey, path }],
         });
         break;
       }
 
-      case ScriptType.P2TR:
+      case ScriptType.P2SH_P2WPKH: {
+        const redeem = bitcoin.payments.p2wpkh({ pubkey, network }).output!;
         psbt.addInput({
           ...base,
-          witnessUtxo: { script: spk, value: input.value },
+          witnessUtxo: { script: scriptPubKey, value: input.value },
+          redeemScript: redeem,
+          bip32Derivation: [{ masterFingerprint, pubkey, path }],
+        });
+        break;
+      }
+
+      case ScriptType.P2TR: {
+        const xOnly = pubkey.length === 33 ? pubkey.slice(1) : pubkey;
+        psbt.addInput({
+          ...base,
+          witnessUtxo: { script: scriptPubKey, value: input.value },
           tapInternalKey: xOnly,
           tapBip32Derivation: [{ masterFingerprint, pubkey: xOnly, path, leafHashes: [] }],
         });
         break;
+      }
 
       case ScriptType.P2PKH: {
         if (!getPrevTxHex) throw new Error('getPrevTxHex required for P2PKH inputs');
@@ -76,7 +80,7 @@ export async function buildSpendPsbt({
         psbt.addInput({
           ...base,
           nonWitnessUtxo: Buffer.from(prevHex, 'hex'),
-          bip32Derivation: [{ masterFingerprint, pubkey: pubkey33, path }],
+          bip32Derivation: [{ masterFingerprint, pubkey, path }],
         });
         break;
       }

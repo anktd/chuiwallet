@@ -28,8 +28,8 @@ export const defaultScanConfig: ScanManagerConfig = {
 
 export class ScanManager {
   private config: ScanManagerConfig;
-  private addressCacheReceive = new Map<number, AddressEntry>();
-  private addressCacheChange = new Map<number, AddressEntry>();
+  public addressCacheReceive = new Map<number, AddressEntry>();
+  public addressCacheChange = new Map<number, AddressEntry>();
   private historyCacheReceive = new Map<number, HistoryEntry>();
   private historyCacheChange = new Map<number, HistoryEntry>();
   private utxoCacheReceive = new Map<number, UtxoEntry>();
@@ -191,7 +191,7 @@ export class ScanManager {
         const utxos = utxosByIndex[batchIndex] ?? [];
         if (utxos.length > 0) {
           entry.lastChecked = batchTimestamp;
-          this.upsertUtxoIfAny(utxoCache, hdIndex, batchTimestamp, utxos);
+          this.upsertUtxo(utxoCache, hdIndex, batchTimestamp, utxos);
           this.bumpHighestUsed(hdIndex, changeType);
         }
       }
@@ -213,13 +213,12 @@ export class ScanManager {
     });
   }
 
-  private upsertUtxoIfAny(
+  private upsertUtxo(
     cache: Map<number, UtxoEntry>,
     hdIndex: number,
     ts: number,
     utxos: { tx_hash: string; tx_pos: number; value: number; height: number }[],
   ) {
-    if (!utxos || utxos.length === 0) return;
     cache.set(hdIndex, {
       lastChecked: ts,
       utxos: utxos.map(utxo => ({

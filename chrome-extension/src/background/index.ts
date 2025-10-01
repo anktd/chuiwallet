@@ -1,3 +1,5 @@
+import * as bitcoin from 'bitcoinjs-lib';
+import * as secp256k1 from '@bitcoinerlab/secp256k1';
 import { handle } from './router';
 import { preferenceManager } from '@extension/backend/src/preferenceManager';
 import { walletManager } from '@extension/backend/src/walletManager';
@@ -9,13 +11,15 @@ import { ChangeType } from '@extension/backend/src/types/cache';
 import browser, { Runtime } from 'webextension-polyfill';
 import MessageSender = Runtime.MessageSender;
 
+bitcoin.initEccLib(secp256k1);
+
 async function init() {
   await preferenceManager.init();
   await walletManager.init();
   await electrumService.init(preferenceManager.get().activeNetwork);
   await accountManager.init(preferenceManager.get().activeAccountIndex);
   await scanManager.init();
-  allScan();
+  await allScan();
 }
 
 (async () => {
@@ -39,6 +43,7 @@ async function forwardScan() {
   await scanManager.forwardScan();
   await scanManager.forwardScan(ChangeType.Internal);
 }
+
 // Message Action Router
 
 browser.runtime.onMessage.addListener((message: unknown, sender: MessageSender) => {

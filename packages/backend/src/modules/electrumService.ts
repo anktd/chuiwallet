@@ -1,4 +1,4 @@
-import type { ElectrumHistory, ElectrumUtxo } from '../types/electrum';
+import type { ElectrumHistory, ElectrumTransaction, ElectrumUtxo } from '../types/electrum';
 import * as bitcoin from 'bitcoinjs-lib';
 import { Network } from '../types/electrum';
 import { selectBestServer } from './electrumServer';
@@ -21,14 +21,14 @@ export class ElectrumService {
     this.rpcClient = await new ElectrumRpcClient(server).connect();
   }
 
-  public async getRawTransaction(txid: string) {
+  public async getRawTransaction(txid: string, verbose = false) {
     if (!this.rpcClient) throw new Error('Electrum not connected');
-    const response = await this.rpcClient.sendRequest('blockchain.transaction.get', [txid, false]);
+    const response = await this.rpcClient.sendRequest('blockchain.transaction.get', [txid, verbose]);
 
-    if (typeof response === 'string') return response; // raw hex
-    if (response && typeof response === 'object' && 'hex' in (response as Record<string, unknown>)) {
-      const hex = (response as { hex?: unknown }).hex;
-      if (typeof hex === 'string') return hex;
+    if (!verbose && typeof response === 'string') return response;
+
+    if (verbose && response && typeof response === 'object' && 'hex' in response) {
+      return response as ElectrumTransaction;
     }
 
     throw new Error(`Unexpected response for transaction ${txid}`);
@@ -64,7 +64,7 @@ export class ElectrumService {
 
     try {
       const response = await this.rpcClient.sendRequest('blockchain.transaction.broadcast', [hex]);
-      console.log('broadcase response', response);
+      console.log('broadcast response', response);
       if (typeof response === 'string' && /^[0-9a-f]{64}$/i.test(response)) {
         return response; // txid from server
       }
