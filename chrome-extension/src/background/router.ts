@@ -3,6 +3,7 @@ import browser from 'webextension-polyfill';
 import { preferenceManager } from '@extension/backend/src/preferenceManager';
 import { walletManager } from '@extension/backend/src/walletManager';
 import { accountManager } from '@extension/backend/src/accountManager';
+import { historyService } from '../../../packages/backend/src/modules/txHistoryService';
 import { getSessionPassword, setSessionPassword } from '@extension/backend/dist/utils/sessionStorageHelper';
 type Handler = (params: unknown, sender: Runtime.MessageSender) => Promise<unknown> | unknown;
 
@@ -43,7 +44,7 @@ const handlers: Record<string, Handler> = {
     return accountManager.accounts;
   },
   'transactions.get': async () => {
-    return [];
+    return historyService.get();
   },
   'fee.estimates': async param => {
     return await walletManager.getFeeEstimates(param as string);

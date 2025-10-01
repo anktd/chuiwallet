@@ -1,16 +1,17 @@
 import type { BIP32Interface } from 'bip32';
-import type { Payment } from 'bitcoinjs-lib';
-import type { Account, Vault, WalletMeta } from '../types/wallet';
 import BIP32Factory from 'bip32';
+import type { Account, Vault, WalletMeta } from '../types/wallet';
+import { ScriptType } from '../types/wallet';
+import type { SpendableUtxo } from './utxoSelection';
 import encryption from '../utils/encryption.js';
 import * as bip39 from 'bip39';
 import * as secp256k1 from '@bitcoinerlab/secp256k1';
 import * as bitcoin from 'bitcoinjs-lib';
 import { Network } from '../types/electrum';
-import { ScriptType } from '../types/wallet';
-import { fingerprintBuffer, toHdSigner } from '../utils/crypto';
+import { fingerprintBuffer, purposeFromScriptType, toHdSigner } from '../utils/crypto';
+import { accountManager } from '../accountManager';
+import { ChangeType } from '../types/cache';
 
-bitcoin.initEccLib(secp256k1);
 const bip32 = BIP32Factory(secp256k1);
 const WALLET_KEY = 'wallet';
 
@@ -111,16 +112,16 @@ export class Wallet {
 
     switch (account.scriptType) {
       case ScriptType.P2PKH:
-        return bitcoin.payments.p2pkh({ pubkey: publicKey, network } as Payment).address;
+        return bitcoin.payments.p2pkh({ pubkey: publicKey, network } as bitcoin.Payment).address;
       case ScriptType.P2SH_P2WPKH:
         return bitcoin.payments.p2sh({
-          redeem: bitcoin.payments.p2wpkh({ pubkey: publicKey, network } as Payment),
+          redeem: bitcoin.payments.p2wpkh({ pubkey: publicKey, network } as bitcoin.Payment),
           network,
         }).address;
       case ScriptType.P2WPKH:
-        return bitcoin.payments.p2wpkh({ pubkey: publicKey, network } as Payment).address;
+        return bitcoin.payments.p2wpkh({ pubkey: publicKey, network } as bitcoin.Payment).address;
       case ScriptType.P2TR:
-        return bitcoin.payments.p2tr({ internalPubkey: publicKey.slice(1), network } as Payment).address; // Taproot uses x-only pubkey
+        return bitcoin.payments.p2tr({ internalPubkey: publicKey.slice(1), network } as bitcoin.Payment).address; // Taproot uses x-only pubkey
       default:
         throw new Error('Unsupported script type');
     }
@@ -137,24 +138,7 @@ export class Wallet {
     }
 
     const coin = this.network === bitcoin.networks.testnet ? 1 : 0;
-    let purpose: number;
-    switch (scriptType) {
-      case ScriptType.P2PKH:
-        purpose = 44;
-        break;
-      case ScriptType.P2SH_P2WPKH:
-        purpose = 49;
-        break;
-      case ScriptType.P2TR:
-        purpose = 86;
-        break;
-      case ScriptType.P2WPKH:
-        purpose = 84;
-        break;
-      default:
-        throw new Error('Unknown script type');
-    }
-
+    const purpose = purposeFromScriptType(scriptType);
     const accountNode = this.root.deriveHardened(purpose).deriveHardened(coin).deriveHardened(index);
     const accountXpub = accountNode.neutered().toBase58(); // Neutered for safety
 
@@ -199,16 +183,24 @@ export class Wallet {
    * Each input must include bip32Derivation (segwit/legacy) or tapBip32Derivation (taproot)
    * paths that correspond to this wallet's root fingerprint.
    */
-  public signPsbt(psbt: bitcoin.Psbt): string {
-    if (!this.root) throw new Error('Wallet is not ready');
-    console.log('signing', psbt.data);
-    const signer = toHdSigner(this.root);
-    console.log('signer', signer);
-    psbt.signAllInputsHD(signer);
-    console.log('signed', psbt.data);
+  public signPsbt(utxos: SpendableUtxo[], psbt: bitcoin.Psbt): string | undefined {
+    try {
+      if (!this.root) throw new Error('Wallet is not ready');
+      for (let i = 0; i < utxos.length; i++) {
+        const account = accountManager.getActiveAccount();
+        const accountNode = this.root
+          .deriveHardened(purposeFromScriptType(account.scriptType))
+          .deriveHardened(account.network === Network.Testnet ? 1 : 0)
+          .deriveHardened(account.index);
+        const childNode = accountNode.derive(utxos[i].chain === ChangeType.External ? 0 : 1).derive(utxos[i].index);
+        psbt.signInput(i, toHdSigner(childNode));
+      }
 
-    psbt.finalizeAllInputs();
-    return psbt.extractTransaction().toHex();
+      psbt.finalizeAllInputs();
+      return psbt.extractTransaction().toHex();
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   /**

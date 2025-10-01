@@ -16,6 +16,7 @@ interface WalletContextType {
   transactions: TransactionActivity[];
   refreshTransactions: () => void;
   getReceivingAddress: () => Promise<string>;
+  init: () => void;
   // network: 'mainnet' | 'testnet';
   // totalAccounts: number;
   // selectedFiatCurrency: 'USD' | 'BTC';
@@ -79,6 +80,17 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   //   await deleteSessionPassword();
   // };
 
+  const init = async () => {
+    const isRestorable = await sendMessage('wallet.restore');
+    if (isRestorable) {
+      setUnlocked(true);
+      const preferences: Preferences = await sendMessage('preferences.get');
+      const accounts: [] = await sendMessage('accounts.get');
+      _setPreferences(preferences);
+      _setAccounts(accounts);
+    }
+  };
+
   // Hydrate settings (onboarded, preferences, accounts)
   useEffect(() => {
     (async () => {
@@ -86,14 +98,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         const isExist = await sendMessage('wallet.exist');
         if (isExist) {
           setOnboarded(true);
-          const isRestorable = await sendMessage('wallet.restore');
-          if (isRestorable) {
-            setUnlocked(true);
-            const preferences: Preferences = await sendMessage('preferences.get');
-            const accounts: [] = await sendMessage('accounts.get');
-            _setPreferences(preferences);
-            _setAccounts(accounts);
-          }
+          await init();
         }
       } catch (e) {
         console.error(e);
@@ -123,7 +128,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const refreshTransactions = () => {
     (async () => {
-      const transactions: TransactionActivity[] = await sendMessage('transactions.get');
+      const transactions: [] = await sendMessage('transactions.get');
       _setTransactions(transactions);
     })();
   };
@@ -358,7 +363,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         refreshBalance,
         refreshTransactions,
         getReceivingAddress,
-        // password,
+        init,
         // selectedAccountIndex,
         // totalAccounts,
         // selectedFiatCurrency,
