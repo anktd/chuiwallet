@@ -48,6 +48,12 @@ export class Wallet {
     await this.load();
   }
 
+  public clear() {
+    this.root = null;
+    this.seed = null;
+    this.xpub = null;
+  }
+
   /**
    * Restores the wallet from an encrypted vault using the provided password.
    * @param {Network} network - The Bitcoin network to use (Testnet or Mainnet).
@@ -163,6 +169,10 @@ export class Wallet {
     return vault.mnemonic;
   }
 
+  public getXpub() {
+    return this.xpub;
+  }
+
   /**
    * Returns the 4-byte **master fingerprint** of this wallet’s BIP32 root node.
    *
@@ -241,7 +251,7 @@ export class Wallet {
    * @returns {Vault | null} The decrypted vault object, or null if no vault exists or decryption fails.
    * @private
    */
-  private decryptVault(password: string): Vault | null {
+  public decryptVault(password: string): Vault | null {
     if (!this.encryptedVault) {
       return null;
     }
@@ -296,6 +306,12 @@ export class Wallet {
         },
         () => resolve(),
       );
+    });
+  }
+
+  public async destroy() {
+    chrome.storage.local.remove(WALLET_KEY).then(() => {
+      this.clear();
     });
   }
 }

@@ -1,9 +1,8 @@
 import * as React from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { InputField } from '@src/components/InputField';
 import { Button } from '@src/components/Button';
 import { setSessionPassword } from '@extension/backend/dist/utils/sessionStorageHelper';
-import { sendMessage } from '@src/utils/bridge';
 import { useWalletContext } from '@src/context/WalletContext';
 
 export const PasswordLock: React.FC = () => {
@@ -29,7 +28,7 @@ export const PasswordLock: React.FC = () => {
 
     try {
       await setSessionPassword(password);
-      await init();
+      init();
       navigate('/dashboard');
     } catch (err) {
       console.error(err);

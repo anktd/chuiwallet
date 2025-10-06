@@ -1,25 +1,33 @@
 import type * as React from 'react';
+import type { Network } from '@src/types';
 import { useNavigate } from 'react-router-dom';
 import { GasLimitInputField } from '@src/components/GasLimitInputField';
 import Header from '@src/components/Header';
 import NetworkSelector from '@src/components/NetworkSelector';
 import { useWalletContext } from '@src/context/WalletContext';
 import { useEffect, useState } from 'react';
+import { sendMessage } from '@src/utils/bridge';
 
 export const AdvancedSettings: React.FC = () => {
   const navigate = useNavigate();
-  const { gapLimit, setGapLimit, network, updateNetwork } = useWalletContext();
-  const [localGap, setLocalGap] = useState<string>(gapLimit.toString());
+  const { preferences, setPreferences } = useWalletContext();
+  const [localGap, setLocalGap] = useState<string>(preferences.gapLimitReceive.toString());
+  const displayNetwork = preferences?.activeNetwork === 'mainnet' ? 'Mainnet' : 'Testnet';
 
   useEffect(() => {
-    setLocalGap(gapLimit.toString());
-  }, [gapLimit]);
+    setLocalGap(preferences.gapLimitReceive.toString());
+  }, [preferences]);
 
-  const displayNetwork = network === 'mainnet' ? 'Mainnet' : 'Testnet';
+  const networkChanged = async (selected: string) => {
+    const selectedNetwork = selected.toLowerCase() as Network;
+    await sendMessage('wallet.switchNetwork', { network: selectedNetwork });
+    preferences.activeNetwork = selectedNetwork;
+    setPreferences(preferences);
+  };
 
   return (
     <div className="flex flex-col text-white bg-dark h-full px-4 pt-12 pb-[19px]">
-      <Header title="Settings" />
+      <Header title="Advanced Settings" />
 
       <main className="flex flex-col self-center mt-10 w-full max-w-[328px]">
         <GasLimitInputField
@@ -31,12 +39,12 @@ export const AdvancedSettings: React.FC = () => {
             setLocalGap(e.target.value);
             const parsed = Number(e.target.value);
             if (!isNaN(parsed)) {
-              setGapLimit(parsed);
+              // setGapLimit(parsed);
             }
           }}
           onReset={() => {
             setLocalGap('500');
-            setGapLimit(500);
+            // setGapLimit(500);
           }}
         />
 
@@ -44,7 +52,7 @@ export const AdvancedSettings: React.FC = () => {
           <NetworkSelector
             initialNetwork={displayNetwork}
             options={['Mainnet', 'Testnet']}
-            onChange={selected => updateNetwork(selected.toLowerCase() as 'mainnet' | 'testnet')}
+            onChange={network => networkChanged(network)}
           />
         </div>
 

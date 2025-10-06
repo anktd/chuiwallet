@@ -3,50 +3,39 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SeedColumn } from '../components/SeedColumn';
 import { Button } from '@src/components/Button';
-import { useWalletContext } from '../context/WalletContext';
 import Header from '@src/components/Header';
+import { sendMessage } from '@src/utils/bridge';
 
 export const RevealSeed: React.FC = () => {
   const navigate = useNavigate();
-  const { wallet, password } = useWalletContext();
   const [leftColumnWords, setLeftColumnWords] = useState<string[]>([]);
   const [rightColumnWords, setRightColumnWords] = useState<string[]>([]);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [loading, setLoading] = useState(true);
+  // const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [seed, setSeed] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!wallet || !password) {
-      console.error('Wallet or password not available in context');
-      setLoading(false);
-      return;
-    }
-    try {
-      const seed = wallet.recoverMnemonic(password);
-      if (!seed) {
-        console.error('Failed to recover seed');
-        setLoading(false);
-        return;
+    (async () => {
+      try {
+        const mnemonic: string = await sendMessage('wallet.getMnemonic');
+        setSeed(mnemonic);
+        if (mnemonic) {
+          const words = mnemonic.split(' ');
+          if (words.length !== 12) {
+            console.error('Expected 12 words, got', words.length);
+          }
+          setLeftColumnWords(words.slice(0, 6));
+          setRightColumnWords(words.slice(6, 12));
+        }
+      } catch (err) {
+        console.error('Error recovering seed:', err);
       }
-      const words = seed.split(' ');
-      if (words.length !== 12) {
-        console.error('Expected 12 words, got', words.length);
-      }
-      setLeftColumnWords(words.slice(0, 6));
-      setRightColumnWords(words.slice(6, 12));
-    } catch (err) {
-      console.error('Error recovering seed:', err);
-    }
-    setLoading(false);
-  }, [wallet, password]);
+      // setLoading(false);
+    })();
+  }, []);
 
   const handleCopyToClipboard = async () => {
     try {
-      if (!wallet || !password) {
-        console.error('Wallet or password not available in context');
-        return;
-      }
-      const seed = wallet.recoverMnemonic(password);
       if (!seed) {
         console.error('Failed to recover seed');
         return;

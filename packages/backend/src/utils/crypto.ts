@@ -110,7 +110,6 @@ export function toHdSigner(node: BIP32Interface): bitcoin.Signer & HDSigner {
   return {
     publicKey: pubkey,
     sign: (hash: Buffer): Buffer => {
-      console.log('sign: ', node.sign);
       if (!node.sign) throw new Error('Node cannot sign');
       const sig = node.sign(hash); // may return Uint8Array
       return asBuffer(sig); // ensure Buffer

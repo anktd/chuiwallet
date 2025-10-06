@@ -1,5 +1,8 @@
 import type { Account } from './types/wallet';
 import type { Network } from './types/electrum';
+import browser from 'webextension-polyfill';
+import { getCacheKey } from './utils/cache';
+import { CacheType, ChangeType } from './types/cache';
 
 const ACCOUNTS_KEY = 'accounts';
 
@@ -69,6 +72,12 @@ export class AccountManager {
     await new Promise<void>(resolve => {
       chrome.storage.local.set({ [ACCOUNTS_KEY]: this.accounts }, () => resolve());
     });
+  }
+
+  public async destroy(): Promise<void> {
+    this.accounts = [];
+    this.activeAccountIndex = -1;
+    await browser.storage.local.remove(ACCOUNTS_KEY);
   }
 }
 
