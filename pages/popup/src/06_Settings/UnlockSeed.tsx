@@ -3,74 +3,28 @@ import { useNavigate } from 'react-router-dom';
 import { InputField } from '@src/components/InputField';
 import Header from '@src/components/Header';
 import { ButtonOutline } from '@src/components/ButtonOutline';
-import { useWalletContext } from '@src/context/WalletContext';
-import type { StoredAccount } from '@src/types';
-import bip39 from 'bip39';
-import encryption from '@extension/backend/src/utils/encryption';
+import { sendMessage } from '@src/utils/bridge';
 
 export const UnlockSeed: React.FC = () => {
   const navigate = useNavigate();
-  const { setSelectedAccountIndex, setTotalAccounts, setWallet } = useWalletContext();
   const [password, setPassword] = React.useState('');
   const [errorMsg, setErrorMsg] = React.useState('');
   const [loading, setLoading] = React.useState(false);
 
   const handleReveal = async () => {
     setErrorMsg('');
-
     if (!password) {
       setErrorMsg('Please enter your password.');
       return;
     }
 
     setLoading(true);
-
-    try {
-      chrome.storage.local.get(['storedAccount'], async res => {
-        const storedAccount: StoredAccount | undefined = res.storedAccount;
-        if (!storedAccount) {
-          setErrorMsg('Wallet data not found. Please complete onboarding.');
-          setLoading(false);
-          return;
-        }
-
-        try {
-          const manager = new WalletManager();
-
-          const decryptedMnemonic = encryption.decrypt(storedAccount.encryptedMnemonic, password);
-          if (!decryptedMnemonic || !bip39.validateMnemonic(decryptedMnemonic)) {
-            setErrorMsg('Your password is incorrect.');
-            setLoading(false);
-            return;
-          }
-
-          const restoredWallet = manager.createWallet({
-            password: password,
-            mnemonic: decryptedMnemonic,
-            network: storedAccount.network,
-            addressType: 'bech32',
-          });
-
-          const seed = restoredWallet.recoverMnemonic(password);
-          if (seed && bip39.validateMnemonic(seed)) {
-            setWallet(restoredWallet, password);
-            setSelectedAccountIndex(storedAccount.selectedAccountIndex);
-            setTotalAccounts(storedAccount.totalAccounts);
-
-            navigate('/settings/advanced/reveal-seed');
-          } else {
-            setErrorMsg('Your password is incorrect.');
-          }
-        } catch (err) {
-          console.error('Error unlocking wallet:', err);
-          setErrorMsg('Your password is incorrect.');
-        }
-        setLoading(false);
-      });
-    } catch (err) {
-      console.error(err);
-      setErrorMsg('An error occurred. Please try again.');
-      setLoading(false);
+    const success = await sendMessage('wallet.verifyPassword', { password });
+    setLoading(false);
+    if (success) {
+      navigate('/settings/advanced/reveal-seed');
+    } else {
+      setErrorMsg('Your password is incorrect.');
     }
   };
 

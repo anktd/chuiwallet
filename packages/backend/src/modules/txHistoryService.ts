@@ -1,7 +1,7 @@
 import type { ElectrumTransaction } from '../types/electrum';
 import type { AddressEntry, TxEntry, TxStatus, TxType } from '../types/cache';
-import browser from 'webextension-polyfill';
 import { CacheType, ChangeType } from '../types/cache';
+import browser from 'webextension-polyfill';
 import { scanManager } from '../scanManager';
 import { electrumService } from './electrumService';
 import { getCacheKey } from '../utils/cache';
@@ -67,7 +67,7 @@ export class TxHistoryService {
     const amountUsd = btcUsdRate ? amountBtc * btcUsdRate : 0;
     const feeUsd = btcUsdRate ? feeBtc * btcUsdRate : 0;
 
-    const entry: TxEntry = {
+    return {
       type,
       status,
       amountBtc,
@@ -80,7 +80,6 @@ export class TxHistoryService {
       sender,
       receiver,
     };
-    return entry;
   }
 
   private buildMyAddressSet(
@@ -153,12 +152,10 @@ export class TxHistoryService {
   ): { sender: string; receiver: string } {
     if (txType === 'SEND') {
       const sender = inputs.find(i => i.mine)?.address || '';
-      // choose largest external output as receiver
       const external = outputs.filter(o => !o.mine);
       const receiver = external.sort((a, b) => b.valueBtc - a.valueBtc)[0]?.address || '';
       return { sender, receiver };
     } else {
-      // RECEIVE
       const sender = inputs.find(i => !i.mine)?.address || ''; // first external input as sender
       const receiver = outputs.find(o => o.mine)?.address || ''; // first of mine
       return { sender, receiver };
@@ -181,6 +178,17 @@ export class TxHistoryService {
       this.txHistoryCache.clear();
       const storedTxHistory = (txHistory[cacheKey] as [string, TxEntry][]) ?? [];
       for (const [txid, entry] of storedTxHistory) this.txHistoryCache.set(txid, entry);
+    }
+  }
+
+  public async clearCache(): Promise<void> {
+    try {
+      await browser.storage.local.remove(getCacheKey(CacheType.Tx, ChangeType.External));
+    } catch (e) {
+      console.error(e);
+    } finally {
+      this.txHistoryCache.clear();
+      this.parentTxCache.clear();
     }
   }
 }

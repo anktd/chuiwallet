@@ -1,7 +1,8 @@
 import type { SpendableUtxo } from '../modules/utxoSelection';
+import type { ElectrumTransaction } from '../types/electrum';
+import { type Account, ScriptType } from '../types/wallet';
 import * as bitcoin from 'bitcoinjs-lib';
 import * as secp256k1 from '@bitcoinerlab/secp256k1';
-import { type Account, ScriptType } from '../types/wallet';
 import { Network } from '../types/electrum';
 import { ChangeType } from '../types/cache';
 import { asBuffer, toBitcoinNetwork } from './crypto';
@@ -14,7 +15,7 @@ type BuildParams = {
   outputs: Array<{ address: string; value: number }>;
   account: Account;
   masterFingerprint: Buffer;
-  getPrevTxHex?: (txid: string) => Promise<string>; // required for legacy P2PKH
+  getPrevTxHex?: (txid: string) => Promise<string | ElectrumTransaction>; // required for legacy P2PKH
 };
 
 const purposeFrom = (t: ScriptType) =>
@@ -76,7 +77,7 @@ export async function buildSpendPsbt({
 
       case ScriptType.P2PKH: {
         if (!getPrevTxHex) throw new Error('getPrevTxHex required for P2PKH inputs');
-        const prevHex = await getPrevTxHex(input.txid);
+        const prevHex = (await getPrevTxHex(input.txid)) as string;
         psbt.addInput({
           ...base,
           nonWitnessUtxo: Buffer.from(prevHex, 'hex'),

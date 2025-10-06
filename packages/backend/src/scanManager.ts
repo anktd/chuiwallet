@@ -358,6 +358,40 @@ export class ScanManager {
       }
     }
   }
+
+  public async clearCache() {
+    try {
+      const keys = [
+        getCacheKey(CacheType.Address, ChangeType.External),
+        getCacheKey(CacheType.Address, ChangeType.Internal),
+        getCacheKey(CacheType.History, ChangeType.External),
+        getCacheKey(CacheType.History, ChangeType.Internal),
+        getCacheKey(CacheType.Utxo, ChangeType.External),
+        getCacheKey(CacheType.Utxo, ChangeType.Internal),
+      ];
+      //Todo: clear for multiple accounts
+      await browser.storage.local.remove(keys);
+    } catch (e) {
+      logger.error(e);
+    } finally {
+      this.clear();
+    }
+  }
+
+  public clear() {
+    this.addressCacheReceive.clear();
+    this.addressCacheChange.clear();
+    this.historyCacheReceive.clear();
+    this.historyCacheChange.clear();
+    this.utxoCacheReceive.clear();
+    this.utxoCacheChange.clear();
+    this.highestScannedReceive = -1;
+    this.highestScannedChange = -1;
+    this.highestUsedReceive = -1;
+    this.highestUsedChange = -1;
+    this.nextReceiveIndex = 0;
+    this.nextChangeIndex = 0;
+  }
 }
 
 export const scanManager = new ScanManager();

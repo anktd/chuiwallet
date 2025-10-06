@@ -1,5 +1,4 @@
 import { useWalletContext } from '@src/context/WalletContext';
-import type { StoredAccount } from '@src/types';
 import type React from 'react';
 import { useState, useRef, useEffect } from 'react';
 
@@ -9,7 +8,7 @@ type FiatCurrencySelectorProps = {
 };
 
 const FiatCurrencySelector: React.FC<FiatCurrencySelectorProps> = ({ options, onSelect }) => {
-  const { selectedFiatCurrency, setSelectedFiatCurrency } = useWalletContext();
+  const { preferences, setPreferences } = useWalletContext();
 
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -19,19 +18,12 @@ const FiatCurrencySelector: React.FC<FiatCurrencySelectorProps> = ({ options, on
   };
 
   const handleSelect = (selected: 'USD' | 'BTC') => {
-    setSelectedFiatCurrency(selected);
+    preferences.fiatCurrency = selected;
+    setPreferences(preferences);
     setIsOpen(false);
     if (onSelect) {
       onSelect(selected);
     }
-
-    chrome.storage.local.get(['storedAccount'], res => {
-      const storedAccount: StoredAccount | undefined = res.storedAccount;
-      if (storedAccount) {
-        storedAccount.fiatCurrency = selected;
-        chrome.storage.local.set({ storedAccount });
-      }
-    });
   };
 
   useEffect(() => {
@@ -54,7 +46,7 @@ const FiatCurrencySelector: React.FC<FiatCurrencySelectorProps> = ({ options, on
           onClick={toggleDropdown}
           className="flex gap-2.5 justify-center items-center px-5 py-3 w-full rounded-2xl bg-background-1d border border-background-42">
           <span className="self-stretch my-auto w-full text-left text-foregrouund1 font-bold text-lg">
-            {selectedFiatCurrency}
+            {preferences?.fiatCurrency}
           </span>
           <img
             loading="lazy"

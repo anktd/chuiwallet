@@ -34,11 +34,28 @@ const handlers: Record<string, Handler> = {
     }
     return walletManager.getMnemonic(password);
   },
+  'wallet.getXpub': async () => {
+    return walletManager.getXpub();
+  },
+  'wallet.verifyPassword': async params => {
+    const { password } = params as { password: string };
+    return walletManager.verifyPassword(password);
+  },
   'wallet.getBalance': async () => {
     return await walletManager.getBalance();
   },
   'wallet.getReceivingAddress': async () => {
     return walletManager.getAddress();
+  },
+  'wallet.switchNetwork': async params => {
+    const { network } = params as { network: Network };
+    const success = await walletManager.switchNetwork(network);
+    console.log(preferenceManager.get());
+    scanManager.backfillScan();
+    scanManager.backfillScan(ChangeType.Internal);
+    scanManager.forwardScan();
+    scanManager.forwardScan(ChangeType.Internal);
+    return success;
   },
   'preferences.get': async () => {
     return preferenceManager.get();
@@ -57,17 +74,13 @@ const handlers: Record<string, Handler> = {
     if (!toAddress || !amountInSats || !feerate) {
       throw new Error('Missing required parameter');
     }
-    const txid = await walletManager.sendPayment(toAddress, amountInSats, feerate);
-    console.log(txid);
-    return txid;
+    return await walletManager.sendPayment(toAddress, amountInSats, feerate);
   },
-  getCustomFeeEstimates: () => {},
-  sendTransaction: () => {},
-  signAndSendTransaction: () => {},
-  logout: () => {},
-  openXpub: () => {},
   'wallet.lock': async () => {
     await walletManager.lock();
+  },
+  'wallet.logout': async () => {
+    await walletManager.logout();
   },
   ping: () => 'pong',
   echo: params => {
