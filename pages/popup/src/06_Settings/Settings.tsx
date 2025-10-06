@@ -5,7 +5,12 @@ import { useWalletContext } from '@src/context/WalletContext';
 
 export const Settings: React.FC = () => {
   const navigate = useNavigate();
-  const { logout } = useWalletContext();
+  const { lock, logout } = useWalletContext();
+
+  const handleLock = () => {
+    lock();
+    navigate('/locked');
+  };
 
   const handleLogout = () => {
     logout();
@@ -32,6 +37,11 @@ export const Settings: React.FC = () => {
           />
         </button>
 
+        <button
+          className="flex gap-10 justify-between items-start py-2 w-full text-base leading-none text-white"
+          onClick={handleLock}>
+          <span className="text-base text-primary-red font-bold">Lock</span>
+        </button>
         <button
           className="flex gap-10 justify-between items-start py-2 w-full text-base leading-none text-white"
           onClick={handleLogout}>

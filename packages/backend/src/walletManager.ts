@@ -1,22 +1,25 @@
-import browser from 'webextension-polyfill';
 import type { CreateWalletOptions } from './modules/wallet';
-import { wallet } from './modules/wallet';
 import type { SpendableUtxo, utxoSelectionResult } from './modules/utxoSelection';
-import { selectUtxo } from './modules/utxoSelection';
 import type { AddressEntry, UtxoEntry } from './types/cache';
 import { CacheType, ChangeType } from './types/cache';
-import { getCacheKey, selectByChain } from './utils/cache';
-import { buildSpendPsbt } from './utils/psbt';
-import { getBitcoinPrice } from './modules/blockonomics';
+import browser from 'webextension-polyfill';
+import * as secp256k1 from '@bitcoinerlab/secp256k1';
+import * as bitcoin from 'bitcoinjs-lib';
+import { wallet } from './modules/wallet';
 import { accountManager } from './accountManager';
 import { preferenceManager } from './preferenceManager';
 import { scanManager } from './scanManager';
 import { electrumService } from './modules/electrumService';
 import { feeService } from './modules/feeService';
-import { scriptTypeFromAddress, toHdSigner } from './utils/crypto';
 import { logger } from './utils/logger';
-import * as secp256k1 from '@bitcoinerlab/secp256k1';
-import * as bitcoin from 'bitcoinjs-lib';
+import { selectUtxo } from './modules/utxoSelection';
+import { getCacheKey, selectByChain } from './utils/cache';
+import { buildSpendPsbt } from './utils/psbt';
+import { getBitcoinPrice } from './modules/blockonomics';
+import { scriptTypeFromAddress } from './utils/crypto';
+import { deleteSessionPassword, getSessionPassword } from './utils/sessionStorageHelper';
+import { historyService } from './modules/txHistoryService';
+import { Network } from './types/electrum';
 
 bitcoin.initEccLib(secp256k1);
 
@@ -31,6 +34,11 @@ export class WalletManager {
    */
   async init(): Promise<void> {
     await wallet.init();
+  }
+
+  async lock() {
+    wallet.clear();
+    await deleteSessionPassword();
   }
 
   /**
