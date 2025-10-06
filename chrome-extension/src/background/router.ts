@@ -1,10 +1,13 @@
 import type { Runtime } from 'webextension-polyfill';
+import type { Network } from '@extension/backend/src/types/electrum';
 import browser from 'webextension-polyfill';
 import { preferenceManager } from '@extension/backend/src/preferenceManager';
 import { walletManager } from '@extension/backend/src/walletManager';
 import { accountManager } from '@extension/backend/src/accountManager';
 import { historyService } from '../../../packages/backend/src/modules/txHistoryService';
 import { getSessionPassword, setSessionPassword } from '@extension/backend/dist/utils/sessionStorageHelper';
+import { scanManager } from '@extension/backend/dist/scanManager';
+import { ChangeType } from '@extension/backend/dist/types/cache';
 type Handler = (params: unknown, sender: Runtime.MessageSender) => Promise<unknown> | unknown;
 
 const handlers: Record<string, Handler> = {
@@ -63,6 +66,9 @@ const handlers: Record<string, Handler> = {
   signAndSendTransaction: () => {},
   logout: () => {},
   openXpub: () => {},
+  'wallet.lock': async () => {
+    await walletManager.lock();
+  },
   ping: () => 'pong',
   echo: params => {
     const p = params as { msg?: unknown } | undefined;
