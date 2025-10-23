@@ -8,9 +8,19 @@ export interface InputFieldProps {
   value?: string;
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
+  onBlur?: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-export const InputField: React.FC<InputFieldProps> = ({ label, type, placeholder, id, value, onChange, onKeyDown }) => {
+export const InputField: React.FC<InputFieldProps> = ({
+  label,
+  type,
+  placeholder,
+  id,
+  value,
+  onChange,
+  onKeyDown,
+  onBlur,
+}) => {
   return (
     <div className="flex flex-col w-full">
       <label htmlFor={id} className="mb-2 text-white text-lg font-extrabold">
@@ -24,6 +34,7 @@ export const InputField: React.FC<InputFieldProps> = ({ label, type, placeholder
         value={value}
         onChange={onChange}
         onKeyDown={onKeyDown}
+        onBlur={onBlur}
       />
     </div>
   );

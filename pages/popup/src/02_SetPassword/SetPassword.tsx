@@ -12,15 +12,18 @@ export const SetPassword: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = React.useState('');
   const [termsAccepted, setTermsAccepted] = React.useState(false);
   const [errorMsg, setErrorMsg] = React.useState('');
+  const [noMatchMsg, setNoMatchMsg] = React.useState('');
   const passwordStrength = getPasswordStrength(password);
 
   let strengthColorClass = 'text-primary-red';
-
   if (passwordStrength === 'medium') {
     strengthColorClass = 'text-primary-yellow';
   } else if (passwordStrength === 'strong') {
     strengthColorClass = 'text-primary-green';
   }
+
+  const passwordsMatch = password.length > 0 && password === confirmPassword;
+  const canProceed = termsAccepted && passwordsMatch && passwordStrength === 'strong';
 
   const handleNext = async () => {
     setErrorMsg('');
@@ -31,7 +34,7 @@ export const SetPassword: React.FC = () => {
     }
 
     if (password !== confirmPassword) {
-      setErrorMsg('Passwords do not match.');
+      setNoMatchMsg('Passwords do not match.');
       return;
     }
 
@@ -42,6 +45,14 @@ export const SetPassword: React.FC = () => {
 
     await setSessionPassword(password);
     navigate('/onboard/choose-method');
+  };
+
+  const handlePasswordConfirmation = (passwordConfirmation: string) => {
+    if (passwordConfirmation !== password) {
+      setNoMatchMsg('Passwords do not match');
+    } else {
+      setNoMatchMsg('');
+    }
   };
 
   return (
@@ -79,9 +90,10 @@ export const SetPassword: React.FC = () => {
               placeholder="Confirm password"
               id="confirmPassword"
               value={confirmPassword}
+              onBlur={e => handlePasswordConfirmation(e.target.value)}
               onChange={e => setConfirmPassword(e.target.value)}
             />
-
+            {noMatchMsg && <span className="mt-1 text-xs text-primary-red font-light">{noMatchMsg}</span>}
             <span className="mt-2 text-xs text-neutral-400 font-normal">
               Password must be at least 8 characters long, contain uppercase letters, digits, and special characters.
             </span>
@@ -93,7 +105,7 @@ export const SetPassword: React.FC = () => {
         </div>
       </div>
 
-      <Button className="absolute w-full bottom-[19px]" onClick={handleNext} tabIndex={0} disabled={!termsAccepted}>
+      <Button className="absolute w-full bottom-[19px]" onClick={handleNext} tabIndex={0} disabled={!canProceed}>
         Next
       </Button>
     </div>
