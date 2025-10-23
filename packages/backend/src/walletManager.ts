@@ -1,6 +1,7 @@
 import type { CreateWalletOptions } from './modules/wallet';
 import type { SpendableUtxo, utxoSelectionResult } from './modules/utxoSelection';
 import type { AddressEntry, UtxoEntry } from './types/cache';
+import type { Network } from './types/electrum';
 import { CacheType, ChangeType } from './types/cache';
 import browser from 'webextension-polyfill';
 import * as secp256k1 from '@bitcoinerlab/secp256k1';
@@ -19,7 +20,6 @@ import { getBitcoinPrice } from './modules/blockonomics';
 import { scriptTypeFromAddress } from './utils/crypto';
 import { deleteSessionPassword, getSessionPassword } from './utils/sessionStorageHelper';
 import { historyService } from './modules/txHistoryService';
-import { Network } from './types/electrum';
 
 bitcoin.initEccLib(secp256k1);
 

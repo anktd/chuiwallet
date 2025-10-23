@@ -18,8 +18,10 @@ async function init() {
   await walletManager.init();
   await electrumService.init(preferenceManager.get().activeNetwork);
   await accountManager.init(preferenceManager.get().activeAccountIndex);
-  await scanManager.init();
-  await allScan();
+  if (accountManager.activeAccountIndex >= 0) {
+    await scanManager.init();
+    await allScan();
+  }
 }
 
 (async () => {
@@ -29,19 +31,24 @@ async function init() {
 })();
 
 async function allScan() {
-  //Todo: guard if manager init
-  await forwardScan();
-  await backfillScan();
+  if (accountManager.activeAccountIndex >= 0) {
+    await forwardScan();
+    await backfillScan();
+  }
 }
 
 async function backfillScan() {
-  await scanManager.backfillScan();
-  await scanManager.backfillScan(ChangeType.Internal);
+  if (accountManager.activeAccountIndex >= 0) {
+    await scanManager.backfillScan();
+    await scanManager.backfillScan(ChangeType.Internal);
+  }
 }
 
 async function forwardScan() {
-  await scanManager.forwardScan();
-  await scanManager.forwardScan(ChangeType.Internal);
+  if (accountManager.activeAccountIndex >= 0) {
+    await scanManager.forwardScan();
+    await scanManager.forwardScan(ChangeType.Internal);
+  }
 }
 
 // Message Action Router

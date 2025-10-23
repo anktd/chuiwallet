@@ -49,6 +49,7 @@ export class Wallet {
   }
 
   public clear() {
+    this.encryptedVault = null;
     this.root = null;
     this.seed = null;
     this.xpub = null;
