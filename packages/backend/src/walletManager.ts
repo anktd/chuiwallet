@@ -8,7 +8,7 @@ import * as secp256k1 from '@bitcoinerlab/secp256k1';
 import * as bitcoin from 'bitcoinjs-lib';
 import { wallet } from './modules/wallet';
 import { accountManager } from './accountManager';
-import { preferenceManager } from './preferenceManager';
+import { defaultPreferences, preferenceManager } from './preferenceManager';
 import { scanManager } from './scanManager';
 import { electrumService } from './modules/electrumService';
 import { feeService } from './modules/feeService';
@@ -46,6 +46,7 @@ export class WalletManager {
     await historyService.clearCache();
     await accountManager.destroy();
     await wallet.destroy();
+    await preferenceManager.update(defaultPreferences);
     await deleteSessionPassword();
   }
 

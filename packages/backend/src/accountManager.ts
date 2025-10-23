@@ -15,7 +15,7 @@ export class AccountManager {
   /**
    * Initialize by loading accounts and set active account index.
    */
-  public async init(activeAccountIndex: number = 0): Promise<this> {
+  public async init(activeAccountIndex: number = -1): Promise<this> {
     await this.load();
     this.activeAccountIndex = activeAccountIndex;
     return this;
